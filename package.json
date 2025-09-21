@@ -2,15 +2,22 @@
   "name": "@shunkakinoki/open-composer",
   "private": true,
   "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
     "check": "biome check .",
     "format": "biome format --write .",
-    "lint": "biome lint --write ."
+    "clean": "turbo clean && rm -rf node_modules",
+    "type-check": "turbo type-check"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "devDependencies": {
-    "@biomejs/biome": "2.2.4"
-  }
+    "@biomejs/biome": "2.2.4",
+    "turbo": "^2.0.0"
+  },
+  "packageManager": "bun@1.0.0"
 }

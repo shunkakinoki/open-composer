@@ -5,8 +5,18 @@
   "bin": {
     "open-composer": "./index.ts"
   },
+  "scripts": {
+    "build": "bun build ./index.ts --outdir ./dist --target=node",
+    "dev": "bun run ./index.ts",
+    "type-check": "tsc --noEmit"
+  },
   "dependencies": {
     "ink": "^5.0.1",
     "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "typescript": "^5"
   }
 }
