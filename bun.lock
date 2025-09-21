@@ -47,7 +47,7 @@
       "name": "@open-composer/cli",
       "version": "0.1.0",
       "bin": {
-        "open-composer": "./index.ts",
+        "open-composer": "./src/index.ts",
       },
       "dependencies": {
         "ink": "^6.3.1",
