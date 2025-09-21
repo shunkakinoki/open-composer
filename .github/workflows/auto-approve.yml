@@ -21,8 +21,6 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
       - name: Auto Approve Renovate PR
         if: |
           github.actor == 'dependabot[bot]' ||
@@ -32,7 +30,7 @@ jobs:
           github.actor == 'renovate[bot]' ||
           github.actor == 'renovate' ||
           github.actor == 'github-actions[bot]'
-        uses: hmarr/auto-approve-action@v4
+        uses: shunkakinoki/actions/.github/actions/auto-approve@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
   auto-approve-check:
