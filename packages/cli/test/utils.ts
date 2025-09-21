@@ -143,4 +143,5 @@ export const cleanup = () => {
     instance.unmount();
     instance.cleanup();
   }
+  instances.length = 0;
 };
