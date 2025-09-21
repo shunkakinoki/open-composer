@@ -10,8 +10,6 @@ jobs:
       contents: write
       issues: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         run: gh pr merge --auto --squash ${{ github.event.pull_request.number }}
