@@ -7,11 +7,45 @@ configure({
   reactStrictMode: false,
 });
 
-// Global test setup
+// Mock Date to return consistent timestamps for snapshot testing
+const mockDate = new Date("2024-01-01T10:00:00Z");
+const OriginalDate = global.Date;
+
 beforeAll(() => {
-  // Any global setup can go here
+  // Mock Date constructor and methods
+  global.Date = class extends OriginalDate {
+    constructor(arg?: string | number | Date) {
+      if (arg === undefined) {
+        super(mockDate.getTime());
+      } else {
+        super(arg);
+      }
+    }
+
+    static now() {
+      return mockDate.getTime();
+    }
+  } as typeof OriginalDate;
+
+  // Mock Date prototype methods
+  global.Date.prototype.toLocaleTimeString = function (
+    this: Date,
+    _locales?: string | string[],
+    _options?: Intl.DateTimeFormatOptions,
+  ) {
+    return "10:00";
+  };
+
+  global.Date.prototype.toLocaleDateString = function (
+    this: Date,
+    _locales?: string | string[],
+    _options?: Intl.DateTimeFormatOptions,
+  ) {
+    return "1/1/2024";
+  };
 });
 
 afterAll(() => {
-  // Any global cleanup can go here
+  // Restore original Date
+  global.Date = OriginalDate;
 });
