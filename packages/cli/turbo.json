@@ -1,0 +1,10 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["test/**/*.{ts,tsx}"],
+      "outputs": []
+    }
+  }
+}

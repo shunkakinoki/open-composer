@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage",
+    "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
     "ink": "^6.3.1",

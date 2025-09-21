@@ -1,5 +1,12 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, mock } from "bun:test";
 import { Text } from "ink";
+
+// Mock ComposerApp utility functions before importing
+mock.module("../../src/components/ComposerApp.js", () => ({
+  createTimestamp: () => new Date("2024-01-01T10:00:00Z"),
+  getCurrentTime: () => new Date("2024-01-01T10:00:00Z").getTime(),
+}));
+
 import { ChatInterface } from "../../src/components/ChatInterface.js";
 import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
