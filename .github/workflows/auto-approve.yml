@@ -21,6 +21,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
       - name: Auto Approve Renovate PR
         if: |
           github.actor == 'dependabot[bot]' ||
