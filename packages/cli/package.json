@@ -8,7 +8,10 @@
   "scripts": {
     "build": "bun build ./index.ts --outdir ./dist --target=node",
     "dev": "bun run ./index.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "ink": "^6.3.1",
@@ -16,6 +19,9 @@
     "react-devtools-core": "^6.1.5"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/bun": "^1.2.22",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "typescript": "^5.9.2"

@@ -3,6 +3,9 @@
 import { render, Text } from "ink";
 import React from "react";
 
-const App: React.FC = () => React.createElement(Text, null, "Hello World");
+export const App: React.FC = () =>
+  React.createElement(Text, null, "Hello World");
 
-render(React.createElement(App));
+if (require.main === module) {
+  render(React.createElement(App));
+}

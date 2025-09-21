@@ -14,8 +14,9 @@
     "jsx": "react-jsx",
     "declaration": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "noEmit": true
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
