@@ -188,3 +188,4 @@ CMakeUserPresets.json
 #cmake-build-*
 
 .turbo
+.claude
