@@ -1,5 +1,6 @@
-// From: https://github.com/vadimdemedes/ink-testing-library/blob/master/source/index.ts
+// Custom implementation based on: https://github.com/vadimdemedes/ink-testing-library/blob/master/source/index.ts
 // License: MIT
+// Note: This is not a direct copy. The code has been adapted and modified for project-specific testing needs.
 
 import { EventEmitter } from "node:events";
 import { type Instance as InkInstance, render as inkRender } from "ink";
