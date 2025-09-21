@@ -10,6 +10,7 @@ configure({
 // Mock Date to return consistent timestamps for snapshot testing
 const mockDate = new Date("2024-01-01T10:00:00Z");
 const OriginalDate = global.Date;
+let originalNow: () => number;
 
 beforeAll(() => {
   // Mock Date constructor and methods
@@ -43,9 +44,14 @@ beforeAll(() => {
   ) {
     return "1/1/2024";
   };
+
+  // Ensure new Date() calls are properly mocked
+  originalNow = Date.now;
+  Date.now = () => mockDate.getTime();
 });
 
 afterAll(() => {
   // Restore original Date
   global.Date = OriginalDate;
+  Date.now = originalNow;
 });

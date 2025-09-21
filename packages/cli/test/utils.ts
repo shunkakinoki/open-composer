@@ -21,41 +21,29 @@ interface TestReadable {
   unref(): this;
 }
 
-class Stdout extends EventEmitter implements TestWritable {
+class TestWritableStream extends EventEmitter implements TestWritable {
+  readonly frames: string[] = [];
+  private _lastFrame?: string;
+
+  write(chunk: string): void {
+    this.frames.push(chunk);
+    this._lastFrame = chunk;
+  }
+
+  end(): void {
+    // Do nothing for testing
+  }
+
+  lastFrame = () => this._lastFrame;
+}
+
+class Stdout extends TestWritableStream {
   get columns() {
     return 100;
   }
-
-  readonly frames: string[] = [];
-  private _lastFrame?: string;
-
-  write(chunk: string): void {
-    this.frames.push(chunk);
-    this._lastFrame = chunk;
-  }
-
-  end(): void {
-    // Do nothing for testing
-  }
-
-  lastFrame = () => this._lastFrame;
 }
 
-class Stderr extends EventEmitter implements TestWritable {
-  readonly frames: string[] = [];
-  private _lastFrame?: string;
-
-  write(chunk: string): void {
-    this.frames.push(chunk);
-    this._lastFrame = chunk;
-  }
-
-  end(): void {
-    // Do nothing for testing
-  }
-
-  lastFrame = () => this._lastFrame;
-}
+class Stderr extends TestWritableStream {}
 
 class Stdin extends EventEmitter implements TestReadable {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -142,8 +130,5 @@ export const cleanup = () => {
     instance.unmount();
     instance.cleanup();
   }
-  instances.length = 0;
-};
-  instances.length = 0;
   instances.length = 0;
 };
