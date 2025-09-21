@@ -1,5 +1,5 @@
 {
-  "name": "landing-page",
+  "name": "@open-composer/landing",
   "version": "0.1.0",
   "private": true,
   "scripts": {
