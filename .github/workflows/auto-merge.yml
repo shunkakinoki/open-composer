@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
-        uses: shunkakinoki/actions/packages/auto-merge@main
+        uses: shunkakinoki/actions/.github/actions/auto-merge@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
