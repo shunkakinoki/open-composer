@@ -145,7 +145,7 @@ vite.config.ts.timestamp-*
 __MACOSX/
 .AppleDouble
 .LSOverride
-Icon[]
+Icon
 
 
 # Thumbnails

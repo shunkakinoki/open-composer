@@ -6,6 +6,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
+    "test": "turbo test",
     "check": "biome check .",
     "format": "biome format --write .",
     "clean": "turbo clean && rm -rf node_modules",
