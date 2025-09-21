@@ -10,14 +10,12 @@ jobs:
       contents: write
       issues: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
-        run: gh pr merge --auto --squash ${{ github.event.pull_request.number }}
-        env:
+        uses: shunkakinoki/actions/.github/actions/auto-merge@156beb8dbd9b84135a994da9ea77398d91e33df6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.PAT_ORGANIZATION_TOKEN }}
   auto-merge-check:
     if: always()
     needs:
