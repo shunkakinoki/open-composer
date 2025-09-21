@@ -137,12 +137,13 @@ export const render = (tree: ReactElement): Instance => {
     lastFrame: stdout.lastFrame,
   };
 };
-
 export const cleanup = () => {
   for (const instance of instances) {
     instance.unmount();
     instance.cleanup();
   }
+  instances.length = 0;
+};
   instances.length = 0;
   instances.length = 0;
 };
