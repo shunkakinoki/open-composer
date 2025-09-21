@@ -8,7 +8,7 @@ exports[`Open Composer CLI Component Snapshots ComposerApp renders correctly 1`]
 │                            ││                                      ││                            │
 │ 📂 Workspaces              ││ 💬 Chat Interface                    ││ 📝 Code Editor             │
 │                            ││                                      ││                            │
-│ ● main                     ││ 🎼 composer 14:53                    ││ ┌──────────────────────┐   │
+│ ● main                     ││ 🎼 composer 14:55                    ││ ┌──────────────────────┐   │
 │                            ││  Welcome to Open Composer CLI! What  ││ │                      │   │
 │                            ││ would you like to build?             ││ │                      │   │
 │ 🌿 Branches                ││                                      ││ │   No file selected   │   │
