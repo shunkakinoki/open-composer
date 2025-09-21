@@ -1,0 +1,40 @@
+name: Bun
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+jobs:
+  bun-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install
+      - name: Check
+        run: bun run check
+      - name: Format
+        run: bun run format
+      - name: Lint
+        run: bun run lint
+  bun-check:
+    if: always()
+    needs:
+      - bun-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Alls Green
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}

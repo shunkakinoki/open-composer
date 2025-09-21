@@ -1,0 +1,47 @@
+name: Auto Approve
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+jobs:
+  auto-approve-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event_name == 'pull_request_target'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Auto Approve Renovate PR
+        if: |
+          github.actor == 'dependabot[bot]' ||
+          github.actor == 'dependabot' ||
+          github.actor == 'dependabot-preview[bot]' ||
+          github.actor == 'dependabot-preview' ||
+          github.actor == 'renovate[bot]' ||
+          github.actor == 'renovate' ||
+          github.actor == 'github-actions[bot]'
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  auto-approve-check:
+    if: always()
+    needs:
+      - auto-approve-bot
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Alls Green
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+          allowed-skips: auto-approve-bot

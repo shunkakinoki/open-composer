@@ -1,0 +1,48 @@
+# Dependabot configuration for automatic dependency updates
+version: 2
+updates:
+  # NPM
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+    labels:
+      - "automerge"
+      - "dependencies"
+      - "dependabot"
+    groups:
+      npm-all-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps): actions update"
+    labels:
+      - "automerge"
+      - "dependencies"
+      - "dependabot"
+  # Docker
+  - package-ecosystem: "docker"
+    directory: ".cursor"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps): docker update"
+    labels:
+      - "automerge"
+      - "dependencies"
+      - "dependabot"
