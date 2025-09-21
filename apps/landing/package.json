@@ -1,12 +1,11 @@
 {
   "name": "@open-composer/landing",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
