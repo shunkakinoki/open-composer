@@ -15,7 +15,7 @@ interface CliResult {
 }
 
 const stripAnsi = (value: string): string =>
-  value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g'), "");
+  value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
 const runCli = (args: string[] = []): Promise<CliResult> =>
   new Promise((resolve, reject) => {
