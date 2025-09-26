@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "applications": {
+    "landing": {
+      "development": {
+        "fallback": "TODO: a URL in production that should be used for requests to apps not running locally"
+      }
+    },
+    "docs": {
+      "routing": [
+        {
+          "group": "docs",
+          "paths": ["/docs", "/docs/:path*"]
+        }
+      ]
+    }
+  }
+}
