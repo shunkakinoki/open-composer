@@ -27,12 +27,14 @@ The microfrontends configuration is defined in `apps/landing/microfrontends.json
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
-    "landing": {
+    "@open-composer/landing": {
+      "packageName": "open-composer-landing",
       "development": {
-        "fallback": "TODO: a URL in production that should be used for requests to apps not running locally"
+        "fallback": "https://placeholder.com"
       }
     },
-    "docs": {
+    "@open-composer/docs": {
+      "packageName": "open-composer-docs",
       "routing": [
         {
           "group": "docs",
@@ -43,6 +45,8 @@ The microfrontends configuration is defined in `apps/landing/microfrontends.json
   }
 }
 ```
+
+The `packageName` field maps the scoped package names to the Vercel project names.
 
 ### 3. Next.js Configuration
 
