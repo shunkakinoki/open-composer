@@ -14,6 +14,10 @@ import {
 } from "./git.js";
 import { type ParsedWorktree, parsePorcelainList } from "./parse.js";
 
+// -----------------------------------------------------------------------------
+// Worktree
+// -----------------------------------------------------------------------------
+
 export type Worktree = ParsedWorktree;
 
 export interface ListOptions extends GitCommandOptions {}
