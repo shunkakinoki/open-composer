@@ -1,11 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
-    "@open-composer/landing": {
-      "development": {
-        "fallback": "TODO: a URL in production that should be used for requests to apps not running locally"
-      }
-    },
+    "@open-composer/landing": {},
     "@open-composer/docs": {
       "routing": [
         {
