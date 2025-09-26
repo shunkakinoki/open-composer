@@ -39,8 +39,8 @@ bun run test
 
 ### Core Libraries
 
-- **WorktreeManager**: Git worktree operations
-- **AgentRouter**: Agent selection and query routing
+- **WorktreeCli**: Effect-based Git worktree operations
+- **@open-composer/agent-router**: Effect-based agent selection and query routing
 
 ## Usage
 
@@ -51,6 +51,13 @@ The CLI launches a TUI with three main panes:
 3. **Right Panel**: File tree and code editor
 
 Type messages in the chat interface to interact with agents. The router automatically selects appropriate agents based on your query content.
+
+### CLI Commands
+
+- `open-composer agents list` — inspect available agents
+- `open-composer agents activate <name>` — enable an agent
+- `open-composer agents deactivate <name>` — disable an agent
+- `open-composer gw list` — inspect git worktrees
 
 ## Agents
 
