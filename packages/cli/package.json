@@ -19,6 +19,7 @@
     "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
+    "@open-composer/agent-router": "workspace:*",
     "@effect/cli": "^0.69.0",
     "@effect/platform": "^0.91.1",
     "@effect/platform-bun": "^0.80.0",

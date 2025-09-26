@@ -39,8 +39,8 @@ bun run test
 
 ### Core Libraries
 
-- **WorktreeManager**: Git worktree operations
-- **AgentRouter**: Agent selection and query routing
+- **WorktreeCli**: Effect-based Git worktree operations
+- **@open-composer/agent-router**: Effect-based agent selection and query routing
 
 ## Usage
 

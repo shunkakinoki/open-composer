@@ -19,44 +19,10 @@ import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
-import { AgentRouter, WorktreeCli } from "../../src/lib/index.js";
+import { WorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 
 describe("Open Composer CLI", () => {
-  describe("AgentRouter", () => {
-    test("should initialize with default agents", () => {
-      const router = new AgentRouter();
-      const agents = router.getAgents();
-
-      expect(agents).toHaveLength(5);
-      expect(agents.find((a) => a.name === "claude-code")).toBeDefined();
-      expect(agents.find((a) => a.name === "codex-nation")).toBeDefined();
-    });
-
-    test("should activate and deactivate agents", () => {
-      const router = new AgentRouter();
-
-      expect(router.activateAgent("codex-nation")).toBe(true);
-      expect(router.deactivateAgent("claude-code")).toBe(true);
-
-      const activeAgents = router.getActiveAgents();
-      expect(activeAgents.find((a) => a.name === "codex-nation")).toBeDefined();
-      expect(
-        activeAgents.find((a) => a.name === "claude-code"),
-      ).toBeUndefined();
-    });
-
-    test("should route queries to appropriate agents", async () => {
-      const router = new AgentRouter();
-
-      const reviewResponse = await router.routeQuery("review this code");
-      expect(reviewResponse.agent).toBe("claude-code");
-
-      const generateResponse = await router.routeQuery("generate a function");
-      expect(generateResponse.agent).toBe("codex-nation");
-    });
-  });
-
   describe("WorktreeCli", () => {
     test("should initialize with current directory", async () => {
       const cli = await Effect.runPromise(WorktreeCli.make());
