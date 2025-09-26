@@ -1,0 +1,9 @@
+{
+  "buildCommand": "bun run build",
+  "git": {
+    "autoJobCancelation": true,
+    "autoAlias": true,
+    "deploymentEnabled": true
+  },
+  "ignoreCommand": "git log -1 --pretty=oneline --abbrev-commit | grep -w \"\\[skip deploy\\]\" || npx turbo-ignore --fallback=HEAD^"
+}

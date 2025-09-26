@@ -1,6 +1,9 @@
 {
-  "name": "@open-composer/cli",
+  "name": "open-composer",
   "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "src/index.ts",
   "bin": {
     "open-composer": "./src/index.ts"

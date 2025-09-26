@@ -164,10 +164,7 @@ const buildRemoveArgs = (input: RemoveOptions): string[] => {
 export const remove = (
   input: RemoveOptions,
 ): Effect.Effect<void, GitCommandError> =>
-  pipe(
-    runGit(buildRemoveArgs(input), input),
-    Effect.asVoid,
-  );
+  pipe(runGit(buildRemoveArgs(input), input), Effect.asVoid);
 
 export interface LockOptions extends GitCommandOptions {
   readonly path: string;
@@ -241,9 +238,6 @@ const buildPruneArgs = (input: PruneOptions): string[] => {
 export const prune = (
   input: PruneOptions = {},
 ): Effect.Effect<void, GitCommandError> =>
-  pipe(
-    runGit(buildPruneArgs(input), input),
-    Effect.asVoid,
-  );
+  pipe(runGit(buildPruneArgs(input), input), Effect.asVoid);
 
 export type GitWorktreesError = GitCommandError | GitWorktreeError;

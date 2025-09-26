@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "applications": {
+    "open-composer-landing": {
+      "packageName": "open-composer-landing",
+      "development": {
+        "fallback": "opencomposer.dev"
+      }
+    },
+    "open-composer-docs": {
+      "packageName": "open-composer-docs",
+      "routing": [
+        {
+          "group": "docs",
+          "paths": ["/docs", "/docs/:path*"]
+        }
+      ]
+    }
+  }
+}
