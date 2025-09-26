@@ -1,4 +1,0 @@
-[test]
-# Run tests sequentially to avoid interference between worker and CLI tests
-include = ["packages/**", "apps/**"]
-exclude = ["workers/**"]
