@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bun run build",
   "git": {
     "autoJobCancelation": true,
     "autoAlias": true,
