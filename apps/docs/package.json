@@ -1,5 +1,5 @@
 {
-  "name": "@open-composer/docs",
+  "name": "open-composer-docs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
