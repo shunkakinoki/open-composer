@@ -41,6 +41,9 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Lock files (using bun.lock instead)
+package-lock.json
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
