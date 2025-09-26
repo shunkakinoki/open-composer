@@ -1,0 +1,27 @@
+{
+  "name": "@open-composer/git-stack",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "dev": "bun run ./src/index.ts",
+    "type-check": "tsc -b tsconfig.json",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "test:update-snapshot": "bun test --updateSnapshot"
+  },
+  "dependencies": {
+    "effect": "^3.17.14"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.41.0",
+    "@types/bun": "^1.2.22",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}
