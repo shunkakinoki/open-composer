@@ -2,7 +2,9 @@
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
     "@open-composer/landing": {
-      "development": {}
+      "development": {
+        "fallback": "https://placeholder.com"
+      }
     },
     "@open-composer/docs": {
       "routing": [
