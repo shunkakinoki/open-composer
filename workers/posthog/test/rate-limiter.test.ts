@@ -88,9 +88,18 @@ describe("RateLimiter Durable Object", () => {
     const oldWindow2 = currentWindow - 2;
     const recentWindow = currentWindow - 1; // This should be kept
 
-    await mockStorage.put(`window:${oldWindow1}`, { count: 50, timestamp: now - 180000 }); // 3 minutes old
-    await mockStorage.put(`window:${oldWindow2}`, { count: 30, timestamp: now - 120000 }); // 2 minutes old
-    await mockStorage.put(`window:${recentWindow}`, { count: 20, timestamp: now - 60000 }); // 1 minute old
+    await mockStorage.put(`window:${oldWindow1}`, {
+      count: 50,
+      timestamp: now - 180000,
+    }); // 3 minutes old
+    await mockStorage.put(`window:${oldWindow2}`, {
+      count: 30,
+      timestamp: now - 120000,
+    }); // 2 minutes old
+    await mockStorage.put(`window:${recentWindow}`, {
+      count: 20,
+      timestamp: now - 60000,
+    }); // 1 minute old
 
     // Make a new request which should trigger cleanup
     await rateLimiter.checkRateLimit();
@@ -98,7 +107,9 @@ describe("RateLimiter Durable Object", () => {
     // Verify old windows were cleaned up, but recent window was kept
     expect(mockStorage.delete).toHaveBeenCalledWith(`window:${oldWindow1}`);
     expect(mockStorage.delete).toHaveBeenCalledWith(`window:${oldWindow2}`);
-    expect(mockStorage.delete).not.toHaveBeenCalledWith(`window:${recentWindow}`);
+    expect(mockStorage.delete).not.toHaveBeenCalledWith(
+      `window:${recentWindow}`,
+    );
   });
 
   it("should handle edge case at window boundary", async () => {
@@ -130,12 +141,15 @@ describe("RateLimiter Durable Object", () => {
 
     // Simulate time passage by mocking Date.now
     const originalNow = Date.now;
-    vi.spyOn(Date, 'now').mockReturnValue(originalNow() + 61000); // 61 seconds later
+    vi.spyOn(Date, "now").mockReturnValue(originalNow() + 61000); // 61 seconds later
 
     // Create a new rate limiter instance (simulating a new time window)
-    const newRateLimiter = new RateLimiter({
-      storage: createMockStorage(),
-    } as any, {} as any);
+    const newRateLimiter = new RateLimiter(
+      {
+        storage: createMockStorage(),
+      } as any,
+      {} as any,
+    );
 
     // This should be allowed in the new window
     const newResult = await newRateLimiter.checkRateLimit();

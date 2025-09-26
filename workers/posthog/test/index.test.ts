@@ -30,7 +30,11 @@ describe("PostHog Anonymous Logger Worker", () => {
       method: "OPTIONS",
     });
 
-    const response = await worker.fetch(request, mockEnv as any, mockCtx as any);
+    const response = await worker.fetch(
+      request,
+      mockEnv as any,
+      mockCtx as any,
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
@@ -44,7 +48,11 @@ describe("PostHog Anonymous Logger Worker", () => {
       method: "GET",
     });
 
-    const response = await worker.fetch(request, mockEnv as any, mockCtx as any);
+    const response = await worker.fetch(
+      request,
+      mockEnv as any,
+      mockCtx as any,
+    );
 
     expect(response.status).toBe(405);
     const body = (await response.json()) as { error: string };
@@ -79,7 +87,11 @@ describe("PostHog Anonymous Logger Worker", () => {
       body: JSON.stringify(eventData),
     });
 
-    const response = await worker.fetch(request, mockEnv as any, mockCtx as any);
+    const response = await worker.fetch(
+      request,
+      mockEnv as any,
+      mockCtx as any,
+    );
 
     expect(response.status).toBe(200);
     const responseBody = (await response.json()) as {
@@ -112,7 +124,11 @@ describe("PostHog Anonymous Logger Worker", () => {
       body: "invalid json",
     });
 
-    const response = await worker.fetch(request, mockEnv as any, mockCtx as any);
+    const response = await worker.fetch(
+      request,
+      mockEnv as any,
+      mockCtx as any,
+    );
 
     expect(response.status).toBe(400);
     const body = (await response.json()) as {
