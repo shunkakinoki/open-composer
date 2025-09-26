@@ -37,7 +37,7 @@ jobs:
           npm-token: ${{ secrets.NPM_TOKEN }}
           publish-command: 'bun run publish'
           create-github-releases: 'true'
-          commit-mode: 'github-api'
+          commit-mode: 'git-cli'
   changesets-pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
