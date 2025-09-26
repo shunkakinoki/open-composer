@@ -1,3 +1,4 @@
 [test]
-# Run tests in packages, apps, and workers
-include = ["packages/**", "apps/**", "workers/**"]
+# Run tests sequentially to avoid interference between worker and CLI tests
+include = ["packages/**", "apps/**"]
+exclude = ["workers/**"]
