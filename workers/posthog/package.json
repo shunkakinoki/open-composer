@@ -8,7 +8,7 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "tail": "wrangler tail",
-    "test": "bun vitest test/basic.test.ts test/rate-limiter.test.ts test/index.test.ts",
+    "test": "bun run test:integration",
     "test:unit": "bun vitest test/unit.test.ts",
     "test:integration": "bun vitest test/basic.test.ts test/rate-limiter.test.ts test/index.test.ts",
     "test:all": "bun vitest",
