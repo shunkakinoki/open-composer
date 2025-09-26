@@ -5,13 +5,16 @@ import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
 import * as CliConfig from "@effect/cli/CliConfig";
 import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
+import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
 import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
+import { AgentsCommands } from "./AgentsCommands.js";
 import { TuiCommand } from "./TuiCommand.js";
 import { WorktreeCommands } from "./WorktreeCommands.js";
 
 export type ComposerCliServices =
+  | AgentRouter
   | GitService
   | CliConfigService
   | BunContextService;
@@ -32,12 +35,17 @@ export class ComposerCli {
       CliConfig.layer({ showBuiltIns: false }),
       BunContext.layer,
       GitLive,
+      AgentRouterLive,
     );
 
   static buildRootCommand() {
     return Command.make("open-composer").pipe(
       Command.withDescription("Open Composer command line interface"),
-      Command.withSubcommands([TuiCommand.build(), WorktreeCommands.build()]),
+      Command.withSubcommands([
+        TuiCommand.build(),
+        WorktreeCommands.build(),
+        AgentsCommands.build(),
+      ]),
     );
   }
 

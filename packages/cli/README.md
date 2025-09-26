@@ -52,6 +52,13 @@ The CLI launches a TUI with three main panes:
 
 Type messages in the chat interface to interact with agents. The router automatically selects appropriate agents based on your query content.
 
+### CLI Commands
+
+- `open-composer agents list` — inspect available agents
+- `open-composer agents activate <name>` — enable an agent
+- `open-composer agents deactivate <name>` — disable an agent
+- `open-composer gw list` — inspect git worktrees
+
 ## Agents
 
 - 🤖 **claude-code**: Code review & planning
