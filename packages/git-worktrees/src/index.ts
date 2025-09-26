@@ -1,3 +1,8 @@
+// -----------------------------------------------------------------------------
+// Exports
+// -----------------------------------------------------------------------------
+
+// Errors
 export type {
   GitWorktreeError,
   GitWorktreeNotFoundError,
@@ -7,6 +12,7 @@ export {
   parseError,
   worktreeNotFoundError,
 } from "./errors.js";
+// Git
 export type {
   GitCommandError,
   GitCommandOptions,
@@ -14,6 +20,7 @@ export type {
   GitService,
 } from "./git.js";
 export { Git, GitLive, run as runGit } from "./git.js";
+// Worktrees
 export type {
   AddOptions,
   GitWorktreesError,

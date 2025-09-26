@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Errors
+// -----------------------------------------------------------------------------
+
 export interface GitWorktreeParseError {
   readonly _tag: "GitWorktreeParseError";
   readonly message: string;
@@ -28,5 +32,9 @@ export const worktreeNotFoundError = (
   message: `Worktree not found for path: ${path}`,
   path,
 });
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
 
 export type GitWorktreeError = GitWorktreeParseError | GitWorktreeNotFoundError;

@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// Parsed Worktree
+// -----------------------------------------------------------------------------
+
 export interface ParsedWorktree {
   readonly path: string;
   readonly head?: string | undefined;
