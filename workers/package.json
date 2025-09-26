@@ -1,0 +1,27 @@
+{
+  "name": "@open-composer/posthog-anonymous-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for anonymous PostHog logging with IP-based rate limiting",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "test": "bun vitest",
+    "test:watch": "bun vitest --watch",
+    "type-check": "bun run tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.0",
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
