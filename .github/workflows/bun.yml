@@ -50,7 +50,9 @@ jobs:
   bun-check:
     if: always()
     needs:
+      - bun-build
       - bun-lint
+      - bun-test
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
