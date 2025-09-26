@@ -1,6 +1,9 @@
 {
   "name": "@open-composer/git-worktrees",
   "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
