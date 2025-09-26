@@ -12,12 +12,14 @@ mock.module("../../src/components/ComposerApp.js", () => ({
   getCurrentTime: mockGetCurrentTime,
 }));
 
+import { GitLive } from "@open-composer/git-worktrees";
+import * as Effect from "effect/Effect";
 import { ChatInterface } from "../../src/components/ChatInterface.js";
 import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
-import { AgentRouter, WorktreeManager } from "../../src/lib/index.js";
+import { AgentRouter, WorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 
 describe("Open Composer CLI", () => {
@@ -55,16 +57,17 @@ describe("Open Composer CLI", () => {
     });
   });
 
-  describe("WorktreeManager", () => {
-    test("should initialize with current directory", () => {
-      const manager = new WorktreeManager();
-      expect(manager).toBeDefined();
+  describe("WorktreeCli", () => {
+    test("should initialize with current directory", async () => {
+      const cli = await Effect.runPromise(WorktreeCli.make());
+      expect(cli).toBeInstanceOf(WorktreeCli);
     });
 
-    test("should get current branch", async () => {
-      const manager = new WorktreeManager();
-      const branch = await manager.getCurrentBranch();
-      expect(typeof branch).toBe("string");
+    test("should list worktrees", async () => {
+      const cli = await Effect.runPromise(WorktreeCli.make());
+      await expect(
+        Effect.runPromise(cli.list().pipe(Effect.provide(GitLive))),
+      ).resolves.toBeUndefined();
     });
   });
 
