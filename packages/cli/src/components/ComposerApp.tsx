@@ -7,6 +7,10 @@ import { ChatInterface } from "./ChatInterface.js";
 import { Sidebar } from "./Sidebar.js";
 import { CodeEditor } from "./CodeEditor.js";
 
+// Utility function for creating timestamps - can be mocked in tests
+export const createTimestamp = () => new Date();
+export const getCurrentTime = () => Date.now();
+
 export interface ComposerAppState {
   currentBranch: string;
   currentFile?: string;
@@ -34,7 +38,7 @@ export const ComposerApp: React.FC = () => {
         content: "Welcome to Open Composer CLI! What would you like to build?",
         sender: "agent",
         agent: "composer",
-        timestamp: new Date(),
+        timestamp: createTimestamp(),
       },
     ],
     worktrees: [
@@ -49,10 +53,10 @@ export const ComposerApp: React.FC = () => {
 
   const handleSendMessage = (message: string) => {
     const newMessage = {
-      id: Date.now().toString(),
+      id: getCurrentTime().toString(),
       content: message,
       sender: "user" as const,
-      timestamp: new Date(),
+      timestamp: createTimestamp(),
     };
 
     setState((prev) => ({
@@ -63,11 +67,11 @@ export const ComposerApp: React.FC = () => {
     // Mock agent response
     setTimeout(() => {
       const agentResponse = {
-        id: (Date.now() + 1).toString(),
+        id: (getCurrentTime() + 1).toString(),
         content: `I'll help you with: "${message}". Let me analyze your request...`,
         sender: "agent" as const,
         agent: "claude-code",
-        timestamp: new Date(),
+        timestamp: createTimestamp(),
       };
 
       setState((prev) => ({
