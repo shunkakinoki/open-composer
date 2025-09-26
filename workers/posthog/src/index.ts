@@ -1,3 +1,8 @@
+// Global declarations for Cloudflare Workers runtime
+declare const DurableObject: {
+  new (state: DurableObjectState, env: any): any;
+};
+
 interface IncomingEvent {
   event?: string;
   properties?: Record<string, unknown>;
