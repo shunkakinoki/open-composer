@@ -31,7 +31,7 @@ jobs:
       - name: Run Changesets
         uses: shunkakinoki/actions/.github/actions/changesets@279799c0e7f638b159ebe148fb729e63af6b08bc
         with:
-          github-token: ${{ secrets.PAT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           npm-token: ${{ secrets.NPM_TOKEN }}
           publish-command: 'bun run publish'
           create-github-releases: 'true'
