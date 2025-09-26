@@ -1,5 +1,5 @@
-import type { NextConfig } from "next";
 import { withMicrofrontends } from "@vercel/microfrontends/next/config";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
