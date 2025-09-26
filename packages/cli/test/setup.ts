@@ -1,5 +1,6 @@
-import { afterAll } from "bun:test";
+import { afterAll, afterEach } from "bun:test";
 import { configure } from "@testing-library/react";
+import { cleanup } from "./utils";
 
 // Mock Date immediately to catch all Date usage - do this at the very beginning
 const mockDate = new Date("2024-01-01T10:00:00Z");
@@ -45,8 +46,14 @@ configure({
   reactStrictMode: false,
 });
 
+afterEach(() => {
+  cleanup();
+});
+
 afterAll(() => {
   // Restore original Date
   global.Date = OriginalDate;
   Date.now = originalNow;
+
+  cleanup();
 });
