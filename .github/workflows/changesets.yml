@@ -33,7 +33,7 @@ jobs:
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_TOKEN }}
-          publish-command: ''
+          publish-command: 'bun run publish'
           create-github-releases: 'true'
           commit-mode: 'github-api'
   changesets-pull-request:

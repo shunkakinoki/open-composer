@@ -7,6 +7,7 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
+    "publish": "bunx changeset publish",
     "check": "biome check .",
     "format": "biome format --write .",
     "clean": "turbo clean && rm -rf node_modules",
