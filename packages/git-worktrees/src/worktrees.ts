@@ -166,7 +166,7 @@ export const remove = (
 ): Effect.Effect<void, GitCommandError> =>
   pipe(
     runGit(buildRemoveArgs(input), input),
-    Effect.map(() => undefined),
+    Effect.asVoid,
   );
 
 export interface LockOptions extends GitCommandOptions {
