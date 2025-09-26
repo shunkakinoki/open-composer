@@ -38,7 +38,10 @@ describe("CLI Execution", () => {
 
         // Allow React warnings in stderr but no actual errors
         // React warnings contain "Warning:" or "Encountered"
-        const hasRealErrors = stderr && !stderr.includes("Warning:") && !stderr.includes("Encountered");
+        const hasRealErrors =
+          stderr &&
+          !stderr.includes("Warning:") &&
+          !stderr.includes("Encountered");
         expect(hasRealErrors).toBe(false);
 
         // Should produce some stdout (the CLI interface)

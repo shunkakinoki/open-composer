@@ -3,7 +3,9 @@ import { Text } from "ink";
 
 // Mock ComposerApp utility functions before importing
 const mockCreateTimestamp = mock(() => new Date("2024-01-01T10:00:00Z"));
-const mockGetCurrentTime = mock(() => new Date("2024-01-01T10:00:00Z").getTime());
+const mockGetCurrentTime = mock(() =>
+  new Date("2024-01-01T10:00:00Z").getTime(),
+);
 
 mock.module("../../src/components/ComposerApp.js", () => ({
   createTimestamp: mockCreateTimestamp,
