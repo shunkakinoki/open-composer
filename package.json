@@ -12,13 +12,15 @@
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status --verbose --since origin/main",
     "check": "biome check .",
+    "check:fix": "biome check --write --unsafe .",
     "format": "biome format --write .",
     "clean": "turbo clean && rm -rf node_modules",
     "type-check": "turbo type-check"
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "workers/*"
   ],
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
