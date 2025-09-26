@@ -1,0 +1,3 @@
+[test]
+# Run tests in packages, apps, and workers
+include = ["packages/**", "apps/**", "workers/**"]

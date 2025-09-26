@@ -8,7 +8,10 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "tail": "wrangler tail",
-    "test": "bun vitest",
+    "test": "bun vitest test/basic.test.ts test/rate-limiter.test.ts test/index.test.ts",
+    "test:unit": "bun vitest test/unit.test.ts",
+    "test:integration": "bun vitest test/basic.test.ts test/rate-limiter.test.ts test/index.test.ts",
+    "test:all": "bun vitest",
     "test:watch": "bun vitest --watch",
     "type-check": "bun run tsc --noEmit"
   },

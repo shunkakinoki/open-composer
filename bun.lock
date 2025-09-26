@@ -6,8 +6,8 @@
       "devDependencies": {
         "@biomejs/biome": "2.2.4",
         "@changesets/cli": "^2.29.7",
-        "lefthook": "^1.13.1",
-        "turbo": "^2.5.6",
+        "lefthook": "^1.13.4",
+        "turbo": "^2.5.8",
       },
     },
     "apps/docs": {
