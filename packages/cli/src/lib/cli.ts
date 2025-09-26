@@ -10,7 +10,11 @@ import {
 
 // Export both old and new names for backward compatibility
 export { GitWorktreeCli, GitWorktreeCli as WorktreeCli };
-export type { ComposerCliServices, GitWorktreeCliServices, GitWorktreeCliServices as WorktreeCliServices };
+export type {
+  ComposerCliServices,
+  GitWorktreeCliServices,
+  GitWorktreeCliServices as WorktreeCliServices,
+};
 
 export const cli = buildRunner();
 export const CliLive = layer;
