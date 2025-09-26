@@ -243,7 +243,7 @@ export const prune = (
 ): Effect.Effect<void, GitCommandError> =>
   pipe(
     runGit(buildPruneArgs(input), input),
-    Effect.map(() => undefined),
+    Effect.asVoid,
   );
 
 export type GitWorktreesError = GitCommandError | GitWorktreeError;
