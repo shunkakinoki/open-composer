@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Setup Bun
+        uses: shunkakinoki/actions/.github/actions/setup-bun@279799c0e7f638b159ebe148fb729e63af6b08bc
       - name: Run Changesets
         uses: shunkakinoki/actions/.github/actions/changesets@279799c0e7f638b159ebe148fb729e63af6b08bc
         with:
