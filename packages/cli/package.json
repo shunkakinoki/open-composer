@@ -6,7 +6,8 @@
   },
   "main": "src/index.ts",
   "bin": {
-    "open-composer": "./src/index.ts"
+    "open-composer": "./src/index.ts",
+    "oc": "./src/index.ts"
   },
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
