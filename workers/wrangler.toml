@@ -1,0 +1,17 @@
+name = "posthog-anonymous-logger"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+POSTHOG_HOST = "https://app.posthog.com"
+POSTHOG_PROJECT_API_KEY = "test-key"
+
+[durable_objects]
+bindings = [
+  { name = "RATE_LIMITER", class_name = "RateLimiter" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]
