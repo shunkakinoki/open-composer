@@ -53,8 +53,18 @@ jobs:
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
       - name: Run Changesets
-        continue-on-error: true
-        run: bun run changeset:status
+        run: |
+          set -e
+          bun run changeset:status || {
+            status=$?
+            # If exit code is 1 and output contains "No changesets found", ignore error
+            if [ "$status" -eq 1 ] && bun run changeset:status 2>&1 | grep -q "No changesets found"; then
+              echo "No changesets found, ignoring error."
+            else
+              echo "Changeset status failed with exit code $status"
+              exit $status
+            fi
+          }
   changesets-check:
     if: always()
     needs:
