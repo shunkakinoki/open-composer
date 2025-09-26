@@ -1,5 +1,5 @@
 {
-  "name": "@open-composer/posthog-anonymous-worker",
+  "name": "@open-composer/posthog-worker",
   "version": "1.0.0",
   "description": "Cloudflare Worker for anonymous PostHog logging with IP-based rate limiting",
   "main": "src/index.ts",
