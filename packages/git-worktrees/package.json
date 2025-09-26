@@ -16,9 +16,7 @@
     "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
-    "@effect/platform": "^0.69.21",
-    "@effect/platform-node": "^0.64.23",
-    "effect": "^3.10.14"
+    "effect": "^3.17.14"
   },
   "devDependencies": {
     "@effect/language-service": "^0.41.0",
