@@ -1,7 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
-    "@open-composer/landing": {},
+    "@open-composer/landing": {
+      "development": {}
+    },
     "@open-composer/docs": {
       "routing": [
         {
