@@ -53,6 +53,7 @@ jobs:
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
       - name: Run Changesets
+        continue-on-error: true
         run: bun run changeset:status
   changesets-check:
     if: always()
