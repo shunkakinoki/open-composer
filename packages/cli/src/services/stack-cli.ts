@@ -15,11 +15,9 @@ import {
 } from "@open-composer/git-stack";
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(
-    lines,
-    (line) => Effect.sync(() => console.log(line)),
-    { discard: true },
-  );
+  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
+    discard: true,
+  });
 
 const provideStack = <A>(effect: Effect.Effect<A>) =>
   effect.pipe(Effect.provide(GitStackLive));
@@ -63,16 +61,16 @@ export class StackCli {
 
   untrack(branch: string): Effect.Effect<void> {
     return provideStack(untrackStackBranch(branch)).pipe(
-      Effect.flatMap(() => printLines([`Removed tracking for branch ${branch}.`])),
+      Effect.flatMap(() =>
+        printLines([`Removed tracking for branch ${branch}.`]),
+      ),
     );
   }
 
   remove(branch: string, force: boolean): Effect.Effect<void> {
     return provideStack(deleteStackBranch(branch, force)).pipe(
       Effect.flatMap(() =>
-        printLines([
-          `Deleted branch ${branch}${force ? " (force)" : ""}.`,
-        ]),
+        printLines([`Deleted branch ${branch}${force ? " (force)" : ""}.`]),
       ),
     );
   }

@@ -6,10 +6,7 @@ import * as CliConfig from "@effect/cli/CliConfig";
 import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
 import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
-import {
-  GitStackLive,
-  type GitStackService,
-} from "@open-composer/git-stack";
+import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";

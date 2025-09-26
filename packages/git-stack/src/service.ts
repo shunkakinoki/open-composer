@@ -41,7 +41,9 @@ export interface GitStackService {
   readonly list: Effect.Effect<ReadonlyArray<StackNode>>;
   readonly log: Effect.Effect<ReadonlyArray<string>>;
   readonly status: Effect.Effect<StackStatus>;
-  readonly create: (input: CreateBranchInput) => Effect.Effect<{ branch: string; base: string }>;
+  readonly create: (
+    input: CreateBranchInput,
+  ) => Effect.Effect<{ branch: string; base: string }>;
   readonly track: (branch: string, parent: string) => Effect.Effect<void>;
   readonly untrack: (branch: string) => Effect.Effect<void>;
   readonly remove: (branch: string, force?: boolean) => Effect.Effect<void>;
@@ -52,7 +54,8 @@ export interface GitStackService {
   readonly config: (input: ConfigInput) => Effect.Effect<void>;
 }
 
-export const GitStack = Context.GenericTag<GitStackService>("git-stack/service");
+export const GitStack =
+  Context.GenericTag<GitStackService>("git-stack/service");
 
 const defaultState = (): StackState => ({
   nodes: {},
@@ -68,14 +71,9 @@ const loadState = (statePath: string): Effect.Effect<StackState> =>
       return JSON.parse(content) as StackState;
     },
     catch: (cause) => cause,
-  }).pipe(
-    Effect.catchAll(() => Effect.succeed(defaultState())),
-  );
+  }).pipe(Effect.catchAll(() => Effect.succeed(defaultState())));
 
-const saveState = (
-  statePath: string,
-  state: StackState,
-): Effect.Effect<void> =>
+const saveState = (statePath: string, state: StackState): Effect.Effect<void> =>
   Effect.tryPromise({
     try: async () => {
       await mkdir(path.dirname(statePath), { recursive: true });
@@ -138,7 +136,9 @@ const removeNode = (state: StackState, branch: string): StackState => {
 const renderLog = (state: StackState): ReadonlyArray<string> => {
   const entries = Object.values(state.nodes);
   if (entries.length === 0) {
-    return ["No tracked stack branches. Use `open-composer stack track` to begin."];
+    return [
+      "No tracked stack branches. Use `open-composer stack track` to begin.",
+    ];
   }
 
   const children = new Map<string, string[]>();
@@ -186,9 +186,8 @@ const makeService = (cwd: string): GitStackService => {
       ),
     );
 
-  const readOnlyState = <A>(
-    f: (state: StackState) => A,
-  ): Effect.Effect<A> => loadState(statePath).pipe(Effect.map(f));
+  const readOnlyState = <A>(f: (state: StackState) => A): Effect.Effect<A> =>
+    loadState(statePath).pipe(Effect.map(f));
 
   return {
     list: readOnlyState((state) => Object.values(state.nodes)),
@@ -212,8 +211,7 @@ const makeService = (cwd: string): GitStackService => {
 
     create: ({ name, base }) =>
       Effect.gen(function* () {
-        const baseBranch =
-          base ?? (yield* getCurrentBranch(cwd));
+        const baseBranch = base ?? (yield* getCurrentBranch(cwd));
         yield* execGit(cwd, ["checkout", "-b", name, baseBranch]);
         yield* withState((state) =>
           Effect.succeed([
@@ -226,18 +224,12 @@ const makeService = (cwd: string): GitStackService => {
 
     track: (branch, parent) =>
       withState((state) =>
-        Effect.succeed([
-          void 0,
-          updateNodeParent(state, branch, parent),
-        ]),
+        Effect.succeed([void 0, updateNodeParent(state, branch, parent)]),
       ),
 
     untrack: (branch) =>
       withState((state) =>
-        Effect.succeed([
-          void 0,
-          updateNodeParent(state, branch, undefined),
-        ]),
+        Effect.succeed([void 0, updateNodeParent(state, branch, undefined)]),
       ),
 
     remove: (branch, force = false) =>
@@ -245,23 +237,19 @@ const makeService = (cwd: string): GitStackService => {
         const args = ["branch", force ? "-D" : "-d", branch];
         yield* execGit(cwd, args);
         yield* withState((state) =>
-          Effect.succeed([
-            void 0,
-            removeNode(state, branch),
-          ]),
+          Effect.succeed([void 0, removeNode(state, branch)]),
         );
       }),
 
-    checkout: (branch) => execGit(cwd, ["checkout", branch]).pipe(Effect.asVoid),
+    checkout: (branch) =>
+      execGit(cwd, ["checkout", branch]).pipe(Effect.asVoid),
 
     sync: readOnlyState((state) => {
       const branches = Object.keys(state.nodes);
       if (branches.length === 0) {
         return ["No tracked stack branches to sync."];
       }
-      return [
-        "Sync is currently a no-op. Push branches manually if needed.",
-      ];
+      return ["Sync is currently a no-op. Push branches manually if needed."];
     }),
 
     submit: readOnlyState((state) => {
@@ -270,7 +258,8 @@ const makeService = (cwd: string): GitStackService => {
         return ["No tracked stack branches to submit."];
       }
       return branches.map(
-        (branch) => `Review and submit branch '${branch}' via your preferred workflow.`,
+        (branch) =>
+          `Review and submit branch '${branch}' via your preferred workflow.`,
       );
     }),
 
