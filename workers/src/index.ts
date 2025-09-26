@@ -43,7 +43,7 @@ export class RateLimiter {
     // Clean up old windows
     const oldWindows = await this.state.storage.list({ prefix: "window:" });
     for (const [key] of oldWindows) {
-      const windowNum = Number.parseInt(key.split(":")[1]);
+      const windowNum = Number.parseInt(key.split(":")[1], 10);
       if (windowNum < currentWindow - 1) {
         await this.state.storage.delete(key);
       }

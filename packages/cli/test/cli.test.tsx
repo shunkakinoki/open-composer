@@ -104,4 +104,14 @@ describe("CLI Execution", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Git worktrees:");
   });
+
+  it("supports agents list", async () => {
+    const result = await runCli(["agents", "list"]);
+    const stdout = stripAnsi(result.stdout);
+    const stderr = stripAnsi(result.stderr);
+
+    expect(result.code).toBe(0);
+    expect(stderr).toBe("");
+    expect(stdout).toContain("Agents:");
+  });
 });
