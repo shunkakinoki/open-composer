@@ -1,14 +1,15 @@
 import {
-  ComposerCli,
+  buildRunner,
   type ComposerCliServices,
-} from "../commands/ComposerCli.js";
+  layer,
+} from "../commands/composer.js";
 import {
   WorktreeCli,
   type WorktreeCliServices,
-} from "../services/WorktreeCli.js";
+} from "../services/git-worktree-cli.js";
 
-export { ComposerCli, WorktreeCli };
+export { WorktreeCli };
 export type { ComposerCliServices, WorktreeCliServices };
 
-export const cli = ComposerCli.buildRunner();
-export const CliLive = ComposerCli.layer;
+export const cli = buildRunner();
+export const CliLive = layer;
