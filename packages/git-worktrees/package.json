@@ -1,0 +1,26 @@
+{
+  "name": "@open-composer/git-worktrees",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "dev": "bun run ./src/index.ts",
+    "type-check": "tsc -b tsconfig.json",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "test:update-snapshot": "bun test --updateSnapshot"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.69.21",
+    "@effect/platform-node": "^0.64.23",
+    "effect": "^3.10.14"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.41.0",
+    "@types/bun": "^1.2.22",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}
