@@ -7,6 +7,7 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
+    "publish": "bunx changeset publish",
     "check": "biome check .",
     "format": "biome format --write .",
     "clean": "turbo clean && rm -rf node_modules",
@@ -18,6 +19,7 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
+    "@changesets/cli": "^2.29.7",
     "lefthook": "^1.13.1",
     "turbo": "^2.5.6"
   },

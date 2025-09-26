@@ -1,0 +1,67 @@
+
+name: Changesets
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+jobs:
+  changesets-publish:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      repository-projects: write
+      deployments: write
+      packages: write
+      actions: write
+      checks: write
+      statuses: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Run Changesets
+        uses: shunkakinoki/actions/.github/actions/changesets@156beb8dbd9b84135a994da9ea77398d91e33df6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          npm-token: ${{ secrets.NPM_TOKEN }}
+          publish-command: 'bun run publish'
+          create-github-releases: 'true'
+          commit-mode: 'github-api'
+  changesets-pull-request:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup Bun
+        uses: shunkakinoki/actions/.github/actions/setup-bun@156beb8dbd9b84135a994da9ea77398d91e33df6
+        with:
+          install-dependencies: 'true'
+  changesets-check:
+    if: always()
+    needs:
+      - changesets-publish  
+      - changesets-pull-request
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Alls Green
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+          allowed-skips: changesets-publish,changesets-pull-request
