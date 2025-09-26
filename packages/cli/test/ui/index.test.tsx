@@ -19,18 +19,18 @@ import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
-import { WorktreeCli } from "../../src/lib/index.js";
+import { GitWorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 
 describe("Open Composer CLI", () => {
-  describe("WorktreeCli", () => {
+  describe("GitWorktreeCli", () => {
     test("should initialize with current directory", async () => {
-      const cli = await Effect.runPromise(WorktreeCli.make());
-      expect(cli).toBeInstanceOf(WorktreeCli);
+      const cli = await Effect.runPromise(GitWorktreeCli.make());
+      expect(cli).toBeInstanceOf(GitWorktreeCli);
     });
 
     test("should list worktrees", async () => {
-      const cli = await Effect.runPromise(WorktreeCli.make());
+      const cli = await Effect.runPromise(GitWorktreeCli.make());
       await expect(
         Effect.runPromise(cli.list().pipe(Effect.provide(GitLive))),
       ).resolves.toBeUndefined();

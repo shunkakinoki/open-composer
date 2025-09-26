@@ -8,7 +8,7 @@ import {
 } from "@open-composer/git-worktrees";
 import * as Effect from "effect/Effect";
 
-export interface CreateWorktreeOptions {
+export interface CreateGitWorktreeOptions {
   readonly path: string;
   readonly ref?: string;
   readonly branch?: string;
@@ -18,27 +18,27 @@ export interface CreateWorktreeOptions {
   readonly branchForce: boolean;
 }
 
-export interface EditWorktreeOptions {
+export interface EditGitWorktreeOptions {
   readonly from: string;
   readonly to: string;
   readonly force: boolean;
 }
 
-export type WorktreeCliServices = GitService;
+export type GitWorktreeCliServices = GitService;
 
-export class WorktreeCli {
+export class GitWorktreeCli {
   constructor(private readonly cwd: string) {}
 
-  static make(): Effect.Effect<WorktreeCli> {
-    return Effect.sync(() => new WorktreeCli(process.cwd()));
+  static make(): Effect.Effect<GitWorktreeCli> {
+    return Effect.sync(() => new GitWorktreeCli(process.cwd()));
   }
 
   list(): Effect.Effect<void, Error> {
     return listWorktrees({ cwd: this.cwd }).pipe(
       Effect.flatMap((worktrees) =>
-        this.printLines([
+        this.printGitWorktreeLines([
           "Git worktrees:",
-          ...this.formatWorktrees(worktrees, this.cwd),
+          ...this.formatGitWorktrees(worktrees, this.cwd),
         ]),
       ),
       Effect.catchAll((error) =>
@@ -49,7 +49,7 @@ export class WorktreeCli {
     );
   }
 
-  create(options: CreateWorktreeOptions): Effect.Effect<void, Error> {
+  create(options: CreateGitWorktreeOptions): Effect.Effect<void, Error> {
     const {
       path: worktreePath,
       ref,
@@ -75,7 +75,7 @@ export class WorktreeCli {
       checkout,
     }).pipe(
       Effect.flatMap((worktree) =>
-        this.printLines([
+        this.printGitWorktreeLines([
           `Created worktree at ${worktree.path} tracking ${
             worktree.branch ?? (worktree.detached ? "detached" : "HEAD")
           }.`,
@@ -89,7 +89,7 @@ export class WorktreeCli {
     );
   }
 
-  edit(options: EditWorktreeOptions): Effect.Effect<void, Error> {
+  edit(options: EditGitWorktreeOptions): Effect.Effect<void, Error> {
     const { from, to, force } = options;
 
     return moveWorktree({
@@ -99,7 +99,7 @@ export class WorktreeCli {
       force,
     }).pipe(
       Effect.flatMap((worktree) =>
-        this.printLines([
+        this.printGitWorktreeLines([
           `Moved worktree to ${worktree.path} tracking ${
             worktree.branch ?? (worktree.detached ? "detached" : "HEAD")
           }.`,
@@ -113,7 +113,7 @@ export class WorktreeCli {
     );
   }
 
-  private formatWorktrees(
+  private formatGitWorktrees(
     worktrees: readonly Worktree[],
     cwd: string,
   ): string[] {
@@ -164,7 +164,9 @@ export class WorktreeCli {
     });
   }
 
-  private printLines(lines: ReadonlyArray<string>): Effect.Effect<void, never> {
+  private printGitWorktreeLines(
+    lines: ReadonlyArray<string>,
+  ): Effect.Effect<void, never> {
     return Effect.forEach(
       lines,
       (line) => Effect.sync(() => console.log(line)),
