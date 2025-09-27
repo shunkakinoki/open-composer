@@ -41,6 +41,7 @@ jobs:
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
           PREPARE_OPENCOMPOSER_RELEASE: true
+          PUBLISH_PACKAGES: true
           RELEASE_OPENCOMPOSER_BINS: true
   changesets-pull-request:
     if: github.event_name == 'pull_request'
