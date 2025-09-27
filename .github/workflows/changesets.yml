@@ -39,6 +39,8 @@ jobs:
           publish-command: 'bun run publish:packages'
           create-github-releases: 'true'
           commit-mode: 'git-cli'
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
       - name: Publish CLI Package
         if: steps.changesets.outputs.published == 'true'
         working-directory: apps/cli
