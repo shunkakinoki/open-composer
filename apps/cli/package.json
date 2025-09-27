@@ -1,7 +1,9 @@
 {
   "name": "open-composer",
   "version": "0.3.7",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "src/index.ts",
   "bin": {
     "open-composer": "./src/index.ts",
@@ -18,7 +20,6 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run scripts/prepublish.ts",
-    "publish": "bun run scripts/publish.ts",
     "type-check": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
