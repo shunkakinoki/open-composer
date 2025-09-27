@@ -16,37 +16,57 @@ const targets = [
   ["darwin", "arm64"],
 ];
 
+// Map platform and arch to Bun target strings
+function getBunTarget(os: string, arch: string): string {
+  const archMap: Record<string, string> = {
+    "x64": "x64",
+    "x64-baseline": "x64",
+    "arm64": "arm64",
+  };
+
+  const platformMap: Record<string, string> = {
+    "win32": "windows",
+    "linux": "linux",
+    "darwin": "darwin",
+  };
+
+  const targetArch = archMap[arch] || arch;
+  const targetPlatform = platformMap[os] || os;
+
+  return `bun-${targetPlatform}-${targetArch}`;
+}
+
 const binaries: Record<string, string> = {};
 const version = process.env.OPENCOMPOSER_VERSION ?? "dev";
 
 console.log(`Building CLI version ${version}`);
 
-// Build for current platform first
-const currentPlatform = process.platform;
-const currentArch = process.arch;
+// Build for all target platforms using cross-compilation
+for (const [os, arch] of targets) {
+  const packageName = `opencomposer-${os}-${arch}`;
+  const bunTarget = getBunTarget(os, arch);
 
-console.log(`Building for current platform: ${currentPlatform}-${currentArch}`);
-const name = `opencomposer-${currentPlatform}-${currentArch}`;
+  console.log(`Building for ${os}-${arch} using target: ${bunTarget}`);
 
-await $`mkdir -p dist/${name}/bin`;
+  await $`mkdir -p dist/${packageName}/bin`;
 
-try {
-  // Use bun build to create executable
-  await $`bun build --compile ./src/index.ts --outfile dist/${name}/bin/opencomposer`;
+  // Use bun build with cross-compilation
+  await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/opencomposer`;
 
   // Make executable on Unix systems
-  if (currentPlatform !== "win32") {
-    await $`chmod +x dist/${name}/bin/opencomposer`;
+  if (os !== "win32") {
+    await $`chmod +x dist/${packageName}/bin/opencomposer`;
   }
 
   await Bun.write(
-    `dist/${name}/package.json`,
+    `dist/${packageName}/package.json`,
     JSON.stringify(
       {
+        name: packageName,
         version,
         main: "bin/opencomposer",
-        os: [currentPlatform === "win32" ? "win32" : currentPlatform],
-        cpu: [currentArch],
+        os: [os === "win32" ? "win32" : os],
+        cpu: [arch],
         bin: {
           opencomposer: "bin/opencomposer",
         },
@@ -56,62 +76,8 @@ try {
     ),
   );
 
-  binaries[name] = version;
-  console.log(`Built: ${name}`);
-} catch (error) {
-  console.error(
-    `Failed to build for ${currentPlatform}-${currentArch}:`,
-    error,
-  );
-
-  // Create a simple shell script as fallback
-  await Bun.write(
-    `dist/${name}/bin/opencomposer`,
-    `#!/bin/bash
-echo "This is a placeholder executable for ${name}"
-echo "To build native executables, run: bun build --compile ./src/index.ts --outfile dist/${name}/bin/opencomposer"
-`,
-  );
-
-  if (currentPlatform !== "win32") {
-    await $`chmod +x dist/${name}/bin/opencomposer`;
-  }
-}
-
-// For other platforms, create placeholder packages for now
-// In a real scenario, you might use cross-compilation tools or CI/CD
-for (const [os, arch] of targets) {
-  // Skip current platform as it was already built above
-  if (os === currentPlatform && arch === currentArch) {
-    continue;
-  }
-
-  const packageName = `opencomposer-${os}-${arch}`;
-  console.log(`Creating placeholder package for ${packageName}`);
-
-  await $`mkdir -p dist/${packageName}`;
-
-  await Bun.write(
-    `dist/${packageName}/package.json`,
-    JSON.stringify(
-      {
-        name: packageName,
-        version,
-        description:
-          "Placeholder package - cross-compilation not yet implemented",
-        os: [os === "win32" ? "win32" : os],
-        cpu: [arch],
-        main: "index.js",
-        scripts: {
-          build: "echo 'Cross-compilation not implemented yet'",
-        },
-      },
-      null,
-      2,
-    ),
-  );
-
-  binaries[packageName] = `${version}-placeholder`;
+  binaries[packageName] = version;
+  console.log(`Built: ${packageName}`);
 }
 
 console.log("Binaries built:", binaries);
