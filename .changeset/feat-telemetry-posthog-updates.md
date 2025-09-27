@@ -1,6 +1,6 @@
 ---
 "@open-composer/posthog-worker": patch
-"@shunkakinoki/open-composer": patch
+open-composer": patch
 ---
 
 feat: update telemetry and posthog integration
