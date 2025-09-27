@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   release-upload:
-    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '') && !contains(github.event.release.tag_name || github.event.inputs.tag, '-')
+    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '') && !contains(github.event.release.tag_name || github.event.inputs.tag, 'canary')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
