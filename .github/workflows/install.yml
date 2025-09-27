@@ -8,6 +8,7 @@ on:
     inputs:
       tag:
         description: 'Tag to install (e.g., open-composer@1.0.0)'
+        default: 'open-composer@latest'
         required: false
         type: string
 concurrency:
@@ -37,7 +38,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
       - name: Install open-composer globally
-        run: npm install -g open-composer@${{ github.event.release.tag_name || github.event.inputs.tag || 'latest' }}
+        run: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
         run: open-composer --version
         shell: bash
@@ -56,3 +57,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
+          allowed-skips: install-e2e-cli
