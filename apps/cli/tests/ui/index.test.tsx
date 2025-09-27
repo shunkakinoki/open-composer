@@ -12,6 +12,11 @@ mock.module("../../src/components/ComposerApp.js", () => ({
   getCurrentTime: mockGetCurrentTime,
 }));
 
+// Mock CLI version to keep snapshots stable across version changes
+mock.module("../../src/lib/version.js", () => ({
+  CLI_VERSION: "0.0.0",
+}));
+
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Effect from "effect/Effect";
 import { ChatInterface } from "../../src/components/ChatInterface.js";
