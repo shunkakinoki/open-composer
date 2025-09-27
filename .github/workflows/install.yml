@@ -14,7 +14,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.sha }}
   cancel-in-progress: true
 jobs:
-  install-test:
+  install-e2e-cli:
     if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
     strategy:
@@ -48,7 +48,7 @@ jobs:
   install-check:
     if: always()
     needs:
-      - install-test
+      - install-e2e-cli
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
