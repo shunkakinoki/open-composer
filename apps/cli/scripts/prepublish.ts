@@ -10,6 +10,7 @@ import { CLI_VERSION } from "../src/lib/version.js";
 
 console.log(`CI: ${process.env.CI}`);
 console.log(`PUBLISH_PACKAGES: ${process.env.PUBLISH_PACKAGES}`);
+console.log(`RELEASE_ZIP_FILES: ${process.env.RELEASE_ZIP_FILES}`);
 console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
 console.log(`CHANGESET_RELEASE: ${process.env.CHANGESET_RELEASE}`);
 
@@ -84,11 +85,10 @@ function getBunTarget(os: string, arch: string): string {
 // -----------------------------------------------------------------------------
 
 const binaries: Record<string, string> = {};
-const rawVersion = process.env.OPENCOMPOSER_VERSION ?? CLI_VERSION;
-// Parse version to handle formats like "opencomposer@0.1.0" -> "0.1.0"
-const version = rawVersion.includes("@")
-  ? rawVersion.split("@")[1]
-  : rawVersion;
+// Parse version to handle formats like "open-composer@0.1.0" -> "0.1.0"
+const version = CLI_VERSION.includes("@")
+  ? CLI_VERSION.split("@")[1]
+  : CLI_VERSION;
 console.log(`Building CLI version ${version}`);
 
 // -----------------------------------------------------------------------------
