@@ -44,7 +44,7 @@ jobs:
         working-directory: apps/cli
         run: bun run publish
         env:
-          NPM_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
   changesets-pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
