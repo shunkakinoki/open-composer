@@ -76,8 +76,19 @@ for (const [os, arch] of targets) {
     ),
   );
 
-  binaries[packageName] = version;
-  console.log(`Built: ${packageName}`);
+  if (process.env.RELEASE_ZIP_FILES) {
+    console.log(`Creating zip for ${packageName}`);
+
+    // Create zip file for the package
+    const zipName = `${packageName}.zip`;
+    console.log(`Creating zip: ${zipName}`);
+
+    // Create zip file containing the entire package directory
+    await $`cd dist && zip -r ${zipName} ${packageName}`;
+
+    binaries[packageName] = version;
+    console.log(`Built and zipped: ${packageName}`);
+  }
 }
 
 console.log("Binaries built:", binaries);
