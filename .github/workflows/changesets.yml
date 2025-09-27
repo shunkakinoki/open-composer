@@ -32,10 +32,13 @@ jobs:
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
       - name: Detect if Changeset Release
         run: |
-          if [ "${{ github.head_ref }}" = "changeset-release/main" ] || [ "${{ github.ref_name }}" = "changeset-release/main" ]; then
+          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          if [[ "$LAST_COMMIT_MESSAGE" == *"Version Packages"* ]] || [[ "$LAST_COMMIT_MESSAGE" == *"Release Version"* ]]; then
             echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
+            echo "Release commit from changesets action detected."
           else
             echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
+            echo "No changeset release detected."
           fi
       - name: Set Environment Variables
         run: |
