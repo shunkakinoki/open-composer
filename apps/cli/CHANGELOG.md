@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.16
+
+### Patch Changes
+
+- 43216a8: Fix windows installation
+
 ## 0.3.15
 
 ### Patch Changes
