@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.0
+
+### Minor Changes
+
+- 488280e: Improved CLI publishing and distribution workflow with enhanced version detection, cross-platform binary compilation, and Windows compatibility.
+
 ## 0.2.0
 
 ### Minor Changes
