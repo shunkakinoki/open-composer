@@ -3,7 +3,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const CLI_VERSION =
-  process.env.OPENCOMPOSER_VERSION ??
   (() => {
     try {
       // Try multiple paths to find package.json

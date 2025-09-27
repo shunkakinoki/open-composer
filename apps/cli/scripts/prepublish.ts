@@ -57,7 +57,9 @@ function getBunTarget(os: string, arch: string): string {
 // -----------------------------------------------------------------------------
 
 const binaries: Record<string, string> = {};
-const version = process.env.OPENCOMPOSER_VERSION ?? CLI_VERSION;
+const rawVersion = process.env.OPENCOMPOSER_VERSION ?? CLI_VERSION;
+// Parse version to handle formats like "opencomposer@0.1.0" -> "0.1.0"
+const version = rawVersion.includes('@') ? rawVersion.split('@')[1] : rawVersion;
 console.log(`Building CLI version ${version}`);
 
 // -----------------------------------------------------------------------------
