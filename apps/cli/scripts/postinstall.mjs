@@ -45,7 +45,9 @@ function installBinary() {
   // Check if binary already exists in bin directory
   const existingBinary = path.join(__dirname, "bin", "opencomposer");
   if (fs.existsSync(existingBinary)) {
-    console.log("Binary already exists in bin directory (development mode), skipping installation");
+    console.log(
+      "Binary already exists in bin directory (development mode), skipping installation",
+    );
     return;
   }
 
@@ -53,13 +55,22 @@ function installBinary() {
   try {
     binaryPath = findBinary();
   } catch (error) {
-    console.error("Could not find platform-specific binary package:", error.message);
-    console.log("This is expected in development. Make sure the binary exists in bin/opencomposer");
+    console.error(
+      "Could not find platform-specific binary package:",
+      error.message,
+    );
+    console.log(
+      "This is expected in development. Make sure the binary exists in bin/opencomposer",
+    );
     return;
   }
 
   const isWindows = os.platform() === "win32";
-  const binScript = path.join(__dirname, "bin", isWindows ? "opencomposer.exe" : "opencomposer");
+  const binScript = path.join(
+    __dirname,
+    "bin",
+    isWindows ? "opencomposer.exe" : "opencomposer",
+  );
 
   // -----------------------------------------------------------------------------
   // Copy the binary to the bin directory

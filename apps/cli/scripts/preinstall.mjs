@@ -33,7 +33,9 @@ function main() {
 
   const cmdContent = `@ECHO OFF\nREM Placeholder - will be updated by postinstall.mjs\n`;
   fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
-  console.log("Created placeholder opencomposer.cmd wrapper for Windows (will be updated by postinstall)");
+  console.log(
+    "Created placeholder opencomposer.cmd wrapper for Windows (will be updated by postinstall)",
+  );
 }
 
 // -----------------------------------------------------------------------------
