@@ -43,7 +43,7 @@ try {
     `dist/${name}/package.json`,
     JSON.stringify(
       {
-        name,
+        os: [currentPlatform],
         version,
         main: "bin/opencomposer",
         os: [currentPlatform === "win32" ? "win32" : currentPlatform],
