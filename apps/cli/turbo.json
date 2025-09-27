@@ -6,9 +6,7 @@
       "env": [
         "OPENCOMPOSER_VERSION",
         "PUBLISH_PACKAGES",
-        "RELEASE_OPENCOMPOSER_BINS",
-        "RELEASE_OPENCOMPOSER_ZIPS",
-        "PREPARE_OPENCOMPOSER_RELEASE"
+        "RELEASE_OPENCOMPOSER_ZIPS"
       ]
     }
   }

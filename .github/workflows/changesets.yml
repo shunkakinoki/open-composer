@@ -33,16 +33,10 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
-          echo "RELEASE_OPENCOMPOSER_BINS=${RELEASE_OPENCOMPOSER_BINS}" >> $GITHUB_ENV
-          echo "RELEASE_OPENCOMPOSER_ZIPS=${RELEASE_OPENCOMPOSER_ZIPS}" >> $GITHUB_ENV
-          echo "PREPARE_OPENCOMPOSER_RELEASE=${PREPARE_OPENCOMPOSER_RELEASE}" >> $GITHUB_ENV
         env:
           PUBLISH_PACKAGES: true
-          RELEASE_OPENCOMPOSER_BINS: true
-          RELEASE_OPENCOMPOSER_ZIPS: true
-          PREPARE_OPENCOMPOSER_RELEASE: true
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@fbd9749bb500885ae9709fec43ed14016b0b928f
+        uses: shunkakinoki/actions/.github/actions/changesets@0938f5255ef4c8291067fa104c6030791f84450f
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
