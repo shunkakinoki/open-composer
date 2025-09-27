@@ -1,5 +1,13 @@
 # @open-composer/git-worktrees
 
+## 0.2.2
+
+### Patch Changes
+
+- 829e8c0: Add open-composer preparation destination
+- Updated dependencies [829e8c0]
+  - @open-composer/git@0.1.1
+
 ## 0.2.1
 
 ### Patch Changes
