@@ -140,14 +140,18 @@ export default {
 
       // Forward the request to PostHog with the corrected API key
       const requestUrl = new URL(request.url);
-      const posthogResponse = await fetch(`${env.POSTHOG_HOST}${requestUrl.pathname}${requestUrl.search}`, {
-        method: request.method,
-        headers: {
-          "Content-Type": request.headers.get("Content-Type") || "application/json",
-          "User-Agent": "Anonymous-Logger-Worker/1.0",
+      const posthogResponse = await fetch(
+        `${env.POSTHOG_HOST}${requestUrl.pathname}${requestUrl.search}`,
+        {
+          method: request.method,
+          headers: {
+            "Content-Type":
+              request.headers.get("Content-Type") || "application/json",
+            "User-Agent": "Anonymous-Logger-Worker/1.0",
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-      });
+      );
 
       const responseData = {
         success: posthogResponse.ok,
@@ -158,7 +162,7 @@ export default {
       console.log("PostHog response:", {
         ok: posthogResponse.ok,
         status: posthogResponse.status,
-        headers: Object.fromEntries(posthogResponse.headers.entries())
+        headers: Object.fromEntries(posthogResponse.headers.entries()),
       });
 
       // If PostHog request fails, return the error but don't crash
@@ -167,7 +171,7 @@ export default {
         console.error("PostHog API error:", {
           status: posthogResponse.status,
           statusText: posthogResponse.statusText,
-          body: errorText
+          body: errorText,
         });
       }
 
