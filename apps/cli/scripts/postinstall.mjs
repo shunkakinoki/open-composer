@@ -14,11 +14,11 @@ const require = createRequire(import.meta.url);
 // -----------------------------------------------------------------------------
 
 function findBinary() {
-  const platform = os.platform() === "win32" ? "windows" : os.platform();
+  const platform = os.platform();
   const arch = os.arch();
   const binaryDirName = `cli-${platform}-${arch}`;
   const packageName = `@open-composer/${binaryDirName}`;
-  const binary = platform === "windows" ? "opencomposer.exe" : "opencomposer";
+  const binary = platform === "win32" ? "opencomposer.exe" : "opencomposer";
 
   try {
     // Use require.resolve to find the package
