@@ -77,7 +77,7 @@ describe("GitStack", () => {
 
     // Track the branch
     await Effect.runPromise(
-      runWithGitStack(trackStackBranch("feature-branch", "main")),
+      runWithGitStack(trackStackBranch("feature-branch", "master")),
     );
 
     // Check submit shows the PR
@@ -99,7 +99,7 @@ describe("GitStack", () => {
 
     // Track base feature
     await Effect.runPromise(
-      runWithGitStack(trackStackBranch("base-feature", "main")),
+      runWithGitStack(trackStackBranch("base-feature", "master")),
     );
 
     // Create dependent feature
@@ -138,7 +138,7 @@ describe("GitStack", () => {
     // Create and track a branch
     execSync("git checkout -b test-branch", { cwd: testDir });
     await Effect.runPromise(
-      runWithGitStack(trackStackBranch("test-branch", "main")),
+      runWithGitStack(trackStackBranch("test-branch", "master")),
     );
 
     const status = await Effect.runPromise(runWithGitStack(statusStack));
@@ -160,7 +160,7 @@ describe("GitStack", () => {
     });
 
     await Effect.runPromise(
-      runWithGitStack(trackStackBranch("temp-branch", "main")),
+      runWithGitStack(trackStackBranch("temp-branch", "master")),
     );
 
     // Verify it's tracked (should not show "No tracked stack branches")
@@ -168,8 +168,8 @@ describe("GitStack", () => {
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
-    // Switch to main branch first
-    execSync("git checkout main", { cwd: testDir });
+    // Switch to master branch first (default branch name in test repos)
+    execSync("git checkout master", { cwd: testDir });
 
     // Delete the branch from stack (force delete since it's not merged)
     await Effect.runPromise(
@@ -187,7 +187,7 @@ describe("GitStack", () => {
     // Create and track multiple branches
     execSync("git checkout -b branch1", { cwd: testDir });
     await Effect.runPromise(
-      runWithGitStack(trackStackBranch("branch1", "main")),
+      runWithGitStack(trackStackBranch("branch1", "master")),
     );
 
     execSync("git checkout -b branch2", { cwd: testDir });
