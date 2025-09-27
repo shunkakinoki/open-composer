@@ -10,10 +10,12 @@ import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
+import { ConfigLive, type ConfigService } from "../services/config.js";
 import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
 import { buildStackCommand } from "./stack.js";
+import { buildTelemetryCommand } from "./telemetry.js";
 import { buildTUICommand } from "./tui.js";
 
 export type ComposerCliServices =
@@ -22,17 +24,18 @@ export type ComposerCliServices =
   | GitService
   | CliConfigService
   | BunContextService
+  | ConfigService
   | TelemetryService;
 
-export const layer: Layer.Layer<ComposerCliServices, never, never> =
-  Layer.mergeAll(
-    CliConfig.layer({ showBuiltIns: false }),
-    BunContext.layer,
-    GitLive,
-    GitStackLive,
-    AgentRouterLive,
-    TelemetryLive,
-  );
+export const layer = Layer.mergeAll(
+  CliConfig.layer({ showBuiltIns: false }),
+  BunContext.layer,
+  GitLive,
+  GitStackLive,
+  AgentRouterLive,
+  ConfigLive,
+  TelemetryLive,
+);
 
 export function buildRootCommand() {
   return Command.make("open-composer").pipe(
@@ -42,6 +45,7 @@ export function buildRootCommand() {
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
       buildStackCommand(),
+      buildTelemetryCommand(),
     ]),
   );
 }

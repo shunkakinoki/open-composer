@@ -1,6 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
+import { ConfigService } from "./config.js";
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -133,11 +134,22 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 export const TelemetryLive = Layer.effect(
   TelemetryService,
   Effect.gen(function* (_) {
-    // Get configuration from environment variables
-    const telemetryEnabled = process.env.OPEN_COMPOSER_TELEMETRY === "true";
+    // Get user config to check telemetry consent
+    const configService = yield* _(ConfigService);
+    const userConfig = yield* _(configService.getConfig());
+
+    // Check if user has consented to telemetry
+    const userConsent = userConfig.telemetry?.enabled ?? false;
+
+    // Get configuration from environment variables (for overrides)
+    const envTelemetryEnabled = process.env.OPEN_COMPOSER_TELEMETRY === "true";
     const apiKey = process.env.OPEN_COMPOSER_POSTHOG_API_KEY;
     const host = process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host;
     const distinctId = process.env.OPEN_COMPOSER_DISTINCT_ID;
+
+    // Determine if telemetry should be enabled
+    // Priority: 1. Environment variable override, 2. User consent from config
+    const telemetryEnabled = envTelemetryEnabled || userConsent;
 
     const config: TelemetryConfig = {
       enabled: telemetryEnabled,
@@ -146,8 +158,13 @@ export const TelemetryLive = Layer.effect(
       distinctId,
     };
 
-    // If telemetry is not explicitly enabled, create a no-op service
+    // If telemetry is not enabled (either by user consent or env var), create a no-op service
     if (!config.enabled) {
+      if (userConsent) {
+        console.log("🔒 Telemetry disabled by user preference");
+      } else {
+        console.log("🔒 Telemetry disabled (privacy-first approach)");
+      }
       return {
         track: () => Effect.void,
         identify: () => Effect.void,
@@ -171,6 +188,7 @@ export const TelemetryLive = Layer.effect(
       };
     }
 
+    console.log("📊 Telemetry enabled - collecting anonymous usage statistics");
     return createTelemetryService(config);
   }),
 );
