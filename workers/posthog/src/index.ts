@@ -128,7 +128,7 @@ export default {
     try {
       // Get the raw request body
       const bodyText = await request.text();
-      let body = JSON.parse(bodyText);
+      const body = JSON.parse(bodyText);
 
       // Log the incoming request for debugging
       console.log("Received request body:", JSON.stringify(body, null, 2));

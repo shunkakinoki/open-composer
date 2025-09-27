@@ -15,10 +15,8 @@ const defaultConfig: TelemetryConfig = {
   enabled: true, // Disable telemetry by default - enable via environment variable
   apiKey:
     process.env.OPEN_COMPOSER_POSTHOG_API_KEY ||
-    "phc_12345678901234567890123456789012",
-  host:
-    process.env.OPEN_COMPOSER_POSTHOG_HOST ||
-    "https://posthog-worker.shunkakinoki.workers.dev",
+    "phc_myz44Az2Eim07Kk1aP3jWLVb2pzn75QWVDhOMv9dSsU",
+  host: process.env.OPEN_COMPOSER_POSTHOG_HOST || "https://us.i.posthog.com",
 };
 
 // Create the PostHog client
@@ -33,6 +31,7 @@ function createPostHogClient(config: TelemetryConfig) {
     maxCacheSize: 1000,
     flushAt: 1, // Flush immediately for CLI usage
     flushInterval: 0, // Disable periodic flushing
+    enableExceptionAutocapture: true, // Enable automatic exception tracking
   });
 }
 
@@ -48,6 +47,11 @@ export interface TelemetryService {
   ) => Effect.Effect<void, never, never>;
   readonly capture: (
     event: string,
+    properties?: Record<string, string | number | boolean | null | undefined>,
+  ) => Effect.Effect<void, never, never>;
+  readonly captureException: (
+    error: Error,
+    distinctId?: string,
     properties?: Record<string, string | number | boolean | null | undefined>,
   ) => Effect.Effect<void, never, never>;
   readonly flush: () => Effect.Effect<void, never, never>;
@@ -117,6 +121,25 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
           }).pipe(Effect.catchAll(() => Effect.void))
         : Effect.void,
 
+    captureException: (
+      error: Error,
+      distinctId?: string,
+      properties?: Record<string, string | number | boolean | null | undefined>,
+    ) =>
+      client
+        ? Effect.try(() => {
+            client.captureException(
+              error,
+              distinctId || config.distinctId || "anonymous",
+              {
+                ...properties,
+                version: CLI_VERSION,
+                source: "cli",
+              },
+            );
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
+
     flush: () =>
       client
         ? Effect.try(() => {
@@ -178,6 +201,19 @@ export const trackFeatureUsage = (
         feature,
         ...metadata,
         timestamp: new Date().toISOString(),
+      }),
+    ),
+  );
+
+export const trackException = (error: Error, command?: string) =>
+  TelemetryService.pipe(
+    Effect.flatMap((telemetry) =>
+      telemetry.captureException(error, undefined, {
+        command,
+        timestamp: new Date().toISOString(),
+        error_name: error.name,
+        error_message: error.message,
+        error_stack: error.stack,
       }),
     ),
   );
