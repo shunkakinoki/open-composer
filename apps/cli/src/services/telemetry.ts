@@ -1,6 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
+import { ConfigService } from "./config.js";
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -130,48 +131,13 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 };
 
 // Create telemetry layer
-export const TelemetryLive = Layer.effect(
+export const TelemetryLive = Layer.succeed(
   TelemetryService,
-  Effect.gen(function* (_) {
-    // Get configuration from environment variables
-    const telemetryEnabled = process.env.OPEN_COMPOSER_TELEMETRY === "true";
-    const apiKey = process.env.OPEN_COMPOSER_POSTHOG_API_KEY;
-    const host = process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host;
-    const distinctId = process.env.OPEN_COMPOSER_DISTINCT_ID;
-
-    const config: TelemetryConfig = {
-      enabled: telemetryEnabled,
-      apiKey,
-      host,
-      distinctId,
-    };
-
-    // If telemetry is not explicitly enabled, create a no-op service
-    if (!config.enabled) {
-      return {
-        track: () => Effect.void,
-        identify: () => Effect.void,
-        capture: () => Effect.void,
-        flush: () => Effect.void,
-        shutdown: () => Effect.void,
-      };
-    }
-
-    // If API key is not provided, create a no-op service
-    if (!config.apiKey) {
-      console.warn(
-        "Telemetry enabled but no API key provided. Set OPEN_COMPOSER_POSTHOG_API_KEY environment variable.",
-      );
-      return {
-        track: () => Effect.void,
-        identify: () => Effect.void,
-        capture: () => Effect.void,
-        flush: () => Effect.void,
-        shutdown: () => Effect.void,
-      };
-    }
-
-    return createTelemetryService(config);
+  createTelemetryService({
+    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true",
+    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY,
+    host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
+    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID,
   }),
 );
 
