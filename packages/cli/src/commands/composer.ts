@@ -10,6 +10,7 @@ import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
+import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
 import { buildStackCommand } from "./stack.js";
@@ -20,7 +21,8 @@ export type ComposerCliServices =
   | GitStackService
   | GitService
   | CliConfigService
-  | BunContextService;
+  | BunContextService
+  | TelemetryService;
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
@@ -36,6 +38,7 @@ export const layer: Layer.Layer<ComposerCliServices, never, never> =
     GitLive,
     GitStackLive,
     AgentRouterLive,
+    TelemetryLive,
   );
 
 export function buildRootCommand() {

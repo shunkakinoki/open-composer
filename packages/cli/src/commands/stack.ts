@@ -2,12 +2,16 @@ import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { StackCli } from "../services/stack-cli.js";
+import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
 
 function buildLogCommand() {
   return Command.make("log").pipe(
     Command.withDescription("Display the current stack tree"),
     Command.withHandler(() =>
       Effect.gen(function* () {
+        yield* trackCommand("stack", "log");
+        yield* trackFeatureUsage("stack_log");
+
         const cli = new StackCli();
         yield* cli.log();
       }),
@@ -39,6 +43,12 @@ function buildCreateCommand() {
     Command.withDescription("Create and track a new branch"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("stack", "create");
+        yield* trackFeatureUsage("stack_create", {
+          has_base: Option.isSome(config.base),
+          branch_length: config.branch.length,
+        });
+
         const cli = new StackCli();
         yield* cli.create(config.branch, Option.getOrUndefined(config.base));
       }),
