@@ -157,7 +157,7 @@ console.log(`Binaries built: ${JSON.stringify(binaries)}`);
 // Create zip file for the package if `RELEASE_ZIP_FILES` is set
 // ---------------------------------------------------------------------------
 
-if (process.env.RELEASE_ZIP_FILES) {
+if (process.env.RELEASE_OPENCOMPOSER_ZIPS) {
   for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
@@ -227,38 +227,26 @@ if (isRelease) {
   process.chdir(dir);
 
   // ---------------------------------------------------------------------------
-  // Publish the binaries of the packages if `RELEASE_OPENCOMPOSER_BINS` is set
+  // Publish the binaries
   // ---------------------------------------------------------------------------
 
-  if (process.env.RELEASE_OPENCOMPOSER_BINS) {
-    // -------------------------------------------------------------------------
-    // Publish the binaries
-    // -------------------------------------------------------------------------
+  console.log("Publishing binaries");
 
-    console.log("Publishing binaries");
-
-    for (const [name] of Object.entries(binaries)) {
-      await $`cd dist/${name} && bun publish --access public --tag ${TAG}`;
-    }
-
-    console.log("Binaries published:", binaries);
+  for (const [name] of Object.entries(binaries)) {
+    await $`cd dist/${name} && bun publish --access public --tag ${TAG}`;
   }
 
+  console.log("Binaries published:", binaries);
+
   // ---------------------------------------------------------------------------
-  // Publish the main package if `isSnapshotRelease` is set
+  // Publish the main package
   // ---------------------------------------------------------------------------
 
-  if (isSnapshotRelease) {
-    // -------------------------------------------------------------------------
-    // Publish the main package
-    // -------------------------------------------------------------------------
+  console.log("Publishing main package");
 
-    console.log("Publishing main package");
+  await $`bun publish --access public --tag ${TAG}`;
 
-    await $`bun publish --access public --tag ${TAG}`;
-
-    console.log("Main package published");
-  }
+  console.log("Main package published");
 }
 
 // -----------------------------------------------------------------------------
