@@ -1,5 +1,6 @@
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
+import { CLI_VERSION } from "../lib/version.js";
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -69,7 +70,7 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
           event,
           properties: {
             ...properties,
-            version: "0.1.2",
+            version: CLI_VERSION,
             source: "cli",
           },
         }),
@@ -84,7 +85,7 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
           distinctId,
           properties: {
             ...properties,
-            version: "0.1.2",
+            version: CLI_VERSION,
             source: "cli",
           },
         }),
@@ -100,7 +101,7 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
           event,
           properties: {
             ...properties,
-            version: "0.1.2",
+            version: CLI_VERSION,
             source: "cli",
           },
         }),

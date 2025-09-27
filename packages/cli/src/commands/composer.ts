@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { Command } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
 import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
@@ -11,6 +10,7 @@ import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
 import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
+import { CLI_VERSION } from "../lib/version.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
 import { buildStackCommand } from "./stack.js";
@@ -23,13 +23,6 @@ export type ComposerCliServices =
   | CliConfigService
   | BunContextService
   | TelemetryService;
-
-const packageJson = JSON.parse(
-  readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
-) as { version?: string };
-
-export const version =
-  typeof packageJson.version === "string" ? packageJson.version : "0.0.0";
 
 export const layer: Layer.Layer<ComposerCliServices, never, never> =
   Layer.mergeAll(
@@ -56,7 +49,7 @@ export function buildRootCommand() {
 export function buildRunner() {
   const config = {
     name: "Open Composer CLI",
-    version,
+    version: CLI_VERSION,
   } satisfies Omit<CliApp.ConstructorArgs<never>, "command">;
 
   return Command.run(buildRootCommand(), config);
