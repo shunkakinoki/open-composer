@@ -30,6 +30,9 @@ console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 // Set the metadata
 // -----------------------------------------------------------------------------
 
+const VERSION = isChangesetRelease
+  ? CLI_VERSION
+  : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
 const TAG = isChangesetRelease ? "latest" : "snapshot";
 
 console.log(`TAG: ${TAG}`);
@@ -122,7 +125,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name: packageName,
-        version: CLI_VERSION,
+        version: VERSION,
         main: "bin/opencomposer",
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
@@ -194,7 +197,7 @@ if (isRelease) {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
         },
-        version: CLI_VERSION,
+        version: VERSION,
         optionalDependencies: binaries,
       },
       null,
@@ -225,6 +228,21 @@ if (isRelease) {
   await $`bun publish --access public --tag ${TAG}`;
 
   console.log("Main package published");
+
+  // ---------------------------------------------------------------------------
+  // Reset git directory if `isSnapshotRelease` is set
+  // ---------------------------------------------------------------------------
+
+  if (isSnapshotRelease) {
+    console.log("Resetting git directory");
+
+    // Go to the root directory
+    process.chdir(new URL("..", import.meta.url).pathname);
+
+    await $`git reset --hard`;
+
+    console.log("Git directory reset");
+  }
 }
 
 export { binaries };
