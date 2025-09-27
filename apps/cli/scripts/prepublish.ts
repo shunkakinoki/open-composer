@@ -69,7 +69,7 @@ console.log(`Building CLI version ${version}`);
 // -----------------------------------------------------------------------------
 
 for (const [os, arch] of targets) {
-  const packageName = `opencomposer-${os}-${arch}`;
+  const packageName = `@open-composer/cli-${os}-${arch}`;
   const bunTarget = getBunTarget(os, arch);
 
   console.log(`Building for ${os}-${arch} using target: ${bunTarget}`);
@@ -111,6 +111,8 @@ for (const [os, arch] of targets) {
 
   binaries[packageName] = version;
 }
+
+console.log(`Binaries built: ${JSON.stringify(binaries)}`);
 
 // ---------------------------------------------------------------------------
 // Create zip file for the package if `RELEASE_ZIP_FILES` is set
