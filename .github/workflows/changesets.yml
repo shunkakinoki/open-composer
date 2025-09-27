@@ -32,8 +32,16 @@ jobs:
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
       - name: Detect if Changeset Release
         run: |
-          if [ "${{ github.head_ref }}" = "changeset-release/main" ] || [ "${{ github.ref_name }}" = "changeset-release/main" ]; then
-            echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
+          # Check if this is a push to main that should trigger a release
+          if [ "${{ github.ref_name }}" = "main" ] && [ "${{ github.event_name }}" = "push" ]; then
+            # Check if there are changesets to publish or if this is a version commit
+            if [ -d ".changeset" ] && [ "$(ls -A .changeset/ | grep -v 'config.json' | wc -l)" -gt 0 ]; then
+              echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
+            elif git log --oneline -5 | grep -q -i "version\|release\|changeset"; then
+              echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
+            else
+              echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
+            fi
           else
             echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
           fi
