@@ -18,8 +18,8 @@ export type {
   GitCommandOptions,
   GitCommandResult,
   GitService,
-} from "./git.js";
-export { Git, GitLive, run as runGit } from "./git.js";
+} from "@open-composer/git";
+export { Git, GitLive, run as runGit } from "@open-composer/git";
 // Worktrees
 export type {
   AddOptions,

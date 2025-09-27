@@ -11,7 +11,7 @@ import {
   type GitCommandError,
   type GitCommandOptions,
   run as runGit,
-} from "./git.js";
+} from "@open-composer/git";
 import { type ParsedWorktree, parsePorcelainList } from "./parse.js";
 
 // -----------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import {
   createStackBranch,
   deleteStackBranch,
@@ -12,11 +13,17 @@ import {
   statusStack,
   submitStack,
   trackStackBranch,
+  type StackStatus,
 } from "../src/index.js";
 
 // Test setup utilities
 let testDir: string;
 let originalCwd: string;
+
+// Helper to run effects that can fail and extract the value
+const runEffect = async <A>(effect: Effect.Effect<A, any>): Promise<A> => {
+  return Effect.runPromise(Effect.orDie(effect));
+};
 
 const setupTestRepo = async (): Promise<string> => {
   const testRepoDir = path.join(tmpdir(), `git-stack-test-${Date.now()}`);
@@ -53,7 +60,7 @@ describe("GitStack", () => {
 
   test("log returns helpful message when stack is empty", async () => {
     process.chdir(testDir);
-    const lines = await Effect.runPromise(runWithGitStack(logStack));
+    const lines = await runEffect(runWithGitStack(logStack));
     expect(lines[0]).toContain("No tracked stack branches");
   });
 
@@ -69,19 +76,19 @@ describe("GitStack", () => {
     });
 
     // Create new branch from current
-    const result = await Effect.runPromise(
-      runWithGitStack(createStackBranch({ name: "feature-branch" })),
-    );
+    const result = await runEffect(
+      runWithGitStack(createStackBranch({ name: "feature-branch" }) as any),
+    ) as { branch: string; base: string };
 
     expect(result.branch).toBe("feature-branch");
 
     // Track the branch
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("feature-branch", "master")),
     );
 
     // Check submit shows the PR
-    const submitLines = await Effect.runPromise(runWithGitStack(submitStack));
+    const submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
     expect(submitLines[0]).toContain(
       "feat: implement feature #12345 #12345 Open Composer",
     );
@@ -98,7 +105,7 @@ describe("GitStack", () => {
     execSync('git commit -m "feat: add base feature #12346"', { cwd: testDir });
 
     // Track base feature
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("base-feature", "master")),
     );
 
@@ -112,12 +119,12 @@ describe("GitStack", () => {
     });
 
     // Track dependent feature
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("dependent-feature", "base-feature")),
     );
 
     // Check submit shows stacked PRs
-    const submitLines = await Effect.runPromise(runWithGitStack(submitStack));
+    const submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
     expect(
       submitLines.some((line) =>
         line.includes("feat: add base feature #12346 #12346 Open Composer"),
@@ -137,11 +144,11 @@ describe("GitStack", () => {
 
     // Create and track a branch
     execSync("git checkout -b test-branch", { cwd: testDir });
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("test-branch", "master")),
     );
 
-    const status = await Effect.runPromise(runWithGitStack(statusStack));
+    const status = await runEffect(runWithGitStack(statusStack as any)) as StackStatus;
     expect(status.currentBranch).toBe("test-branch");
   });
 
@@ -159,12 +166,12 @@ describe("GitStack", () => {
       cwd: testDir,
     });
 
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("temp-branch", "master")),
     );
 
     // Verify it's tracked (should not show "No tracked stack branches")
-    let submitLines = await Effect.runPromise(runWithGitStack(submitStack));
+    let submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
@@ -172,12 +179,12 @@ describe("GitStack", () => {
     execSync("git checkout main", { cwd: testDir });
 
     // Delete the branch from stack (force delete since it's not merged)
-    await Effect.runPromise(
-      runWithGitStack(deleteStackBranch("temp-branch", true)),
+    await runEffect(
+      runWithGitStack(deleteStackBranch("temp-branch", true) as any),
     );
 
     // Verify it's no longer tracked (#99999 should not appear)
-    submitLines = await Effect.runPromise(runWithGitStack(submitStack));
+    submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(false);
   });
 
@@ -186,16 +193,16 @@ describe("GitStack", () => {
 
     // Create and track multiple branches
     execSync("git checkout -b branch1", { cwd: testDir });
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("branch1", "master")),
     );
 
     execSync("git checkout -b branch2", { cwd: testDir });
-    await Effect.runPromise(
+    await runEffect(
       runWithGitStack(trackStackBranch("branch2", "branch1")),
     );
 
-    const logLines = await Effect.runPromise(runWithGitStack(logStack));
+    const logLines = await runEffect(runWithGitStack(logStack));
     expect(logLines.some((line) => line.includes("branch1"))).toBe(true);
     expect(logLines.some((line) => line.includes("branch2"))).toBe(true);
   });

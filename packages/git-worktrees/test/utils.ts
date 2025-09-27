@@ -5,8 +5,8 @@ import type {
   GitCommandOptions,
   GitCommandResult,
   GitService,
-} from "../src/git.js";
-import { Git as GitTag } from "../src/git.js";
+} from "@open-composer/git";
+import { Git as GitTag } from "@open-composer/git";
 
 export interface GitCall {
   readonly args: ReadonlyArray<string>;
