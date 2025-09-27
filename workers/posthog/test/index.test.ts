@@ -13,9 +13,7 @@ const mockEnv: Env = {
     get: vi.fn(() => ({
       fetch: vi.fn(),
       connect: vi.fn(),
-      checkRateLimit: vi
-        .fn()
-        .mockResolvedValue({ allowed: true, waitTime: 0 }),
+      checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, waitTime: 0 }),
     })),
     jurisdiction: "eu",
   } as unknown as DurableObjectNamespace,
