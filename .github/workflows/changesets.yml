@@ -36,7 +36,7 @@ jobs:
         env:
           PUBLISH_PACKAGES: true
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@0938f5255ef4c8291067fa104c6030791f84450f
+        uses: shunkakinoki/actions/.github/actions/changesets@fbd9749bb500885ae9709fec43ed14016b0b928f
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
