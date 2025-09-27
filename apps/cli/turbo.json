@@ -8,8 +8,7 @@
         "PUBLISH_PACKAGES",
         "RELEASE_OPENCOMPOSER_ZIPS",
         "GITHUB_SHA",
-        "GITHUB_HEAD_REF",
-        "GITHUB_REF_NAME"
+        "CHANGESET_RELEASE"
       ]
     }
   }
