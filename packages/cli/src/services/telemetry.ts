@@ -64,52 +64,68 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
       event: string,
       properties?: Record<string, string | number | boolean | null | undefined>,
     ) =>
-      Effect.succeed(
-        client?.capture({
-          distinctId: config.distinctId || "anonymous",
-          event,
-          properties: {
-            ...properties,
-            version: CLI_VERSION,
-            source: "cli",
-          },
-        }),
-      ),
+      client
+        ? Effect.try(() => {
+            client.capture({
+              distinctId: config.distinctId || "anonymous",
+              event,
+              properties: {
+                ...properties,
+                version: CLI_VERSION,
+                source: "cli",
+              },
+            });
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
 
     identify: (
       distinctId: string,
       properties?: Record<string, string | number | boolean | null | undefined>,
     ) =>
-      Effect.succeed(
-        client?.identify({
-          distinctId,
-          properties: {
-            ...properties,
-            version: CLI_VERSION,
-            source: "cli",
-          },
-        }),
-      ),
+      client
+        ? Effect.try(() => {
+            client.identify({
+              distinctId,
+              properties: {
+                ...properties,
+                version: CLI_VERSION,
+                source: "cli",
+              },
+            });
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
 
     capture: (
       event: string,
       properties?: Record<string, string | number | boolean | null | undefined>,
     ) =>
-      Effect.succeed(
-        client?.capture({
-          distinctId: config.distinctId || "anonymous",
-          event,
-          properties: {
-            ...properties,
-            version: CLI_VERSION,
-            source: "cli",
-          },
-        }),
-      ),
+      client
+        ? Effect.try(() => {
+            client.capture({
+              distinctId: config.distinctId || "anonymous",
+              event,
+              properties: {
+                ...properties,
+                version: CLI_VERSION,
+                source: "cli",
+              },
+            });
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
 
-    flush: () => Effect.succeed(client?.flush()),
+    flush: () =>
+      client
+        ? Effect.try(() => {
+            client.flush();
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
 
-    shutdown: () => Effect.succeed(client?.shutdown()),
+    shutdown: () =>
+      client
+        ? Effect.try(() => {
+            client.shutdown();
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
   };
 };
 
