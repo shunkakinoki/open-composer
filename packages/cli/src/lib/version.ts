@@ -5,4 +5,5 @@ const packageJson = JSON.parse(
 ) as { version?: string };
 
 export const CLI_VERSION =
-  typeof packageJson.version === "string" ? packageJson.version : "0.0.0";
+  process.env.OPENCOMPOSER_VERSION ??
+  (typeof packageJson.version === "string" ? packageJson.version : "0.0.0");

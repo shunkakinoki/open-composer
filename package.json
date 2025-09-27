@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
+    "prepublishOnly": "turbo run prepublishOnly",
     "publish": "changeset publish",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status --verbose --since origin/main",
