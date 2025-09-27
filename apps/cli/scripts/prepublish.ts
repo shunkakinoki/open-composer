@@ -122,7 +122,7 @@ if (process.env.RELEASE_ZIP_FILES) {
   for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
-    const zipName = `${packageName}.zip`;
+    const zipName = `opencomposer-${packageName.split("/")[1]}.zip`;
     console.log(`Creating zip: ${zipName}`);
 
     // Create zip file containing the entire package directory
