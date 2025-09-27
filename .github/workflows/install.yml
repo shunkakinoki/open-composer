@@ -45,12 +45,12 @@ jobs:
         uses: actions/setup-node@v5
       - name: Install open-composer globally with retry
         uses: nick-fields/retry@v3
-        continue-on-error: ${{ matrix.os == 'windows-latest' }}
         with:
           timeout_seconds: 30
           max_attempts: 10
           command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
+        if: matrix.os != 'windows-latest'
         run: open-composer --version
         shell: bash
       - name: Verify opencomposer command (Windows)
