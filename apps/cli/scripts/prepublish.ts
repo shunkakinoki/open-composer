@@ -8,9 +8,17 @@ import { CLI_VERSION } from "../src/lib/version.js";
 // Set the flags
 // -----------------------------------------------------------------------------
 
+console.log(`CI: ${process.env.CI}`);
+console.log(`PUBLISH_PACKAGES: ${process.env.PUBLISH_PACKAGES}`);
+console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
+console.log(`GITHUB_HEAD_REF: ${process.env.GITHUB_HEAD_REF}`);
+console.log(`GITHUB_REF_NAME: ${process.env.GITHUB_REF_NAME}`);
+
 // Use snapshot tag for changeset releases (Version Packages PR merges)
 const isRelease =
-  process.env.CI === "true" && process.env.PUBLISH_PACKAGES === "true";
+  process.env.CI === "true" &&
+  process.env.PUBLISH_PACKAGES === "true" &&
+  process.env.GITHUB_SHA !== undefined;
 const isChangesetRelease =
   isRelease &&
   (process.env.GITHUB_HEAD_REF === "changeset-release/main" ||
@@ -203,9 +211,7 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
     ),
   );
 
-  console.log(
-    "Prepared main package for publishing - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it",
-  );
+  console.log("Prepared main package for publishing");
 }
 
 // -----------------------------------------------------------------------------
@@ -253,6 +259,22 @@ if (isRelease) {
 
     console.log("Main package published");
   }
+}
+
+// -----------------------------------------------------------------------------
+// Reset git directory if `isChangesetRelease` is set
+// -----------------------------------------------------------------------------
+
+if (isChangesetRelease) {
+  // ---------------------------------------------------------------------------
+  // Reset git directory
+  // ---------------------------------------------------------------------------
+
+  console.log("Resetting git directory");
+
+  await $`git reset --hard`;
+
+  console.log("Git directory reset");
 }
 
 export { binaries };
