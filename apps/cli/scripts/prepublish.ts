@@ -100,8 +100,7 @@ console.log(`Building CLI version ${version}`);
 // Set the __dirname
 // -----------------------------------------------------------------------------
 
-const dir = new URL("..", import.meta.url).pathname;
-process.chdir(dir);
+process.chdir(new URL("..", import.meta.url).pathname);
 
 // -----------------------------------------------------------------------------
 // Build for all target platforms using cross-compilation
@@ -153,9 +152,9 @@ for (const [os, arch] of targets) {
 
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
 
-// ---------------------------------------------------------------------------
-// Create zip file for the package if `RELEASE_ZIP_FILES` is set
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Create zip file for the package if `RELEASE_OPENCOMPOSER_ZIPS` is set
+// -----------------------------------------------------------------------------
 
 if (process.env.RELEASE_OPENCOMPOSER_ZIPS) {
   for (const [packageName] of Object.entries(binaries)) {
@@ -172,10 +171,10 @@ if (process.env.RELEASE_OPENCOMPOSER_ZIPS) {
 }
 
 // -----------------------------------------------------------------------------
-// Prepare the main package if `PREPARE_OPENCOMPOSER_RELEASE` is set
+// Prepare the main package if `isRelease` is set
 // -----------------------------------------------------------------------------
 
-if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
+if (isRelease) {
   // ---------------------------------------------------------------------------
   // Set the __dirname
   // ---------------------------------------------------------------------------
@@ -212,19 +211,6 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
   );
 
   console.log("Prepared main package for publishing");
-}
-
-// -----------------------------------------------------------------------------
-// Publish the packages if `isRelease` is set
-// -----------------------------------------------------------------------------
-
-if (isRelease) {
-  // ---------------------------------------------------------------------------
-  // Set the __dirname
-  // ---------------------------------------------------------------------------
-
-  const dir = new URL("..", import.meta.url).pathname;
-  process.chdir(dir);
 
   // ---------------------------------------------------------------------------
   // Publish the binaries
