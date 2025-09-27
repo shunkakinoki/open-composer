@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.8
+
+### Patch Changes
+
+- bff86af: Add prepublishOnly changes
+
 ## 0.3.7
 
 ### Patch Changes
