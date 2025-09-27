@@ -110,12 +110,14 @@ for (const [os, arch] of targets) {
   // ---------------------------------------------------------------------------
 
   binaries[packageName] = version;
+}
 
-  // ---------------------------------------------------------------------------
-  // Create zip file for the package if `RELEASE_ZIP_FILES` is set
-  // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Create zip file for the package if `RELEASE_ZIP_FILES` is set
+// ---------------------------------------------------------------------------
 
-  if (process.env.RELEASE_ZIP_FILES) {
+if (process.env.RELEASE_ZIP_FILES) {
+  for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
     const zipName = `${packageName}.zip`;
@@ -129,10 +131,10 @@ for (const [os, arch] of targets) {
 }
 
 // -----------------------------------------------------------------------------
-// Create tar file for the package if `RELEASE_OPENCOMPOSER_BINS` is set
+// Prepare the main package if `PREPARE_OPENCOMPOSER_RELEASE` is set
 // -----------------------------------------------------------------------------
 
-if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
   // ---------------------------------------------------------------------------
   // Set the __dirname
   // ---------------------------------------------------------------------------
@@ -144,11 +146,9 @@ if (process.env.RELEASE_OPENCOMPOSER_BINS) {
   // Copy the binary to the dist directory and copy the required scripts
   // ---------------------------------------------------------------------------
 
-  await $`mkdir -p ./dist/opencomposer`;
-  await $`cp -r ./bin ./dist/opencomposer/bin`;
-  await $`cp ./scripts/preinstall.mjs ./dist/opencomposer/preinstall.mjs`;
-  await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
-  await Bun.file(`./dist/opencomposer/package.json`).write(
+  await $`cp ./scripts/preinstall.mjs ./preinstall.mjs`;
+  await $`cp ./scripts/postinstall.mjs ./postinstall.mjs`;
+  await Bun.file(`./package.json`).write(
     JSON.stringify(
       {
         name: "open-composer",
@@ -157,6 +157,7 @@ if (process.env.RELEASE_OPENCOMPOSER_BINS) {
           opencomposer: "./bin/opencomposer",
           oc: "./bin/opencomposer",
         },
+        files: ["bin/**/*", "preinstall.mjs", "postinstall.mjs"],
         scripts: {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
@@ -170,10 +171,24 @@ if (process.env.RELEASE_OPENCOMPOSER_BINS) {
   );
 
   console.log(
-    "Prepared main package for publishing - Changesets will handle the actual publish",
+    "Prepared main package for publishing - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it",
   );
 }
 
-console.log("Binaries built:", binaries);
+// -----------------------------------------------------------------------------
+// Publish the binaries of the packages
+// -----------------------------------------------------------------------------
+
+if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+  // ---------------------------------------------------------------------------
+  // Publish the binaries
+  // ---------------------------------------------------------------------------
+
+  for (const [name] of Object.entries(binaries)) {
+    await $`cd dist/${name} && bun publish --access public --tag latest`;
+  }
+
+  console.log("Binaries published:", binaries);
+}
 
 export { binaries };

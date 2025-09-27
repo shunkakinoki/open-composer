@@ -40,6 +40,7 @@ jobs:
           commit-mode: 'git-cli'
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
+          PREPARE_OPENCOMPOSER_RELEASE: true
           RELEASE_OPENCOMPOSER_BINS: true
   changesets-pull-request:
     if: github.event_name == 'pull_request'
