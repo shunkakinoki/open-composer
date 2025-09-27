@@ -5,11 +5,29 @@ import { $ } from "bun";
 import { CLI_VERSION } from "../src/lib/version.js";
 
 // -----------------------------------------------------------------------------
-// Set the __dirname
+// Set the tag
 // -----------------------------------------------------------------------------
 
-const dir = new URL("..", import.meta.url).pathname;
-process.chdir(dir);
+// Use snapshot tag for changeset releases (Version Packages PR merges)
+const isRelease = process.env.CI === "true" && process.env.PUBLISH_PACKAGES === "true";
+const isChangesetRelease =
+  isRelease &&
+  (process.env.GITHUB_HEAD_REF === "changeset-release/main" ||
+    process.env.GITHUB_REF_NAME?.startsWith("changeset-release/"));
+const isSnapshotRelease = isRelease && !isChangesetRelease;
+
+console.log(`isRelease: ${isRelease}`);
+console.log(`isChangesetRelease: ${isChangesetRelease}`);
+console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
+
+const VERSION = isChangesetRelease ? CLI_VERSION : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
+const TAG = process.env.TAG || (isChangesetRelease ? "latest" : "snapshot");
+
+console.log(`VERSION: ${VERSION}`);
+console.log(`TAG: ${TAG}`);
+console.log(`CLI_VERSION: ${CLI_VERSION}`);
+console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
+
 
 // -----------------------------------------------------------------------------
 // Set the targets
@@ -65,6 +83,13 @@ const version = rawVersion.includes("@")
 console.log(`Building CLI version ${version}`);
 
 // -----------------------------------------------------------------------------
+// Set the __dirname
+// -----------------------------------------------------------------------------
+
+const dir = new URL("..", import.meta.url).pathname;
+process.chdir(dir);
+
+// -----------------------------------------------------------------------------
 // Build for all target platforms using cross-compilation
 // -----------------------------------------------------------------------------
 
@@ -92,7 +117,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name: packageName,
-        version,
+        version: VERSION,
         main: "bin/opencomposer",
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
@@ -164,7 +189,7 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
         },
-        version: CLI_VERSION,
+        version: VERSION,
         optionalDependencies: binaries,
       },
       null,
@@ -178,19 +203,51 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
 }
 
 // -----------------------------------------------------------------------------
-// Publish the binaries of the packages
+// Publish the packages if `isRelease` is set
 // -----------------------------------------------------------------------------
 
-if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+if (isRelease) {
   // ---------------------------------------------------------------------------
-  // Publish the binaries
+  // Set the __dirname
   // ---------------------------------------------------------------------------
 
-  for (const [name] of Object.entries(binaries)) {
-    await $`cd dist/${name} && bun publish --access public --tag latest`;
+  const dir = new URL("..", import.meta.url).pathname;
+  process.chdir(dir);
+
+  // ---------------------------------------------------------------------------
+  // Publish the binaries of the packages if `RELEASE_OPENCOMPOSER_BINS` is set
+  // ---------------------------------------------------------------------------
+
+
+  if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+    // -------------------------------------------------------------------------
+    // Publish the binaries
+    // -------------------------------------------------------------------------
+
+    console.log("Publishing binaries");
+
+    for (const [name] of Object.entries(binaries)) {
+      await $`cd dist/${name} && bun publish --access public --tag ${TAG}`;
+    }
+
+    console.log("Binaries published:", binaries);
   }
 
-  console.log("Binaries published:", binaries);
+  // ---------------------------------------------------------------------------
+  // Publish the main package if `isSnapshotRelease` is set
+  // ---------------------------------------------------------------------------
+
+  if (isSnapshotRelease) {
+    // -------------------------------------------------------------------------
+    // Publish the main package
+    // -------------------------------------------------------------------------
+
+    console.log("Publishing main package");
+
+    await $`bun publish --access public --tag ${TAG}`;
+
+    console.log("Main package published");
+  }
 }
 
 export { binaries };
