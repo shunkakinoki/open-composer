@@ -131,65 +131,13 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 };
 
 // Create telemetry layer
-export const TelemetryLive = Layer.effect(
+export const TelemetryLive = Layer.succeed(
   TelemetryService,
-  Effect.gen(function* (_) {
-    // Get user config to check telemetry consent
-    const configService = yield* _(ConfigService);
-    const userConfig = yield* _(configService.getConfig());
-
-    // Check if user has consented to telemetry
-    const userConsent = userConfig.telemetry?.enabled ?? false;
-
-    // Get configuration from environment variables (for overrides)
-    const envTelemetryEnabled = process.env.OPEN_COMPOSER_TELEMETRY === "true";
-    const apiKey = process.env.OPEN_COMPOSER_POSTHOG_API_KEY;
-    const host = process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host;
-    const distinctId = process.env.OPEN_COMPOSER_DISTINCT_ID;
-
-    // Determine if telemetry should be enabled
-    // Priority: 1. Environment variable override, 2. User consent from config
-    const telemetryEnabled = envTelemetryEnabled || userConsent;
-
-    const config: TelemetryConfig = {
-      enabled: telemetryEnabled,
-      apiKey,
-      host,
-      distinctId,
-    };
-
-    // If telemetry is not enabled (either by user consent or env var), create a no-op service
-    if (!config.enabled) {
-      if (userConsent) {
-        console.log("🔒 Telemetry disabled by user preference");
-      } else {
-        console.log("🔒 Telemetry disabled (privacy-first approach)");
-      }
-      return {
-        track: () => Effect.void,
-        identify: () => Effect.void,
-        capture: () => Effect.void,
-        flush: () => Effect.void,
-        shutdown: () => Effect.void,
-      };
-    }
-
-    // If API key is not provided, create a no-op service
-    if (!config.apiKey) {
-      console.warn(
-        "Telemetry enabled but no API key provided. Set OPEN_COMPOSER_POSTHOG_API_KEY environment variable.",
-      );
-      return {
-        track: () => Effect.void,
-        identify: () => Effect.void,
-        capture: () => Effect.void,
-        flush: () => Effect.void,
-        shutdown: () => Effect.void,
-      };
-    }
-
-    console.log("📊 Telemetry enabled - collecting anonymous usage statistics");
-    return createTelemetryService(config);
+  createTelemetryService({
+    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true",
+    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY,
+    host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
+    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID,
   }),
 );
 

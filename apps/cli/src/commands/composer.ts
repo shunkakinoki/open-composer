@@ -34,7 +34,7 @@ export const layer = Layer.mergeAll(
   GitStackLive,
   AgentRouterLive,
   ConfigLive,
-  TelemetryLive,
+  // TelemetryLive, // Temporarily disabled
 );
 
 export function buildRootCommand() {

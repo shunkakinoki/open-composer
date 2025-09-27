@@ -54,7 +54,7 @@ function getConfigPath(): string {
 const createConfigService = (): ConfigService => {
   return {
     getConfig: () =>
-      Effect.tryPromise(async () => {
+      Effect.promise(async () => {
         const configPath = getConfigPath();
 
         try {
@@ -70,10 +70,10 @@ const createConfigService = (): ConfigService => {
           // If file doesn't exist or is invalid, return default config
           return defaultConfig;
         }
-      }).pipe(Effect.orElse(() => Effect.succeed(defaultConfig))),
+      }),
 
     updateConfig: (updates: Partial<UserConfig>) =>
-      Effect.tryPromise(async () => {
+      Effect.promise(async () => {
         const configPath = getConfigPath();
 
         let currentConfig: UserConfig;
@@ -101,10 +101,10 @@ const createConfigService = (): ConfigService => {
         );
 
         return updatedConfig;
-      }).pipe(Effect.orElse(() => Effect.succeed(defaultConfig))),
+      }),
 
     setTelemetryConsent: (enabled: boolean) =>
-      Effect.tryPromise(async () => {
+      Effect.promise(async () => {
         const configPath = getConfigPath();
 
         let currentConfig: UserConfig;
@@ -136,10 +136,10 @@ const createConfigService = (): ConfigService => {
         );
 
         return updatedConfig;
-      }).pipe(Effect.orElse(() => Effect.succeed(defaultConfig))),
+      }),
 
     getTelemetryConsent: () =>
-      Effect.tryPromise(async () => {
+      Effect.promise(async () => {
         const configPath = getConfigPath();
 
         try {
@@ -149,7 +149,7 @@ const createConfigService = (): ConfigService => {
         } catch {
           return false;
         }
-      }).pipe(Effect.orElse(() => Effect.succeed(false))),
+      }),
   };
 };
 
