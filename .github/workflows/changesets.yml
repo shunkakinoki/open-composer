@@ -36,7 +36,7 @@ jobs:
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
-          publish-command: 'bun run publish:packages'
+          publish-command: 'bun run publish'
           create-github-releases: 'true'
           commit-mode: 'git-cli'
       - name: Publish CLI Package
