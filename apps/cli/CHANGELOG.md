@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.11
+
+### Patch Changes
+
+- 1578462: Add prepublishOnly flow
+
 ## 0.3.10
 
 ### Patch Changes
