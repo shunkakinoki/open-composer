@@ -132,3 +132,50 @@ export const cleanup = () => {
   }
   instances.length = 0;
 };
+
+// CLI testing utilities
+const stripAnsi = (value: string): string =>
+  value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
+
+interface CliResult {
+  stdout: string;
+  stderr: string;
+  code: number | null;
+}
+
+const runCli = (args: string[] = []): Promise<CliResult> => {
+  const { spawn } = require("node:child_process");
+  const { dirname, join } = require("node:path");
+  const { fileURLToPath } = require("node:url");
+
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const cliPath = join(__dirname, "../src/index.ts");
+
+  return new Promise((resolve, reject) => {
+    const child = spawn("bun", ["run", cliPath, ...args], {
+      stdio: "pipe",
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout?.on("data", (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on("data", (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code: number | null) => {
+      resolve({ stdout, stderr, code });
+    });
+
+    child.on("error", (error: Error) => {
+      reject(error);
+    });
+  });
+};
+
+export { runCli, stripAnsi };
