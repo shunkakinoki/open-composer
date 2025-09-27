@@ -13,8 +13,12 @@ export interface TelemetryConfig {
 // Default telemetry configuration
 const defaultConfig: TelemetryConfig = {
   enabled: true, // Disable telemetry by default - enable via environment variable
-  apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY || "phc_12345678901234567890123456789012",
-  host: process.env.OPEN_COMPOSER_POSTHOG_HOST || "https://posthog-worker.shunkakinoki.workers.dev",
+  apiKey:
+    process.env.OPEN_COMPOSER_POSTHOG_API_KEY ||
+    "phc_12345678901234567890123456789012",
+  host:
+    process.env.OPEN_COMPOSER_POSTHOG_HOST ||
+    "https://posthog-worker.shunkakinoki.workers.dev",
 };
 
 // Create the PostHog client
