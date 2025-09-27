@@ -1,6 +1,6 @@
 // Global declarations for Cloudflare Workers runtime
 declare const DurableObject: {
-  new (state: DurableObjectState, env: any): any;
+  new (state: DurableObjectState, env: Env): RateLimiter;
 };
 
 interface IncomingEvent {
@@ -22,7 +22,7 @@ interface RateLimitResult {
   waitTime: number;
 }
 
-interface WindowData {
+export interface WindowData {
   count: number;
   timestamp: number;
 }
@@ -69,7 +69,7 @@ export class RateLimiter {
   }
 }
 
-interface Env {
+export interface Env {
   POSTHOG_HOST: string;
   POSTHOG_PROJECT_API_KEY: string;
   RATE_LIMITER: DurableObjectNamespace;
@@ -126,7 +126,7 @@ export default {
     const rateLimiterStub = env.RATE_LIMITER.get(rateLimiterId);
 
     const { allowed, waitTime }: RateLimitResult = await (
-      rateLimiterStub as any
+      rateLimiterStub as unknown as RateLimiter
     ).checkRateLimit();
 
     if (!allowed) {

@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { RateLimiter } from "../src/index";
+import { type Env, RateLimiter, type WindowData } from "../src/index";
 
 // Mock storage for testing
 const createMockStorage = () => {
-  const storage = new Map<string, any>();
+  const storage = new Map<string, WindowData>();
   return {
     get: vi.fn(async (key: string) => storage.get(key)),
-    put: vi.fn(async (key: string, value: any) => storage.set(key, value)),
+    put: vi.fn(async (key: string, value: WindowData) =>
+      storage.set(key, value),
+    ),
     delete: vi.fn(async (key: string) => storage.delete(key)),
     list: vi.fn(async (options?: { prefix?: string }) => {
-      const entries: Array<[string, any]> = [];
+      const entries: Array<[string, WindowData]> = [];
       for (const [key, value] of storage.entries()) {
         if (!options?.prefix || key.startsWith(options.prefix)) {
           entries.push([key, value]);
@@ -28,9 +30,17 @@ describe("RateLimiter Durable Object", () => {
     mockStorage = createMockStorage();
     const mockState = {
       storage: mockStorage,
-    } as any;
+      waitUntil: vi.fn(),
+      props: {},
+      id: { toString: () => "test-id" },
+      blockConcurrencyWhile: vi.fn(),
+      abort: vi.fn(),
+      ctx: {} as ExecutionContext,
+      env: {} as Env,
+      state: {} as DurableObjectState,
+    } as unknown as DurableObjectState;
 
-    rateLimiter = new RateLimiter(mockState, {} as any);
+    rateLimiter = new RateLimiter(mockState, {} as Env);
     vi.clearAllMocks();
   });
 
@@ -147,8 +157,16 @@ describe("RateLimiter Durable Object", () => {
     const newRateLimiter = new RateLimiter(
       {
         storage: createMockStorage(),
-      } as any,
-      {} as any,
+        waitUntil: vi.fn(),
+        props: {},
+        id: { toString: () => "test-id" },
+        blockConcurrencyWhile: vi.fn(),
+        abort: vi.fn(),
+        ctx: {} as ExecutionContext,
+        env: {} as Env,
+        state: {} as DurableObjectState,
+      } as unknown as DurableObjectState,
+      {} as Env,
     );
 
     // This should be allowed in the new window
