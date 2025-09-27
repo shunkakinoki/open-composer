@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.7
+
+### Patch Changes
+
+- 3a734cc: Add release
+
 ## 0.3.6
 
 ### Patch Changes
