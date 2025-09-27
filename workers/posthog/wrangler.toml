@@ -4,10 +4,11 @@ compatibility_date = "2024-12-30"
 compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
+account_id = "121992ad6957cb0370fbda3384957564"
 
 [vars]
 POSTHOG_HOST = "https://app.posthog.com"
-POSTHOG_PROJECT_API_KEY = "test-key"
+POSTHOG_PROJECT_API_KEY = "phc_12345678901234567890123456789012"
 
 [durable_objects]
 bindings = [{ name = "RATE_LIMITER", class_name = "RateLimiter" }]
@@ -15,3 +16,6 @@ bindings = [{ name = "RATE_LIMITER", class_name = "RateLimiter" }]
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RateLimiter"]
+
+[observability.logs]
+enabled = true

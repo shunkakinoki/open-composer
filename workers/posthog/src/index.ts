@@ -1,7 +1,5 @@
-// Global declarations for Cloudflare Workers runtime
-declare const DurableObject: {
-  new (state: DurableObjectState, env: Env): RateLimiter;
-};
+// Import DurableObject from Workers runtime
+import { DurableObject } from "cloudflare:workers";
 
 interface IncomingEvent {
   event?: string;
@@ -27,10 +25,11 @@ export interface WindowData {
   timestamp: number;
 }
 
-export class RateLimiter {
+export class RateLimiter extends (DurableObject as any) {
   private state: DurableObjectState;
 
   constructor(state: DurableObjectState, _env: Env) {
+    super(state, _env);
     this.state = state;
   }
 

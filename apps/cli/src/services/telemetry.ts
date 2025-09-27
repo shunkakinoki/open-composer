@@ -1,7 +1,6 @@
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
-import { ConfigService } from "./config.js";
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -13,9 +12,9 @@ export interface TelemetryConfig {
 
 // Default telemetry configuration
 const defaultConfig: TelemetryConfig = {
-  enabled: false, // Opt-in by default
-  apiKey: "phc_your_api_key_here", // This should be set via environment variable
-  host: "https://posthog-worker.shunkakinoki.workers.dev",
+  enabled: true, // Disable telemetry by default - enable via environment variable
+  apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY || "phc_12345678901234567890123456789012",
+  host: process.env.OPEN_COMPOSER_POSTHOG_HOST || "https://posthog-worker.shunkakinoki.workers.dev",
 };
 
 // Create the PostHog client
@@ -134,10 +133,10 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 export const TelemetryLive = Layer.succeed(
   TelemetryService,
   createTelemetryService({
-    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true",
-    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY,
+    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true" || defaultConfig.enabled,
+    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY || defaultConfig.apiKey,
     host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
-    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID,
+    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID || `cli-${Date.now()}`,
   }),
 );
 
