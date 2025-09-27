@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.4
+
+### Patch Changes
+
+- 97b07f4: Add npm config token cmd
+
 ## 0.3.3
 
 ### Patch Changes
