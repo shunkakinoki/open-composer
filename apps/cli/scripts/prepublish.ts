@@ -17,9 +17,13 @@ process.chdir(dir);
 
 const targets = [
   ["win32", "x64"],
+  ["win32", "x64-baseline"],
   ["linux", "arm64"],
+  ["linux", "aarch64-musl"],
   ["linux", "x64"],
   ["linux", "x64-baseline"],
+  ["linux", "x64-musl"],
+  ["linux", "x64-musl-baseline"],
   ["darwin", "x64"],
   ["darwin", "x64-baseline"],
   ["darwin", "arm64"],
