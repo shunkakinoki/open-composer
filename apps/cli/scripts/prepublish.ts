@@ -131,12 +131,6 @@ for (const [os, arch] of targets) {
     process.chdir(dir);
 
     // -------------------------------------------------------------------------
-    // Import the binaries
-    // -------------------------------------------------------------------------
-
-    const { binaries } = await import("./prepublish.js");
-
-    // -------------------------------------------------------------------------
     // Copy the binary to the dist directory and copy the required scripts
     // -------------------------------------------------------------------------
 
@@ -165,27 +159,9 @@ for (const [os, arch] of targets) {
       ),
     );
 
-    // -------------------------------------------------------------------------
-    // Publish the binaries
-    // -------------------------------------------------------------------------
-
-    for (const [name] of Object.entries(binaries)) {
-      await $`cd dist/${name} && bun publish --access public --tag latest`;
-    }
-
-    // -------------------------------------------------------------------------
-    // Publish the main package (only when NOT run by Changesets)
-    // -------------------------------------------------------------------------
-
-    // Skip publishing the main package if RELEASE_OPENCOMPOSER_BINS is set
-    // This indicates we're running in Changesets, which will handle the main package
-    if (!process.env.RELEASE_OPENCOMPOSER_BINS) {
-      await $`cd ./dist/opencomposer && bun publish --access public --tag latest`;
-    } else {
-      console.log(
-        "Skipping main package publish - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it",
-      );
-    }
+    console.log(
+      "Prepared main package for publishing - Changesets will handle the actual publish",
+    );
   }
 }
 
