@@ -6,15 +6,18 @@ import * as CliConfig from "@effect/cli/CliConfig";
 import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
 import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
+import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
+import { buildStackCommand } from "./stack.js";
 import { buildTUICommand } from "./tui.js";
 
 export type ComposerCliServices =
   | AgentRouter
+  | GitStackService
   | GitService
   | CliConfigService
   | BunContextService;
@@ -31,6 +34,7 @@ export const layer: Layer.Layer<ComposerCliServices, never, never> =
     CliConfig.layer({ showBuiltIns: false }),
     BunContext.layer,
     GitLive,
+    GitStackLive,
     AgentRouterLive,
   );
 
@@ -41,6 +45,7 @@ export function buildRootCommand() {
       buildTUICommand(),
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
+      buildStackCommand(),
     ]),
   );
 }

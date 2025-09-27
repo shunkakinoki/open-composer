@@ -114,4 +114,14 @@ describe("CLI Execution", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Agents:");
   });
+
+  it("supports stack log", async () => {
+    const result = await runCli(["stack", "log"]);
+    const stdout = stripAnsi(result.stdout);
+    const stderr = stripAnsi(result.stderr);
+
+    expect(result.code).toBe(0);
+    expect(stderr).toBe("");
+    expect(stdout).toContain("No tracked stack branches");
+  });
 });

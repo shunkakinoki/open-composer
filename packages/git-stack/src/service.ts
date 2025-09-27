@@ -1,0 +1,297 @@
+import { execFile } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+
+const execFileAsync = promisify(execFile);
+
+export interface StackNode {
+  readonly name: string;
+  readonly parent?: string;
+}
+
+export interface StackSettings {
+  readonly remote: string;
+}
+
+export interface StackState {
+  readonly nodes: Record<string, StackNode>;
+  readonly settings: StackSettings;
+}
+
+export interface StackStatus {
+  readonly currentBranch: string;
+  readonly parent?: string;
+  readonly children: ReadonlyArray<string>;
+}
+
+export interface CreateBranchInput {
+  readonly name: string;
+  readonly base?: string;
+}
+
+export interface ConfigInput {
+  readonly remote: string;
+}
+
+export interface GitStackService {
+  readonly list: Effect.Effect<ReadonlyArray<StackNode>>;
+  readonly log: Effect.Effect<ReadonlyArray<string>>;
+  readonly status: Effect.Effect<StackStatus>;
+  readonly create: (
+    input: CreateBranchInput,
+  ) => Effect.Effect<{ branch: string; base: string }>;
+  readonly track: (branch: string, parent: string) => Effect.Effect<void>;
+  readonly untrack: (branch: string) => Effect.Effect<void>;
+  readonly remove: (branch: string, force?: boolean) => Effect.Effect<void>;
+  readonly checkout: (branch: string) => Effect.Effect<void>;
+  readonly sync: Effect.Effect<ReadonlyArray<string>>;
+  readonly submit: Effect.Effect<ReadonlyArray<string>>;
+  readonly restack: Effect.Effect<ReadonlyArray<string>>;
+  readonly config: (input: ConfigInput) => Effect.Effect<void>;
+}
+
+export const GitStack =
+  Context.GenericTag<GitStackService>("git-stack/service");
+
+const defaultState = (): StackState => ({
+  nodes: {},
+  settings: {
+    remote: "origin",
+  },
+});
+
+const loadState = (statePath: string): Effect.Effect<StackState> =>
+  Effect.tryPromise({
+    try: async () => {
+      const content = await readFile(statePath, "utf8");
+      return JSON.parse(content) as StackState;
+    },
+    catch: (cause) => cause,
+  }).pipe(Effect.catchAll(() => Effect.succeed(defaultState())));
+
+const saveState = (statePath: string, state: StackState): Effect.Effect<void> =>
+  Effect.tryPromise({
+    try: async () => {
+      await mkdir(path.dirname(statePath), { recursive: true });
+      await writeFile(statePath, JSON.stringify(state, null, 2), "utf8");
+    },
+    catch: (cause) => {
+      throw new Error(`Failed to persist git stack state: ${cause}`);
+    },
+  });
+
+const execGit = (
+  cwd: string,
+  args: ReadonlyArray<string>,
+): Effect.Effect<{ stdout: string; stderr: string }> =>
+  Effect.tryPromise({
+    try: async () => execFileAsync("git", [...args], { cwd }),
+    catch: (cause) => {
+      throw new Error(`git ${args.join(" ")} failed: ${cause}`);
+    },
+  });
+
+const getCurrentBranch = (cwd: string): Effect.Effect<string> =>
+  execGit(cwd, ["rev-parse", "--abbrev-ref", "HEAD"]).pipe(
+    Effect.map(({ stdout }) => stdout.trim()),
+  );
+
+const updateNodeParent = (
+  state: StackState,
+  branch: string,
+  parent: string | undefined,
+): StackState => {
+  const _existing = state.nodes[branch] ?? { name: branch };
+  return {
+    ...state,
+    nodes: {
+      ...state.nodes,
+      [branch]: {
+        name: branch,
+        parent,
+      },
+    },
+  } satisfies StackState;
+};
+
+const removeNode = (state: StackState, branch: string): StackState => {
+  const { [branch]: _, ...rest } = state.nodes;
+  const updated = Object.fromEntries(
+    Object.entries(rest).map(([name, node]) =>
+      node.parent === branch
+        ? ([name, { ...node, parent: undefined }] satisfies [string, StackNode])
+        : ([name, node] satisfies [string, StackNode]),
+    ),
+  );
+  return {
+    ...state,
+    nodes: updated,
+  } satisfies StackState;
+};
+
+const renderLog = (state: StackState): ReadonlyArray<string> => {
+  const entries = Object.values(state.nodes);
+  if (entries.length === 0) {
+    return [
+      "No tracked stack branches. Use `open-composer stack track` to begin.",
+    ];
+  }
+
+  const children = new Map<string, string[]>();
+  for (const node of entries) {
+    if (!node.parent) continue;
+    const list = children.get(node.parent) ?? [];
+    list.push(node.name);
+    children.set(node.parent, list);
+  }
+
+  const roots = entries.filter((node) => !node.parent);
+  const ordered = roots.length > 0 ? roots : entries;
+
+  const lines: string[] = [];
+
+  const visit = (name: string, depth: number) => {
+    const prefix = depth === 0 ? "" : `${"  ".repeat(depth - 1)}└─`;
+    lines.push(`${prefix}${name}`);
+    const kids = children.get(name) ?? [];
+    for (const child of kids) {
+      visit(child, depth + 1);
+    }
+  };
+
+  for (const node of ordered) {
+    visit(node.name, 0);
+  }
+
+  return lines;
+};
+
+const makeService = (cwd: string): GitStackService => {
+  const statePath = path.join(cwd, ".git", "open-composer-stack.json");
+
+  const withState = <A>(
+    f: (state: StackState) => Effect.Effect<[A, StackState]>,
+  ): Effect.Effect<A> =>
+    loadState(statePath).pipe(
+      Effect.flatMap((state) =>
+        f(state).pipe(
+          Effect.flatMap(([value, next]) =>
+            saveState(statePath, next).pipe(Effect.map(() => value)),
+          ),
+        ),
+      ),
+    );
+
+  const readOnlyState = <A>(f: (state: StackState) => A): Effect.Effect<A> =>
+    loadState(statePath).pipe(Effect.map(f));
+
+  return {
+    list: readOnlyState((state) => Object.values(state.nodes)),
+
+    log: readOnlyState((state) => renderLog(state)),
+
+    status: loadState(statePath).pipe(
+      Effect.zip(getCurrentBranch(cwd)),
+      Effect.map(([state, currentBranch]) => {
+        const node = state.nodes[currentBranch];
+        const children = Object.values(state.nodes)
+          .filter((candidate) => candidate.parent === currentBranch)
+          .map((candidate) => candidate.name);
+        return {
+          currentBranch,
+          parent: node?.parent,
+          children,
+        } satisfies StackStatus;
+      }),
+    ),
+
+    create: ({ name, base }) =>
+      Effect.gen(function* () {
+        const baseBranch = base ?? (yield* getCurrentBranch(cwd));
+        yield* execGit(cwd, ["checkout", "-b", name, baseBranch]);
+        yield* withState((state) =>
+          Effect.succeed([
+            { branch: name, base: baseBranch },
+            updateNodeParent(state, name, baseBranch),
+          ]),
+        );
+        return { branch: name, base: baseBranch };
+      }),
+
+    track: (branch, parent) =>
+      withState((state) =>
+        Effect.succeed([void 0, updateNodeParent(state, branch, parent)]),
+      ),
+
+    untrack: (branch) =>
+      withState((state) =>
+        Effect.succeed([void 0, updateNodeParent(state, branch, undefined)]),
+      ),
+
+    remove: (branch, force = false) =>
+      Effect.gen(function* () {
+        const args = ["branch", force ? "-D" : "-d", branch];
+        yield* execGit(cwd, args);
+        yield* withState((state) =>
+          Effect.succeed([void 0, removeNode(state, branch)]),
+        );
+      }),
+
+    checkout: (branch) =>
+      execGit(cwd, ["checkout", branch]).pipe(Effect.asVoid),
+
+    sync: readOnlyState((state) => {
+      const branches = Object.keys(state.nodes);
+      if (branches.length === 0) {
+        return ["No tracked stack branches to sync."];
+      }
+      return ["Sync is currently a no-op. Push branches manually if needed."];
+    }),
+
+    submit: readOnlyState((state) => {
+      const branches = Object.keys(state.nodes);
+      if (branches.length === 0) {
+        return ["No tracked stack branches to submit."];
+      }
+      return branches.map(
+        (branch) =>
+          `Review and submit branch '${branch}' via your preferred workflow.`,
+      );
+    }),
+
+    restack: readOnlyState((state) => {
+      const branches = Object.keys(state.nodes);
+      if (branches.length === 0) {
+        return ["No tracked branches to restack."];
+      }
+      return [
+        "Restack is currently informational only. Ensure your branches are rebased manually.",
+      ];
+    }),
+
+    config: ({ remote }) =>
+      withState((state) =>
+        Effect.succeed([
+          void 0,
+          {
+            ...state,
+            settings: {
+              remote,
+            },
+          } satisfies StackState,
+        ]),
+      ),
+  } satisfies GitStackService;
+};
+
+export const GitStackLive = Layer.effect(
+  GitStack,
+  Effect.sync(() => makeService(process.cwd())),
+);
+
+export const provideGitStack = <A>(effect: Effect.Effect<A>) =>
+  effect.pipe(Effect.provide(GitStackLive));
