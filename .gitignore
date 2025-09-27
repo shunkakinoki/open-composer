@@ -192,3 +192,5 @@ CMakeUserPresets.json
 
 .turbo
 .claude
+
+*.bun-build
