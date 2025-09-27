@@ -39,6 +39,7 @@ jobs:
           else
             echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
             echo "No changeset release detected."
+          fi
       - name: Set Environment Variables
         run: |
           echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
