@@ -3,7 +3,11 @@
   "tasks": {
     "prepublishOnly": {
       "dependsOn": ["^build"],
-      "env": ["OPENCOMPOSER_VERSION", "RELEASE_ZIP_FILES", "RELEASE_OPENCOMPOSER_BINS"]
+      "env": [
+        "OPENCOMPOSER_VERSION",
+        "RELEASE_ZIP_FILES",
+        "RELEASE_OPENCOMPOSER_BINS"
+      ]
     }
   }
 }
