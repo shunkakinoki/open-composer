@@ -34,10 +34,10 @@ jobs:
         run: |
           LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
           if [[ "$LAST_COMMIT_MESSAGE" == *"Version Packages"* ]] || [[ "$LAST_COMMIT_MESSAGE" == *"Release Version"* ]]; then
-            echo "changeset_release=true" >> $GITHUB_OUTPUT
+            echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
             echo "Release commit from changesets action detected."
           else
-            echo "changeset_release=false" >> $GITHUB_OUTPUT
+            echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
             echo "No changeset release detected."
       - name: Set Environment Variables
         run: |
