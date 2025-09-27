@@ -11,7 +11,12 @@ export interface WindowData {
   timestamp: number;
 }
 
-export class RateLimiter extends (DurableObject as any) {
+// Define a minimal interface for the DurableObject base class if needed
+interface DurableObjectBase {
+  constructor(state: DurableObjectState, env: Env): void;
+}
+
+export class RateLimiter extends DurableObject implements DurableObjectBase {
   private state: DurableObjectState;
 
   constructor(state: DurableObjectState, _env: Env) {
