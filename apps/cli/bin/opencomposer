@@ -1,0 +1,57 @@
+#!/bin/sh
+set -e
+
+# -----------------------------------------------------------------------------
+# Determine binary path
+# -----------------------------------------------------------------------------
+
+# Use OPENCOMPOSER_BIN_PATH if set, otherwise determine binary path
+if [ -n "$OPENCOMPOSER_BIN_PATH" ]; then
+  resolved="$OPENCOMPOSER_BIN_PATH"
+else
+  # ---------------------------------------------------------------------------
+  # Map platform names
+  # ---------------------------------------------------------------------------
+
+  case "$(uname -s)" in
+    Darwin) platform="darwin" ;;
+    Linux) platform="linux" ;;
+    MINGW*|CYGWIN*|MSYS*) platform="win32" ;;
+    *) platform="$(uname -s | tr '[:upper:]' '[:lower:]')" ;;
+  esac
+
+  # ---------------------------------------------------------------------------
+  # Map architecture names
+  # ---------------------------------------------------------------------------
+
+  case "$(uname -m)" in
+    x86_64|amd64) arch="x64" ;;
+    aarch64) arch="arm64" ;;
+    armv7l) arch="arm" ;;
+    *) arch="$(uname -m)" ;;
+  esac
+
+  binary="opencomposer"
+  [ "$platform" = "win32" ] && binary="opencomposer.exe"
+
+  # ---------------------------------------------------------------------------
+  # Assume binary is in ./apps/cli/node_modules/opencomposer-<platform>-<arch>/bin/
+  # ---------------------------------------------------------------------------
+
+  resolved="$(dirname "$0")/../node_modules/opencomposer-${platform}-${arch}/bin/${binary}"
+
+  # ---------------------------------------------------------------------------
+  # Check if the binary exists
+  # ---------------------------------------------------------------------------
+
+  if [ ! -f "$resolved" ]; then
+    echo "Error: Binary not found for opencomposer-${platform}-${arch}. Please ensure the correct version is installed." >&2
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# Execute the binary with all arguments
+# -----------------------------------------------------------------------------
+
+exec "$resolved" "$@"

@@ -2,9 +2,18 @@
 /// <reference types="bun-types" />
 
 import { $ } from "bun";
+import { CLI_VERSION } from "../src/lib/version.js";
+
+// -----------------------------------------------------------------------------
+// Set the __dirname
+// -----------------------------------------------------------------------------
 
 const dir = new URL("..", import.meta.url).pathname;
 process.chdir(dir);
+
+// -----------------------------------------------------------------------------
+// Set the targets
+// -----------------------------------------------------------------------------
 
 const targets = [
   ["win32", "x64"],
@@ -16,7 +25,10 @@ const targets = [
   ["darwin", "arm64"],
 ];
 
+// -----------------------------------------------------------------------------
 // Map platform and arch to Bun target strings
+// -----------------------------------------------------------------------------
+
 function getBunTarget(os: string, arch: string): string {
   const archMap: Record<string, string> = {
     x64: "x64",
@@ -36,12 +48,18 @@ function getBunTarget(os: string, arch: string): string {
   return `bun-${targetPlatform}-${targetArch}`;
 }
 
-const binaries: Record<string, string> = {};
-const version = process.env.OPENCOMPOSER_VERSION ?? "dev";
+// -----------------------------------------------------------------------------
+// Set the binaries
+// -----------------------------------------------------------------------------
 
+const binaries: Record<string, string> = {};
+const version = process.env.OPENCOMPOSER_VERSION ?? CLI_VERSION;
 console.log(`Building CLI version ${version}`);
 
+// -----------------------------------------------------------------------------
 // Build for all target platforms using cross-compilation
+// -----------------------------------------------------------------------------
+
 for (const [os, arch] of targets) {
   const packageName = `opencomposer-${os}-${arch}`;
   const bunTarget = getBunTarget(os, arch);
@@ -50,7 +68,10 @@ for (const [os, arch] of targets) {
 
   await $`mkdir -p dist/${packageName}/bin`;
 
+  // ---------------------------------------------------------------------------
   // Use bun build with cross-compilation
+  // ---------------------------------------------------------------------------
+
   await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/opencomposer`;
 
   // Make executable on Unix systems
@@ -76,10 +97,13 @@ for (const [os, arch] of targets) {
     ),
   );
 
+  // ---------------------------------------------------------------------------
+  // Create zip file for the package if `RELEASE_ZIP_FILES` is set
+  // ---------------------------------------------------------------------------
+
   if (process.env.RELEASE_ZIP_FILES) {
     console.log(`Creating zip for ${packageName}`);
 
-    // Create zip file for the package
     const zipName = `${packageName}.zip`;
     console.log(`Creating zip: ${zipName}`);
 
