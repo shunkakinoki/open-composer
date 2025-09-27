@@ -28,10 +28,11 @@ await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
 await Bun.file(`./dist/opencomposer/package.json`).write(
   JSON.stringify(
     {
-      name: "opencomposer",
+      name: "open-composer",
       bin: {
-        opencomposer: `./bin/opencomposer`,
-        oc: `./bin/opencomposer`,
+        "open-composer": "./bin/opencomposer",
+        opencomposer: "./bin/opencomposer",
+        oc: "./bin/opencomposer",
       },
       scripts: {
         preinstall: "node ./preinstall.mjs",
