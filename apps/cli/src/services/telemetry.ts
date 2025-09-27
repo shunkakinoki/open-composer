@@ -2,11 +2,11 @@ import { randomUUID } from "node:crypto";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
-import type { TelemetryConfig } from "./config.js";
+import type { TelemetryConfig, ConfigServiceInterface } from "./config.js";
 import { ConfigService } from "./config.js";
 
 // Get or create a persistent anonymous user ID using the config system
-function getOrCreateAnonymousId(): Effect.Effect<string, never, ConfigService> {
+function getOrCreateAnonymousId(): Effect.Effect<string, never, ConfigServiceInterface> {
   return Effect.gen(function* (_) {
     const configService = yield* _(ConfigService);
     const config = yield* _(configService.getConfig());
@@ -27,7 +27,7 @@ function getOrCreateAnonymousId(): Effect.Effect<string, never, ConfigService> {
       host: telemetry?.host,
       distinctId: telemetry?.distinctId,
       consentedAt: telemetry?.consentedAt,
-      version: telemetry?.version,
+      version: telemetry?.version ?? "1.0.0",
       anonymousId: newId,
     };
 

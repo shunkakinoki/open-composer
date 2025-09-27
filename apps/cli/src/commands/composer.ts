@@ -10,7 +10,7 @@ import type { GitService } from "@open-composer/git-worktrees";
 import { GitLive } from "@open-composer/git-worktrees";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
-import { ConfigLive, type ConfigService } from "../services/config.js";
+import { ConfigLive, type ConfigServiceInterface } from "../services/config.js";
 import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
@@ -24,17 +24,22 @@ export type ComposerCliServices =
   | GitService
   | CliConfigService
   | BunContextService
-  | ConfigService
+  | ConfigServiceInterface
   | TelemetryService;
 
-export const layer = Layer.mergeAll(
+// Create base layer without telemetry
+const baseLayer = Layer.mergeAll(
   CliConfig.layer({ showBuiltIns: false }),
   BunContext.layer,
   GitLive,
   GitStackLive,
   AgentRouterLive,
   ConfigLive,
-  TelemetryLive,
+);
+
+// Add telemetry layer that depends on config
+export const layer = baseLayer.pipe(
+  Layer.provideMerge(TelemetryLive.pipe(Layer.provide(baseLayer))),
 );
 
 export function buildRootCommand() {

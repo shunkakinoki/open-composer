@@ -30,7 +30,7 @@ const defaultConfig: UserConfig = {
 };
 
 // Config service interface
-export interface ConfigService {
+export interface ConfigServiceInterface {
   readonly getConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly updateConfig: (
     updates: Partial<UserConfig>,
@@ -42,7 +42,7 @@ export interface ConfigService {
 }
 
 // Config service tag
-export const ConfigService = Context.GenericTag<ConfigService>(
+export const ConfigService = Context.GenericTag<ConfigServiceInterface>(
   "@open-composer/config/ConfigService",
 );
 
@@ -58,7 +58,7 @@ function getConfigPath(): string {
 }
 
 // Create config service implementation
-const createConfigService = (): ConfigService => {
+const createConfigService = (): ConfigServiceInterface => {
   return {
     getConfig: () =>
       Effect.promise(async () => {
@@ -161,7 +161,10 @@ const createConfigService = (): ConfigService => {
 };
 
 // Create config layer
-export const ConfigLive = Layer.succeed(ConfigService, createConfigService());
+export const ConfigLive = Layer.effect(
+  ConfigService,
+  Effect.succeed(createConfigService()),
+);
 
 // Helper functions for common operations
 export const getTelemetryConsent = () =>

@@ -10,28 +10,32 @@ import { TelemetryLive, trackException } from "./services/telemetry.js";
 export * from "./components/ComposerApp.js";
 export * from "./lib/index.js";
 
-if (require.main === module) {
+if (import.meta.main) {
   // Set up global error handlers for exception tracking
   process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception:", error);
-    // Track the exception with telemetry if available
+    // Track the exception with telemetry if available (async, non-blocking)
     trackException(error, "uncaught_exception").pipe(
       Effect.provide(TelemetryLive),
       Effect.provide(ConfigLive),
-      Effect.runSync,
-    );
+      Effect.runPromise,
+    ).catch(() => {
+      // Ignore telemetry errors during error handling
+    });
     process.exit(1);
   });
 
   process.on("unhandledRejection", (reason, promise) => {
     const error = reason instanceof Error ? reason : new Error(String(reason));
     console.error("Unhandled Rejection at:", promise, "reason:", error);
-    // Track the exception with telemetry if available
+    // Track the exception with telemetry if available (async, non-blocking)
     trackException(error, "unhandled_rejection").pipe(
       Effect.provide(TelemetryLive),
       Effect.provide(ConfigLive),
-      Effect.runSync,
-    );
+      Effect.runPromise,
+    ).catch(() => {
+      // Ignore telemetry errors during error handling
+    });
     process.exit(1);
   });
 
