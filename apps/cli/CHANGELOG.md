@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.12
+
+### Patch Changes
+
+- a402360: Add cli release
+
 ## 0.3.11
 
 ### Patch Changes
