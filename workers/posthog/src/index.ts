@@ -1,20 +1,6 @@
 // Import DurableObject from Workers runtime
 import { DurableObject } from "cloudflare:workers";
 
-interface IncomingEvent {
-  event?: string;
-  properties?: Record<string, unknown>;
-  anonymous_id?: string;
-  timestamp?: string;
-}
-
-interface PostHogEvent {
-  api_key: string;
-  event: string;
-  properties: Record<string, unknown>;
-  timestamp: string;
-}
-
 interface RateLimitResult {
   allowed: boolean;
   waitTime: number;
@@ -140,42 +126,50 @@ export default {
     }
 
     try {
-      // Parse the incoming request body
-      const body: IncomingEvent = await request.json();
+      // Get the raw request body
+      const bodyText = await request.text();
+      let body = JSON.parse(bodyText);
 
-      // Create anonymous event data for PostHog
-      const anonymousEvent: PostHogEvent = {
-        api_key: env.POSTHOG_PROJECT_API_KEY,
-        event: body.event || "anonymous_event",
-        properties: {
-          ...body.properties,
-          // Add anonymous identifiers
-          $ip: ipAddress,
-          anonymous_id: body.anonymous_id || crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
-          // Remove any potentially identifying information
-          $set: undefined,
-          $set_once: undefined,
-          distinct_id: undefined,
-        },
-        timestamp: body.timestamp || new Date().toISOString(),
-      };
+      // Log the incoming request for debugging
+      console.log("Received request body:", JSON.stringify(body, null, 2));
 
-      // Forward to PostHog
-      const posthogResponse = await fetch(`${env.POSTHOG_HOST}/capture/`, {
-        method: "POST",
+      // Simply replace the API key with the correct one and forward as-is
+      body.api_key = env.POSTHOG_PROJECT_API_KEY;
+
+      console.log("Forwarding to PostHog with corrected API key");
+
+      // Forward the request to PostHog with the corrected API key
+      const requestUrl = new URL(request.url);
+      const posthogResponse = await fetch(`${env.POSTHOG_HOST}${requestUrl.pathname}${requestUrl.search}`, {
+        method: request.method,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": request.headers.get("Content-Type") || "application/json",
           "User-Agent": "Anonymous-Logger-Worker/1.0",
         },
-        body: JSON.stringify(anonymousEvent),
+        body: JSON.stringify(body),
       });
 
       const responseData = {
         success: posthogResponse.ok,
         status: posthogResponse.status,
-        event_id: anonymousEvent.properties.anonymous_id,
+        forwarded: true,
       };
+
+      console.log("PostHog response:", {
+        ok: posthogResponse.ok,
+        status: posthogResponse.status,
+        headers: Object.fromEntries(posthogResponse.headers.entries())
+      });
+
+      // If PostHog request fails, return the error but don't crash
+      if (!posthogResponse.ok) {
+        const errorText = await posthogResponse.text();
+        console.error("PostHog API error:", {
+          status: posthogResponse.status,
+          statusText: posthogResponse.statusText,
+          body: errorText
+        });
+      }
 
       return createCorsResponse(
         JSON.stringify(responseData),
