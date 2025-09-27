@@ -1,22 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import worker from "../src/index";
+import worker, { type Env } from "../src/index";
 
 // Mock environment for testing
-const mockEnv = {
+const mockEnv: Env = {
   POSTHOG_HOST: "https://app.posthog.com",
   POSTHOG_PROJECT_API_KEY: "test-api-key",
   RATE_LIMITER: {
-    idFromName: vi.fn(() => "test-id"),
+    idFromName: vi.fn((name: string) => ({ toString: () => `id-${name}` })),
+    idFromString: vi.fn((id: string) => ({ toString: () => id })),
+    newUniqueId: vi.fn(() => ({ toString: () => "unique-id" })),
+    getByName: vi.fn((name: string) => ({ toString: () => `id-${name}` })),
     get: vi.fn(() => ({
+      fetch: vi.fn(),
+      connect: vi.fn(),
       checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, waitTime: 0 }),
     })),
-  },
+    jurisdiction: "eu",
+  } as unknown as DurableObjectNamespace,
 };
 
 // Mock execution context
 const mockCtx = {
   waitUntil: vi.fn(),
   passThroughOnException: vi.fn(),
+  props: {},
 };
 
 describe("PostHog Anonymous Logger Worker", () => {
@@ -30,11 +37,7 @@ describe("PostHog Anonymous Logger Worker", () => {
       method: "OPTIONS",
     });
 
-    const response = await worker.fetch(
-      request,
-      mockEnv as any,
-      mockCtx as any,
-    );
+    const response = await worker.fetch(request, mockEnv, mockCtx);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
@@ -48,11 +51,7 @@ describe("PostHog Anonymous Logger Worker", () => {
       method: "GET",
     });
 
-    const response = await worker.fetch(
-      request,
-      mockEnv as any,
-      mockCtx as any,
-    );
+    const response = await worker.fetch(request, mockEnv, mockCtx);
 
     expect(response.status).toBe(405);
     const body = (await response.json()) as { error: string };
@@ -87,11 +86,7 @@ describe("PostHog Anonymous Logger Worker", () => {
       body: JSON.stringify(eventData),
     });
 
-    const response = await worker.fetch(
-      request,
-      mockEnv as any,
-      mockCtx as any,
-    );
+    const response = await worker.fetch(request, mockEnv, mockCtx);
 
     expect(response.status).toBe(200);
     const responseBody = (await response.json()) as {
@@ -124,11 +119,7 @@ describe("PostHog Anonymous Logger Worker", () => {
       body: "invalid json",
     });
 
-    const response = await worker.fetch(
-      request,
-      mockEnv as any,
-      mockCtx as any,
-    );
+    const response = await worker.fetch(request, mockEnv, mockCtx);
 
     expect(response.status).toBe(400);
     const body = (await response.json()) as {
@@ -167,7 +158,7 @@ describe("PostHog Anonymous Logger Worker", () => {
       body: JSON.stringify(eventData),
     });
 
-    await worker.fetch(request, mockEnv as any, mockCtx as any);
+    await worker.fetch(request, mockEnv, mockCtx);
 
     const fetchCall = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock
       .calls[0] as [string, { body: string }];
