@@ -6,7 +6,10 @@
       "env": [
         "OPENCOMPOSER_VERSION",
         "PUBLISH_PACKAGES",
-        "RELEASE_OPENCOMPOSER_ZIPS"
+        "RELEASE_OPENCOMPOSER_ZIPS",
+        "GITHUB_SHA",
+        "GITHUB_HEAD_REF",
+        "GITHUB_REF_NAME"
       ]
     }
   }
