@@ -91,15 +91,17 @@ describe("PostHog Anonymous Logger Worker", () => {
     expect(response.status).toBe(200);
     const responseBody = (await response.json()) as {
       success: boolean;
-      event_id: string;
+      status: number;
+      forwarded: boolean;
     };
 
     expect(responseBody.success).toBe(true);
-    expect(responseBody.event_id).toBeDefined();
+    expect(responseBody.status).toBe(200);
+    expect(responseBody.forwarded).toBe(true);
 
     // Verify PostHog was called
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/capture/"),
+      expect.stringContaining("https://app.posthog.com/"),
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({
@@ -130,7 +132,7 @@ describe("PostHog Anonymous Logger Worker", () => {
     expect(body.message).toBeDefined();
   });
 
-  it("should sanitize event data for anonymity", async () => {
+  it("should forward event data as-is with only API key replacement", async () => {
     const mockPostHogResponse = new Response(JSON.stringify({ status: 1 }), {
       status: 200,
     });
@@ -147,6 +149,7 @@ describe("PostHog Anonymous Logger Worker", () => {
         distinct_id: "user123",
         normal_prop: "safe_value",
       },
+      api_key: "original-api-key",
     };
 
     const request = new Request("https://example.com/", {
@@ -164,18 +167,16 @@ describe("PostHog Anonymous Logger Worker", () => {
       .calls[0] as [string, { body: string }];
     const sentBody = JSON.parse(fetchCall[1].body) as {
       properties: Record<string, unknown>;
+      api_key: string;
     };
 
-    // Verify identifying properties are removed
-    expect(sentBody.properties.$set).toBeUndefined();
-    expect(sentBody.properties.$set_once).toBeUndefined();
-    expect(sentBody.properties.distinct_id).toBeUndefined();
-
-    // Verify safe properties are preserved
+    // Verify all original properties are preserved (no sanitization)
+    expect(sentBody.properties.$set).toEqual({ email: "user@example.com" });
+    expect(sentBody.properties.$set_once).toEqual({ name: "John Doe" });
+    expect(sentBody.properties.distinct_id).toBe("user123");
     expect(sentBody.properties.normal_prop).toBe("safe_value");
 
-    // Verify anonymous identifiers are added
-    expect(sentBody.properties.$ip).toBe("192.168.1.1");
-    expect(sentBody.properties.anonymous_id).toBeDefined();
+    // Verify only the API key is replaced
+    expect(sentBody.api_key).toBe("test-api-key");
   });
 });

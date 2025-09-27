@@ -11,7 +11,7 @@ export interface WindowData {
   timestamp: number;
 }
 
-export class RateLimiter extends (DurableObject as any) {
+export class RateLimiter extends DurableObject {
   private state: DurableObjectState;
 
   constructor(state: DurableObjectState, _env: Env) {
