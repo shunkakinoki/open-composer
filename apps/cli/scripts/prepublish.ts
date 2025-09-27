@@ -102,6 +102,12 @@ for (const [os, arch] of targets) {
   );
 
   // ---------------------------------------------------------------------------
+  // Add the package to the binaries object
+  // ---------------------------------------------------------------------------
+
+  binaries[packageName] = version;
+
+  // ---------------------------------------------------------------------------
   // Create zip file for the package if `RELEASE_ZIP_FILES` is set
   // ---------------------------------------------------------------------------
 
@@ -114,79 +120,54 @@ for (const [os, arch] of targets) {
     // Create zip file containing the entire package directory
     await $`cd dist && zip -r ${zipName} ${packageName}`;
 
-    binaries[packageName] = version;
     console.log(`Built and zipped: ${packageName}`);
   }
+}
+
+// -----------------------------------------------------------------------------
+// Create tar file for the package if `RELEASE_OPENCOMPOSER_BINS` is set
+// -----------------------------------------------------------------------------
+
+if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+  // ---------------------------------------------------------------------------
+  // Set the __dirname
+  // ---------------------------------------------------------------------------
+
+  const dir = new URL("..", import.meta.url).pathname;
+  process.chdir(dir);
 
   // ---------------------------------------------------------------------------
-  // Create tar file for the package if `RELEASE_OPENCOMPOSER_BINS` is set
+  // Copy the binary to the dist directory and copy the required scripts
   // ---------------------------------------------------------------------------
 
-  if (process.env.RELEASE_OPENCOMPOSER_BINS) {
-    // -------------------------------------------------------------------------
-    // Set the __dirname
-    // -------------------------------------------------------------------------
-
-    const dir = new URL("..", import.meta.url).pathname;
-    process.chdir(dir);
-
-    // -------------------------------------------------------------------------
-    // Import the binaries
-    // -------------------------------------------------------------------------
-
-    const { binaries } = await import("./prepublish.js");
-
-    // -------------------------------------------------------------------------
-    // Copy the binary to the dist directory and copy the required scripts
-    // -------------------------------------------------------------------------
-
-    await $`mkdir -p ./dist/opencomposer`;
-    await $`cp -r ./bin ./dist/opencomposer/bin`;
-    await $`cp ./scripts/preinstall.mjs ./dist/opencomposer/preinstall.mjs`;
-    await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
-    await Bun.file(`./dist/opencomposer/package.json`).write(
-      JSON.stringify(
-        {
-          name: "open-composer",
-          bin: {
-            "open-composer": "./bin/opencomposer",
-            opencomposer: "./bin/opencomposer",
-            oc: "./bin/opencomposer",
-          },
-          scripts: {
-            preinstall: "node ./preinstall.mjs",
-            postinstall: "node ./postinstall.mjs",
-          },
-          version: CLI_VERSION,
-          optionalDependencies: binaries,
+  await $`mkdir -p ./dist/opencomposer`;
+  await $`cp -r ./bin ./dist/opencomposer/bin`;
+  await $`cp ./scripts/preinstall.mjs ./dist/opencomposer/preinstall.mjs`;
+  await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
+  await Bun.file(`./dist/opencomposer/package.json`).write(
+    JSON.stringify(
+      {
+        name: "open-composer",
+        bin: {
+          "open-composer": "./bin/opencomposer",
+          opencomposer: "./bin/opencomposer",
+          oc: "./bin/opencomposer",
         },
-        null,
-        2,
-      ),
-    );
+        scripts: {
+          preinstall: "node ./preinstall.mjs",
+          postinstall: "node ./postinstall.mjs",
+        },
+        version: CLI_VERSION,
+        optionalDependencies: binaries,
+      },
+      null,
+      2,
+    ),
+  );
 
-    // -------------------------------------------------------------------------
-    // Publish the binaries
-    // -------------------------------------------------------------------------
-
-    for (const [name] of Object.entries(binaries)) {
-      await $`cd dist/${name} && bun publish --access public --tag latest`;
-    }
-
-    // -------------------------------------------------------------------------
-    // Publish the main package (only when NOT run by Changesets)
-    // -------------------------------------------------------------------------
-
-    // Skip publishing the main package if RELEASE_OPENCOMPOSER_BINS is set
-    // This indicates we're running in Changesets, which will handle the main package
-    if (!process.env.RELEASE_OPENCOMPOSER_BINS) {
-      await $`cd ./dist/opencomposer && bun publish --access public --tag latest`;
-    } else {
-      console.log(
-        "Skipping main package publish - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it",
-      );
-    }
-  }
+  console.log(
+    "Prepared main package for publishing - Changesets will handle the actual publish",
+  );
 }
 
 console.log("Binaries built:", binaries);
