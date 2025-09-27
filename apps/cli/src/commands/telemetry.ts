@@ -41,15 +41,15 @@ export function buildTelemetryCommand() {
             const configService = yield* _(ConfigService);
             const config = yield* _(configService.getConfig());
             const consent = yield* _(configService.getTelemetryConsent());
-
             const status = consent ? "enabled" : "disabled";
             const statusEmoji = consent ? "📊" : "🔒";
 
             console.log(`${statusEmoji} Telemetry is currently: ${status}`);
 
-            if (config.telemetry?.consentedAt) {
+            const telemetry = config.telemetry;
+            if (telemetry?.consentedAt) {
               const consentedAt = new Date(
-                config.telemetry.consentedAt,
+                telemetry.consentedAt,
               ).toLocaleString();
               console.log(`   Consent given: ${consentedAt}`);
             }

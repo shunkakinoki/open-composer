@@ -3,13 +3,20 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { Context, Effect, Layer } from "effect";
 
+// Telemetry configuration interface
+export interface TelemetryConfig {
+  readonly enabled: boolean;
+  readonly apiKey?: string;
+  readonly host?: string;
+  readonly distinctId?: string;
+  readonly consentedAt?: string;
+  readonly version?: string;
+  readonly anonymousId?: string;
+}
+
 // Configuration interface
 export interface UserConfig {
-  readonly telemetry?: {
-    readonly enabled: boolean;
-    readonly consentedAt?: string;
-    readonly version?: string;
-  };
+  readonly telemetry?: TelemetryConfig;
   readonly version: string;
   readonly createdAt: string;
   readonly updatedAt: string;

@@ -1,22 +1,53 @@
+import { randomUUID } from "node:crypto";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
+import type { TelemetryConfig } from "./config.js";
+import { ConfigService } from "./config.js";
 
-// Telemetry configuration interface
-export interface TelemetryConfig {
-  readonly enabled: boolean;
-  readonly apiKey?: string;
-  readonly host?: string;
-  readonly distinctId?: string;
+// Get or create a persistent anonymous user ID using the config system
+function getOrCreateAnonymousId(): Effect.Effect<string, never, ConfigService> {
+  return Effect.gen(function* (_) {
+    const configService = yield* _(ConfigService);
+    const config = yield* _(configService.getConfig());
+    const telemetry = config.telemetry;
+
+    // Check if we already have an anonymous ID in the config
+    if (telemetry?.anonymousId) {
+      return telemetry.anonymousId;
+    }
+
+    // Generate a new unique ID
+    const newId = randomUUID();
+
+    // Update config with the new anonymous ID while preserving existing fields
+    const updatedTelemetry: TelemetryConfig = {
+      enabled: telemetry?.enabled ?? false,
+      apiKey: telemetry?.apiKey,
+      host: telemetry?.host,
+      distinctId: telemetry?.distinctId,
+      consentedAt: telemetry?.consentedAt,
+      version: telemetry?.version,
+      anonymousId: newId,
+    };
+
+    yield* _(
+      configService.updateConfig({
+        telemetry: updatedTelemetry,
+      }),
+    );
+
+    return newId;
+  });
 }
-
 // Default telemetry configuration
 const defaultConfig: TelemetryConfig = {
-  enabled: true, // Disable telemetry by default - enable via environment variable
+  enabled: false, // Disable telemetry by default - enable via environment variable
   apiKey:
     process.env.OPEN_COMPOSER_POSTHOG_API_KEY ||
     "phc_myz44Az2Eim07Kk1aP3jWLVb2pzn75QWVDhOMv9dSsU",
   host: process.env.OPEN_COMPOSER_POSTHOG_HOST || "https://us.i.posthog.com",
+  distinctId: undefined,
 };
 
 // Create the PostHog client
@@ -157,15 +188,21 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 };
 
 // Create telemetry layer
-export const TelemetryLive = Layer.succeed(
+export const TelemetryLive = Layer.effect(
   TelemetryService,
-  createTelemetryService({
-    enabled:
-      process.env.OPEN_COMPOSER_TELEMETRY === "true" || defaultConfig.enabled,
-    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY || defaultConfig.apiKey,
-    host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
-    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID || `cli-${Date.now()}`,
-  }),
+  getOrCreateAnonymousId().pipe(
+    Effect.map((anonymousId) =>
+      createTelemetryService({
+        enabled:
+          process.env.OPEN_COMPOSER_TELEMETRY === "true" ||
+          defaultConfig.enabled,
+        apiKey:
+          process.env.OPEN_COMPOSER_POSTHOG_API_KEY || defaultConfig.apiKey,
+        host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
+        distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID || anonymousId,
+      }),
+    ),
+  ),
 );
 
 // Helper functions for common telemetry events

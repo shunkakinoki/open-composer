@@ -4,7 +4,7 @@ import type { ValidationError } from "@effect/cli/ValidationError";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import * as Effect from "effect/Effect";
 import { CliLive, cli } from "./lib/cli.js";
-import { promptForTelemetryConsent } from "./services/config.js";
+import { ConfigLive, promptForTelemetryConsent } from "./services/config.js";
 import { TelemetryLive, trackException } from "./services/telemetry.js";
 
 export * from "./components/ComposerApp.js";
@@ -17,6 +17,7 @@ if (require.main === module) {
     // Track the exception with telemetry if available
     trackException(error, "uncaught_exception").pipe(
       Effect.provide(TelemetryLive),
+      Effect.provide(ConfigLive),
       Effect.runSync,
     );
     process.exit(1);
@@ -28,6 +29,7 @@ if (require.main === module) {
     // Track the exception with telemetry if available
     trackException(error, "unhandled_rejection").pipe(
       Effect.provide(TelemetryLive),
+      Effect.provide(ConfigLive),
       Effect.runSync,
     );
     process.exit(1);
@@ -48,6 +50,7 @@ if (require.main === module) {
 
         return trackEffect.pipe(
           Effect.provide(TelemetryLive),
+          Effect.provide(ConfigLive),
           Effect.flatMap(() => Effect.fail(error)),
         );
       }),
