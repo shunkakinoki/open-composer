@@ -218,31 +218,6 @@ if (isRelease) {
   }
 
   console.log("Binaries published:", binaries);
-
-  // ---------------------------------------------------------------------------
-  // Publish the main package
-  // ---------------------------------------------------------------------------
-
-  console.log("Publishing main package");
-
-  await $`bun publish --access public --tag ${TAG}`;
-
-  console.log("Main package published");
-
-  // ---------------------------------------------------------------------------
-  // Reset git directory if `isSnapshotRelease` is set
-  // ---------------------------------------------------------------------------
-
-  if (isSnapshotRelease) {
-    console.log("Resetting git directory");
-
-    // Go to the root directory
-    process.chdir(new URL("..", import.meta.url).pathname);
-
-    await $`git reset --hard`;
-
-    console.log("Git directory reset");
-  }
 }
 
 export { binaries };
