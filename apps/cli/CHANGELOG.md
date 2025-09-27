@@ -1,5 +1,16 @@
 # open-composer
 
+## 0.3.9
+
+### Patch Changes
+
+- 829e8c0: Add open-composer preparation destination
+- Updated dependencies [829e8c0]
+  - @open-composer/agent-router@0.2.1
+  - @open-composer/git@0.1.1
+  - @open-composer/git-stack@0.1.1
+  - @open-composer/git-worktrees@0.2.2
+
 ## 0.3.8
 
 ### Patch Changes

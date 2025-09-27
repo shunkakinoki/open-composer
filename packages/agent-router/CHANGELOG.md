@@ -1,5 +1,11 @@
 # @open-composer/agent-router
 
+## 0.2.1
+
+### Patch Changes
+
+- 829e8c0: Add open-composer preparation destination
+
 ## 0.2.0
 
 ### Minor Changes
