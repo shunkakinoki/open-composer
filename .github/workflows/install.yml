@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   install-test:
-    if: startsWith(github.event.release.tag_name, 'open-composer@')
+    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
