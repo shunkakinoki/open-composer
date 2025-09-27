@@ -14,32 +14,9 @@ concurrency:
 jobs:
   release-upload:
     if: startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != ''
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win32
-            arch: x64
-            bun_target: bun-windows-x64
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            bun_target: bun-linux-x64
-          - os: ubuntu-latest
-            platform: linux
-            arch: arm64
-            bun_target: bun-linux-arm64
-          - os: macos-latest
-            platform: darwin
-            arch: x64
-            bun_target: bun-darwin-x64
-          - os: macos-latest
-            platform: darwin
-            arch: arm64
-            bun_target: bun-darwin-arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -52,12 +29,13 @@ jobs:
         run: bun run prepublishOnly
         env:
           OPENCOMPOSER_VERSION: ${{ github.event.release.tag_name || github.event.inputs.tag }}
-      - name: Upload Binary Asset
+          RELEASE_ZIP_FILES: true
+      - name: Upload Binary Assets
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./packages/cli/dist/opencomposer-${{ matrix.platform }}-${{ matrix.arch }}/bin/opencomposer${{ matrix.platform == 'win32' && '.exe' || '' }}
-          asset_name: opencomposer-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.platform == 'win32' && '.exe' || '' }}
+          file_glob: true
+          file: ./packages/cli/dist/opencomposer-*.zip
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
   release-latest:
