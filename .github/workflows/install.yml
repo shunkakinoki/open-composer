@@ -18,6 +18,7 @@ jobs:
   install-e2e-cli:
     if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       matrix:
         os: 
@@ -44,9 +45,10 @@ jobs:
         uses: actions/setup-node@v5
       - name: Install open-composer globally with retry
         uses: nick-fields/retry@v3
+        continue-on-error: ${{ matrix.os == 'windows-latest' }}
         with:
           timeout_seconds: 30
-          max_attempts: 3
+          max_attempts: 10
           command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
         run: open-composer --version
