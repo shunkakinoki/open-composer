@@ -25,6 +25,7 @@ jobs:
       actions: write
       checks: write
       statuses: write
+      workflows: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
