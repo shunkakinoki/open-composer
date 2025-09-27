@@ -3,13 +3,20 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { Context, Effect, Layer } from "effect";
 
+// Telemetry configuration interface
+export interface TelemetryConfig {
+  readonly enabled: boolean;
+  readonly apiKey?: string;
+  readonly host?: string;
+  readonly distinctId?: string;
+  readonly consentedAt?: string;
+  readonly version?: string;
+  readonly anonymousId?: string;
+}
+
 // Configuration interface
 export interface UserConfig {
-  readonly telemetry?: {
-    readonly enabled: boolean;
-    readonly consentedAt?: string;
-    readonly version?: string;
-  };
+  readonly telemetry?: TelemetryConfig;
   readonly version: string;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -23,7 +30,7 @@ const defaultConfig: UserConfig = {
 };
 
 // Config service interface
-export interface ConfigService {
+export interface ConfigServiceInterface {
   readonly getConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly updateConfig: (
     updates: Partial<UserConfig>,
@@ -35,7 +42,7 @@ export interface ConfigService {
 }
 
 // Config service tag
-export const ConfigService = Context.GenericTag<ConfigService>(
+export const ConfigService = Context.GenericTag<ConfigServiceInterface>(
   "@open-composer/config/ConfigService",
 );
 
@@ -51,7 +58,7 @@ function getConfigPath(): string {
 }
 
 // Create config service implementation
-const createConfigService = (): ConfigService => {
+const createConfigService = (): ConfigServiceInterface => {
   return {
     getConfig: () =>
       Effect.promise(async () => {
@@ -154,7 +161,10 @@ const createConfigService = (): ConfigService => {
 };
 
 // Create config layer
-export const ConfigLive = Layer.succeed(ConfigService, createConfigService());
+export const ConfigLive = Layer.effect(
+  ConfigService,
+  Effect.succeed(createConfigService()),
+);
 
 // Helper functions for common operations
 export const getTelemetryConsent = () =>

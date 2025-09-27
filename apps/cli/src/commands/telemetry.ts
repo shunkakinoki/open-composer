@@ -1,6 +1,7 @@
 import { Command } from "@effect/cli";
 import { Effect } from "effect";
 import { ConfigService } from "../services/config.js";
+import { trackCommand } from "../services/telemetry.js";
 
 export function buildTelemetryCommand() {
   return Command.make("telemetry").pipe(
@@ -41,15 +42,15 @@ export function buildTelemetryCommand() {
             const configService = yield* _(ConfigService);
             const config = yield* _(configService.getConfig());
             const consent = yield* _(configService.getTelemetryConsent());
-
             const status = consent ? "enabled" : "disabled";
             const statusEmoji = consent ? "📊" : "🔒";
 
             console.log(`${statusEmoji} Telemetry is currently: ${status}`);
 
-            if (config.telemetry?.consentedAt) {
+            const telemetry = config.telemetry;
+            if (telemetry?.consentedAt) {
               const consentedAt = new Date(
-                config.telemetry.consentedAt,
+                telemetry.consentedAt,
               ).toLocaleString();
               console.log(`   Consent given: ${consentedAt}`);
             }
@@ -71,6 +72,9 @@ export function buildTelemetryCommand() {
               console.log("💡 To enable telemetry:");
               console.log("   Run: open-composer telemetry enable");
             }
+
+            // Track the telemetry status command
+            yield* _(trackCommand("telemetry", "status"));
 
             return undefined;
           }),

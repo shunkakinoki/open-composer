@@ -1,21 +1,54 @@
+import { randomUUID } from "node:crypto";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
+import type { ConfigServiceInterface, TelemetryConfig } from "./config.js";
 import { ConfigService } from "./config.js";
 
-// Telemetry configuration interface
-export interface TelemetryConfig {
-  readonly enabled: boolean;
-  readonly apiKey?: string;
-  readonly host?: string;
-  readonly distinctId?: string;
-}
+// Get or create a persistent anonymous user ID using the config system
+function getOrCreateAnonymousId(): Effect.Effect<
+  string,
+  never,
+  ConfigServiceInterface
+> {
+  return Effect.gen(function* (_) {
+    const configService = yield* _(ConfigService);
+    const config = yield* _(configService.getConfig());
+    const telemetry = config.telemetry;
 
+    // Check if we already have an anonymous ID in the config
+    if (telemetry?.anonymousId) {
+      return telemetry.anonymousId;
+    }
+
+    // Generate a new unique ID
+    const newId = randomUUID();
+
+    // Update config with the new anonymous ID while preserving existing fields
+    const updatedTelemetry: TelemetryConfig = {
+      enabled: telemetry?.enabled ?? false,
+      apiKey: telemetry?.apiKey,
+      host: telemetry?.host,
+      distinctId: telemetry?.distinctId,
+      consentedAt: telemetry?.consentedAt,
+      version: telemetry?.version ?? "1.0.0",
+      anonymousId: newId,
+    };
+
+    yield* _(
+      configService.updateConfig({
+        telemetry: updatedTelemetry,
+      }),
+    );
+
+    return newId;
+  });
+}
 // Default telemetry configuration
 const defaultConfig: TelemetryConfig = {
-  enabled: false, // Opt-in by default
-  apiKey: "phc_your_api_key_here", // This should be set via environment variable
+  enabled: false, // Disable telemetry by default - enable via environment variable
   host: "https://posthog-worker.shunkakinoki.workers.dev",
+  distinctId: undefined,
 };
 
 // Create the PostHog client
@@ -30,6 +63,7 @@ function createPostHogClient(config: TelemetryConfig) {
     maxCacheSize: 1000,
     flushAt: 1, // Flush immediately for CLI usage
     flushInterval: 0, // Disable periodic flushing
+    enableExceptionAutocapture: true, // Enable automatic exception tracking
   });
 }
 
@@ -45,6 +79,11 @@ export interface TelemetryService {
   ) => Effect.Effect<void, never, never>;
   readonly capture: (
     event: string,
+    properties?: Record<string, string | number | boolean | null | undefined>,
+  ) => Effect.Effect<void, never, never>;
+  readonly captureException: (
+    error: Error,
+    distinctId?: string,
     properties?: Record<string, string | number | boolean | null | undefined>,
   ) => Effect.Effect<void, never, never>;
   readonly flush: () => Effect.Effect<void, never, never>;
@@ -67,6 +106,9 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
     ) =>
       client
         ? Effect.try(() => {
+            if (process.env.DEBUG_TELEMETRY) {
+              console.log("Tracking event:", event, "properties:", properties);
+            }
             client.capture({
               distinctId: config.distinctId || "anonymous",
               event,
@@ -76,8 +118,19 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
                 source: "cli",
               },
             });
-          }).pipe(Effect.catchAll(() => Effect.void))
-        : Effect.void,
+          }).pipe(
+            Effect.catchAll((error) => {
+              if (process.env.DEBUG_TELEMETRY) {
+                console.log("Telemetry track error:", error);
+              }
+              return Effect.void;
+            }),
+          )
+        : Effect.sync(() => {
+            if (process.env.DEBUG_TELEMETRY) {
+              console.log("Telemetry disabled - not tracking:", event);
+            }
+          }),
 
     identify: (
       distinctId: string,
@@ -114,6 +167,25 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
           }).pipe(Effect.catchAll(() => Effect.void))
         : Effect.void,
 
+    captureException: (
+      error: Error,
+      distinctId?: string,
+      properties?: Record<string, string | number | boolean | null | undefined>,
+    ) =>
+      client
+        ? Effect.try(() => {
+            client.captureException(
+              error,
+              distinctId || config.distinctId || "anonymous",
+              {
+                ...properties,
+                version: CLI_VERSION,
+                source: "cli",
+              },
+            );
+          }).pipe(Effect.catchAll(() => Effect.void))
+        : Effect.void,
+
     flush: () =>
       client
         ? Effect.try(() => {
@@ -131,13 +203,34 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 };
 
 // Create telemetry layer
-export const TelemetryLive = Layer.succeed(
+export const TelemetryLive = Layer.effect(
   TelemetryService,
-  createTelemetryService({
-    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true",
-    apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY,
-    host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
-    distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID,
+  Effect.gen(function* (_) {
+    const configService = yield* _(ConfigService);
+    const config = yield* _(configService.getConfig());
+    const anonymousId = yield* _(getOrCreateAnonymousId());
+
+    // Check telemetry enabled status from config, environment, or default
+    const enabled = config.telemetry?.enabled || defaultConfig.enabled;
+
+    const telemetryConfig = {
+      enabled,
+      apiKey: "dummy-key-for-worker",
+      host: defaultConfig.host,
+      distinctId: anonymousId,
+    };
+
+    // Debug logging
+    if (process.env.DEBUG_TELEMETRY) {
+      console.log("Telemetry config:", {
+        enabled: telemetryConfig.enabled,
+        hasApiKey: !!telemetryConfig.apiKey,
+        host: telemetryConfig.host,
+        distinctId: `${telemetryConfig.distinctId?.slice(0, 8)}...`,
+      });
+    }
+
+    return createTelemetryService(telemetryConfig);
   }),
 );
 
@@ -174,6 +267,19 @@ export const trackFeatureUsage = (
         feature,
         ...metadata,
         timestamp: new Date().toISOString(),
+      }),
+    ),
+  );
+
+export const trackException = (error: Error, command?: string) =>
+  TelemetryService.pipe(
+    Effect.flatMap((telemetry) =>
+      telemetry.captureException(error, undefined, {
+        command,
+        timestamp: new Date().toISOString(),
+        error_name: error.name,
+        error_message: error.message,
+        error_stack: error.stack,
       }),
     ),
   );
