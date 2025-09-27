@@ -4,9 +4,8 @@
     "prepublishOnly": {
       "dependsOn": ["^build"],
       "env": [
-        "OPENCOMPOSER_VERSION",
         "PUBLISH_PACKAGES",
-        "RELEASE_OPENCOMPOSER_ZIPS",
+        "RELEASE_ZIP_FILES",
         "GITHUB_SHA",
         "CHANGESET_RELEASE"
       ]

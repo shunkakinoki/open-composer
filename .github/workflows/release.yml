@@ -29,7 +29,6 @@ jobs:
       - name: Build CLI Binary
         run: bun run prepublishOnly
         env:
-          OPENCOMPOSER_VERSION: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           RELEASE_ZIP_FILES: true
       - name: Upload Binary Assets
         uses: svenstaro/upload-release-action@v2
