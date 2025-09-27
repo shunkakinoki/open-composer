@@ -4,8 +4,8 @@ import * as Effect from "effect/Effect";
 import {
   GitStack,
   GitStackLive,
-  GitStackWithGitLive,
   type GitStackService,
+  type GitStackWithGitLive,
   provideGitStack,
   type StackNode,
   type StackState,
