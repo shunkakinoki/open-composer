@@ -82,7 +82,7 @@ echo "To build native executables, run: bun build --compile ./src/index.ts --out
 // For other platforms, create placeholder packages for now
 // In a real scenario, you might use cross-compilation tools or CI/CD
 for (const [os, arch] of targets) {
-  if (os === currentPlatform && arch === currentArch) {
+        os: [os],
     continue; // Already built above
   }
 
