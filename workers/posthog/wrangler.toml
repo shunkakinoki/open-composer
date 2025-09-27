@@ -7,8 +7,7 @@ workers_dev = true
 account_id = "121992ad6957cb0370fbda3384957564"
 
 [vars]
-POSTHOG_HOST = "https://app.posthog.com"
-POSTHOG_PROJECT_API_KEY = "phc_12345678901234567890123456789012"
+POSTHOG_HOST = "https://us.i.posthog.com"
 
 [durable_objects]
 bindings = [{ name = "RATE_LIMITER", class_name = "RateLimiter" }]
