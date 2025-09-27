@@ -15,13 +15,15 @@ if (import.meta.main) {
   process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception:", error);
     // Track the exception with telemetry if available (async, non-blocking)
-    trackException(error, "uncaught_exception").pipe(
-      Effect.provide(TelemetryLive),
-      Effect.provide(ConfigLive),
-      Effect.runPromise,
-    ).catch(() => {
-      // Ignore telemetry errors during error handling
-    });
+    trackException(error, "uncaught_exception")
+      .pipe(
+        Effect.provide(TelemetryLive),
+        Effect.provide(ConfigLive),
+        Effect.runPromise,
+      )
+      .catch(() => {
+        // Ignore telemetry errors during error handling
+      });
     process.exit(1);
   });
 
@@ -29,13 +31,15 @@ if (import.meta.main) {
     const error = reason instanceof Error ? reason : new Error(String(reason));
     console.error("Unhandled Rejection at:", promise, "reason:", error);
     // Track the exception with telemetry if available (async, non-blocking)
-    trackException(error, "unhandled_rejection").pipe(
-      Effect.provide(TelemetryLive),
-      Effect.provide(ConfigLive),
-      Effect.runPromise,
-    ).catch(() => {
-      // Ignore telemetry errors during error handling
-    });
+    trackException(error, "unhandled_rejection")
+      .pipe(
+        Effect.provide(TelemetryLive),
+        Effect.provide(ConfigLive),
+        Effect.runPromise,
+      )
+      .catch(() => {
+        // Ignore telemetry errors during error handling
+      });
     process.exit(1);
   });
 

@@ -6,7 +6,11 @@ import type { TelemetryConfig, ConfigServiceInterface } from "./config.js";
 import { ConfigService } from "./config.js";
 
 // Get or create a persistent anonymous user ID using the config system
-function getOrCreateAnonymousId(): Effect.Effect<string, never, ConfigServiceInterface> {
+function getOrCreateAnonymousId(): Effect.Effect<
+  string,
+  never,
+  ConfigServiceInterface
+> {
   return Effect.gen(function* (_) {
     const configService = yield* _(ConfigService);
     const config = yield* _(configService.getConfig());
