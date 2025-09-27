@@ -17,6 +17,6 @@
     "rootDir": ".",
     "noEmit": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

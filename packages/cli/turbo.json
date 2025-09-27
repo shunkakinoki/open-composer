@@ -1,10 +1,9 @@
 {
   "extends": ["//"],
   "tasks": {
-    "test": {
+    "build": {
       "dependsOn": ["^build"],
-      "inputs": ["test/**/*.{ts,tsx}"],
-      "outputs": []
+      "env": ["OPENCOMPOSER_VERSION", "RELEASE_ZIP_FILES"]
     }
   }
 }
