@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.17
+
+### Patch Changes
+
+- cc2caa1: Add windows release fix cmd
+
 ## 0.3.16
 
 ### Patch Changes
