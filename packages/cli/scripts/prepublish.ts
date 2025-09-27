@@ -19,15 +19,15 @@ const targets = [
 // Map platform and arch to Bun target strings
 function getBunTarget(os: string, arch: string): string {
   const archMap: Record<string, string> = {
-    "x64": "x64",
+    x64: "x64",
     "x64-baseline": "x64",
-    "arm64": "arm64",
+    arm64: "arm64",
   };
 
   const platformMap: Record<string, string> = {
-    "win32": "windows",
-    "linux": "linux",
-    "darwin": "darwin",
+    win32: "windows",
+    linux: "linux",
+    darwin: "darwin",
   };
 
   const targetArch = archMap[arch] || arch;
