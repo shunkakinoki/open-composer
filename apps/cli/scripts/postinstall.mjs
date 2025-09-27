@@ -10,6 +10,38 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 // -----------------------------------------------------------------------------
+// Resolve package root – script can live in ./scripts during development
+// -----------------------------------------------------------------------------
+
+const packageRoot = fs.existsSync(path.join(__dirname, "bin"))
+  ? __dirname
+  : path.resolve(__dirname, "..");
+const binDir = path.join(packageRoot, "bin");
+
+// -----------------------------------------------------------------------------
+// Helper: detect placeholder shell wrapper to allow binary replacement
+// -----------------------------------------------------------------------------
+
+function isStubBinary(filePath) {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const buffer = Buffer.alloc(2);
+    const bytesRead = fs.readSync(fd, buffer, 0, 2, 0);
+    fs.closeSync(fd);
+
+    if (bytesRead < 2) {
+      return false;
+    }
+
+    const signature = buffer.toString("utf8", 0, bytesRead);
+    return signature === "#!";
+  } catch (_error) {
+    // If we cannot inspect the file, assume it is not a stub so we do not overwrite it.
+    return false;
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Find the binary dynamically
 // -----------------------------------------------------------------------------
 
@@ -41,15 +73,20 @@ function findBinary() {
 // -----------------------------------------------------------------------------
 
 function installBinary() {
-  // In development, the platform-specific packages might not exist
-  // Check if binary already exists in bin directory
-  const existingBinary = path.join(__dirname, "bin", "opencomposer");
-  if (fs.existsSync(existingBinary)) {
+  const isWindows = os.platform() === "win32";
+  const binaryName = isWindows ? "opencomposer.exe" : "opencomposer";
+  const destinationBinary = path.join(binDir, binaryName);
+
+  // Skip if we already have a real binary (helps local development reuse builds)
+  if (fs.existsSync(destinationBinary) && !isStubBinary(destinationBinary)) {
     console.log(
-      "Binary already exists in bin directory (development mode), skipping installation",
+      `Binary already exists at ${destinationBinary} (development mode), skipping installation`,
     );
     return;
   }
+
+  // Ensure bin directory exists before attempting to copy
+  fs.mkdirSync(binDir, { recursive: true });
 
   let binaryPath;
   try {
@@ -60,33 +97,26 @@ function installBinary() {
       error.message,
     );
     console.log(
-      "This is expected in development. Make sure the binary exists in bin/opencomposer",
+      `This is expected in development. Make sure the binary exists at ${destinationBinary}`,
     );
     return;
   }
-
-  const isWindows = os.platform() === "win32";
-  const binScript = path.join(
-    __dirname,
-    "bin",
-    isWindows ? "opencomposer.exe" : "opencomposer",
-  );
 
   // -----------------------------------------------------------------------------
   // Copy the binary to the bin directory
   // -----------------------------------------------------------------------------
 
   if (fs.existsSync(binaryPath)) {
-    fs.copyFileSync(binaryPath, binScript);
+    fs.copyFileSync(binaryPath, destinationBinary);
     if (!isWindows) {
-      fs.chmodSync(binScript, "755"); // Ensure executable permissions on Unix-like systems
+      fs.chmodSync(destinationBinary, "755"); // Ensure executable permissions on Unix-like systems
     }
-    console.log(`Installed binary: ${binaryPath} -> ${binScript}`);
+    console.log(`Installed binary: ${binaryPath} -> ${destinationBinary}`);
 
     // On Windows, ensure the .cmd wrapper exists and points to the .exe
     if (isWindows) {
-      const cmdScriptPath = path.join(__dirname, "bin", "opencomposer.cmd");
-      const cmdContent = `@ECHO OFF\n"${binScript}" %*\n`;
+      const cmdScriptPath = path.join(binDir, "opencomposer.cmd");
+      const cmdContent = `@ECHO OFF\n"${destinationBinary}" %*\n`;
       fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
       console.log("Updated opencomposer.cmd wrapper for Windows");
     }
