@@ -11,6 +11,7 @@ import { CLI_VERSION } from "../src/lib/version.js";
 console.log(`CI: ${process.env.CI}`);
 console.log(`PUBLISH_PACKAGES: ${process.env.PUBLISH_PACKAGES}`);
 console.log(`RELEASE_ZIP_FILES: ${process.env.RELEASE_ZIP_FILES}`);
+console.log(`TAG: ${process.env.TAG}`);
 console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
 console.log(`CHANGESET_RELEASE: ${process.env.CHANGESET_RELEASE}`);
 
@@ -34,10 +35,11 @@ console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 const VERSION = isChangesetRelease
   ? CLI_VERSION
   : `${CLI_VERSION}-canary.${process.env.GITHUB_SHA?.slice(0, 7)}`;
-const TAG = isChangesetRelease ? "latest" : "snapshot";
+const TAG = process.env.TAG || "latest";
 
-console.log(`TAG: ${TAG}`);
 console.log(`CLI_VERSION: ${CLI_VERSION}`);
+console.log(`VERSION: ${VERSION}`);
+console.log(`TAG: ${TAG}`);
 
 // -----------------------------------------------------------------------------
 // Set the targets
