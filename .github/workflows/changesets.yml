@@ -55,7 +55,7 @@ jobs:
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
-          version-command: ${{ env.CHANGESET_RELEASE == 'true' && 'bun run version' || 'bun run version:snapshot' }}
+          version-command: 'bun run version'
           publish-command: 'bun run publish'
           create-github-releases: 'true'
           commit-mode: 'git-cli'
