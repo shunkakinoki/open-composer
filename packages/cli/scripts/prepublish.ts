@@ -86,16 +86,16 @@ for (const [os, arch] of targets) {
     continue;
   }
 
-  const name = `opencomposer-${os}-${arch}`;
-  console.log(`Creating placeholder package for ${name}`);
+  const packageName = `opencomposer-${os}-${arch}`;
+  console.log(`Creating placeholder package for ${packageName}`);
 
-  await $`mkdir -p dist/${name}`;
+  await $`mkdir -p dist/${packageName}`;
 
   await Bun.write(
-    `dist/${name}/package.json`,
+    `dist/${packageName}/package.json`,
     JSON.stringify(
       {
-        name,
+        name: packageName,
         version,
         description:
           "Placeholder package - cross-compilation not yet implemented",
@@ -111,9 +111,9 @@ for (const [os, arch] of targets) {
     ),
   );
 
-  binaries[name] = `${version}-placeholder`;
+  binaries[packageName] = `${version}-placeholder`;
 }
 
-console.log("Binaries built:", binaries)
+console.log("Binaries built:", binaries);
 
 export { binaries };
