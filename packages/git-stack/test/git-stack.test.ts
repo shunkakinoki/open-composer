@@ -168,8 +168,8 @@ describe("GitStack", () => {
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
-    // Switch to master branch first (default branch name in test repos)
-    execSync("git checkout master", { cwd: testDir });
+    // Switch to main branch first
+    execSync("git checkout main", { cwd: testDir });
 
     // Delete the branch from stack (force delete since it's not merged)
     await Effect.runPromise(
