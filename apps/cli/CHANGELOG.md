@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.15
+
+### Patch Changes
+
+- 71c4aaf: Add installation flow
+
 ## 0.3.14
 
 ### Patch Changes
