@@ -1,5 +1,15 @@
 # open-composer
 
+## 0.4.1
+
+### Patch Changes
+
+- 51ef0e1: Update release workflow and prepublish scripts
+
+  - Updated GitHub Actions release workflow configuration
+  - Modified prepublish script for improved package publishing
+  - Ensured consistent release process across packages
+
 ## 0.4.0
 
 ### Minor Changes
