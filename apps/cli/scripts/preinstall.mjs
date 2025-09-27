@@ -1,7 +1,9 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+/** biome-ignore-all lint/style/useNodejsImportProtocol: For maintability */
+
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // -----------------------------------------------------------------------------
 // Set the __dirname
