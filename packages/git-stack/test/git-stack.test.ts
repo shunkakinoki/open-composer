@@ -68,6 +68,10 @@ describe("GitStack", () => {
   test("create branch and track it in stack", async () => {
     process.chdir(testDir);
 
+    // Get the initial branch name for tracking
+    const branchesOutput1 = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranch1 = branchesOutput1.split('\n')[0].trim().replace('*', '').trim();
+
     // Create a new feature branch
     const featureFile = path.join(testDir, "feature.txt");
     await Bun.write(featureFile, "Feature implementation");
@@ -86,7 +90,7 @@ describe("GitStack", () => {
 
     // Track the branch
     await runEffect(
-      runWithGitStack(trackStackBranch("feature-branch", "master")),
+      runWithGitStack(trackStackBranch("feature-branch", initialBranch1)),
     );
 
     // Check submit shows the PR
@@ -102,6 +106,10 @@ describe("GitStack", () => {
   test("track multiple branches and show stack", async () => {
     process.chdir(testDir);
 
+    // Get the initial branch name for tracking
+    const branchesOutput2 = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranch2 = branchesOutput2.split('\n')[0].trim().replace('*', '').trim();
+
     // Create base feature branch
     execSync("git checkout -b base-feature", { cwd: testDir });
     const baseFile = path.join(testDir, "base.txt");
@@ -111,7 +119,7 @@ describe("GitStack", () => {
 
     // Track base feature
     await runEffect(
-      runWithGitStack(trackStackBranch("base-feature", "master")),
+      runWithGitStack(trackStackBranch("base-feature", initialBranch2)),
     );
 
     // Create dependent feature
@@ -150,9 +158,13 @@ describe("GitStack", () => {
   test("status shows current branch and relationships", async () => {
     process.chdir(testDir);
 
+    // Get the initial branch name for tracking
+    const branchesOutput3 = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranch3 = branchesOutput3.split('\n')[0].trim().replace('*', '').trim();
+
     // Create and track a branch
     execSync("git checkout -b test-branch", { cwd: testDir });
-    await runEffect(runWithGitStack(trackStackBranch("test-branch", "master")));
+    await runEffect(runWithGitStack(trackStackBranch("test-branch", initialBranch3)));
 
     const status = await runEffect(
       // @ts-expect-error - TypeScript is incorrectly inferring the error type
@@ -163,6 +175,10 @@ describe("GitStack", () => {
 
   test("untrack removes branch from stack", async () => {
     process.chdir(testDir);
+
+    // Get the initial branch name for tracking
+    const branchesOutput4 = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranch4 = branchesOutput4.split('\n')[0].trim().replace('*', '').trim();
 
     // Create and track a branch
     execSync("git checkout -b temp-branch", { cwd: testDir });
@@ -175,7 +191,7 @@ describe("GitStack", () => {
       cwd: testDir,
     });
 
-    await runEffect(runWithGitStack(trackStackBranch("temp-branch", "master")));
+    await runEffect(runWithGitStack(trackStackBranch("temp-branch", initialBranch4)));
 
     // Verify it's tracked (should not show "No tracked stack branches")
     let submitLines = await runEffect(
@@ -185,8 +201,12 @@ describe("GitStack", () => {
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
-    // Switch to main branch first
-    execSync("git checkout main", { cwd: testDir });
+    // Get the initial branch name (the first branch created)
+    const branchesOutput = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranchName = branchesOutput.split('\n')[0].trim().replace('*', '').trim();
+
+    // Switch back to the initial branch
+    execSync(`git checkout ${initialBranchName}`, { cwd: testDir });
 
     // Delete the branch from stack (force delete since it's not merged)
     await runEffect(
@@ -205,9 +225,13 @@ describe("GitStack", () => {
   test("log shows tracked branches", async () => {
     process.chdir(testDir);
 
+    // Get the initial branch name for tracking
+    const branchesOutput5 = execSync("git branch", { cwd: testDir, encoding: 'utf8' });
+    const initialBranch5 = branchesOutput5.split('\n')[0].trim().replace('*', '').trim();
+
     // Create and track multiple branches
     execSync("git checkout -b branch1", { cwd: testDir });
-    await runEffect(runWithGitStack(trackStackBranch("branch1", "master")));
+    await runEffect(runWithGitStack(trackStackBranch("branch1", initialBranch5)));
 
     execSync("git checkout -b branch2", { cwd: testDir });
     await runEffect(runWithGitStack(trackStackBranch("branch2", "branch1")));
