@@ -19,8 +19,7 @@ const isRelease =
   process.env.PUBLISH_PACKAGES === "true" &&
   process.env.GITHUB_SHA !== undefined;
 const isChangesetRelease =
-  isRelease &&
-  process.env.CHANGESET_RELEASE === "true";
+  isRelease && process.env.CHANGESET_RELEASE === "true";
 const isSnapshotRelease = isRelease && !isChangesetRelease;
 
 console.log(`isRelease: ${isRelease}`);
