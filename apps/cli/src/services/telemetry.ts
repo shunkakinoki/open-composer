@@ -137,7 +137,8 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 export const TelemetryLive = Layer.succeed(
   TelemetryService,
   createTelemetryService({
-    enabled: process.env.OPEN_COMPOSER_TELEMETRY === "true" || defaultConfig.enabled,
+    enabled:
+      process.env.OPEN_COMPOSER_TELEMETRY === "true" || defaultConfig.enabled,
     apiKey: process.env.OPEN_COMPOSER_POSTHOG_API_KEY || defaultConfig.apiKey,
     host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
     distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID || `cli-${Date.now()}`,
