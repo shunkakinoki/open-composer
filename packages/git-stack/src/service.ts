@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import * as Context from "effect/Context";
@@ -105,7 +105,7 @@ const updateNodeParent = (
   branch: string,
   parent: string | undefined,
 ): StackState => {
-  const existing = state.nodes[branch] ?? { name: branch };
+  const _existing = state.nodes[branch] ?? { name: branch };
   return {
     ...state,
     nodes: {

@@ -3,8 +3,8 @@ import * as Effect from "effect/Effect";
 import {
   GitStack,
   GitStackLive,
-  provideGitStack,
   type GitStackService,
+  provideGitStack,
   type StackNode,
   type StackState,
   type StackStatus,

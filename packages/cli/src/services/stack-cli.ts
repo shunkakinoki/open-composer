@@ -1,9 +1,9 @@
-import * as Effect from "effect/Effect";
 import {
-  GitStackLive,
+  checkoutStackBranch,
   configureStack,
   createStackBranch,
   deleteStackBranch,
+  GitStackLive,
   logStack,
   restackStack,
   statusStack,
@@ -11,8 +11,8 @@ import {
   syncStack,
   trackStackBranch,
   untrackStackBranch,
-  checkoutStackBranch,
 } from "@open-composer/git-stack";
+import * as Effect from "effect/Effect";
 
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {

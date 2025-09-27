@@ -136,7 +136,7 @@ describe("RateLimiter Durable Object", () => {
     }
 
     // Verify limit is hit
-    let result = await rateLimiter.checkRateLimit();
+    const result = await rateLimiter.checkRateLimit();
     expect(result.allowed).toBe(false);
 
     // Simulate time passage by mocking Date.now
