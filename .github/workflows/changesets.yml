@@ -35,9 +35,12 @@ jobs:
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
-          publish-command: 'bun run publish'
+          publish-command: 'bun run publish:packages'
           create-github-releases: 'true'
           commit-mode: 'git-cli'
+      - name: Publish CLI Package
+        working-directory: apps/cli
+        run: bun run publish
   changesets-pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

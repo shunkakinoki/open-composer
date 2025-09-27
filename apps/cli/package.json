@@ -9,6 +9,13 @@
     "open-composer": "./src/index.ts",
     "oc": "./src/index.ts"
   },
+  "files": [
+    "src/**/*",
+    "bin/**/*",
+    "scripts/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
