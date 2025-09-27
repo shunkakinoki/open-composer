@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.13
+
+### Patch Changes
+
+- 267ea16: Fix `'node:fs' does not provide an export named 'fs'` error
+
 ## 0.3.12
 
 ### Patch Changes
