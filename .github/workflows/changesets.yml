@@ -52,6 +52,8 @@ jobs:
           fetch-depth: 0
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
+      - name: Run Prepublish
+        run: bun run prepublishOnly
       - name: Run Changesets
         uses: shunkakinoki/actions/.github/actions/changesets@ed8f880cce1692b9d04df6dac1ab556a17641ff3
         continue-on-error: true
