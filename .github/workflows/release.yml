@@ -7,13 +7,14 @@ on:
       tag:
         description: 'Tag to release'
         required: true
+        default: 'open-composer@latest'
         type: string
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.release.tag_name || github.event.inputs.tag || github.head_ref || github.sha }}
   cancel-in-progress: true
 jobs:
   release-upload:
-    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '') && !contains(github.event.release.tag_name || github.event.inputs.tag, '-')
+    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '') && contains(github.event.release.tag_name || github.event.inputs.tag, '@') && !contains(split(github.event.release.tag_name || github.event.inputs.tag, '@')[1], '-')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
