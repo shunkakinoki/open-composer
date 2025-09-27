@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.14
+
+### Patch Changes
+
+- ddd2eae: Add workflow release
+
 ## 0.3.13
 
 ### Patch Changes
