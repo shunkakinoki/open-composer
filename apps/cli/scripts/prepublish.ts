@@ -5,11 +5,12 @@ import { $ } from "bun";
 import { CLI_VERSION } from "../src/lib/version.js";
 
 // -----------------------------------------------------------------------------
-// Set the tag
+// Set the flags
 // -----------------------------------------------------------------------------
 
 // Use snapshot tag for changeset releases (Version Packages PR merges)
-const isRelease = process.env.CI === "true" && process.env.PUBLISH_PACKAGES === "true";
+const isRelease =
+  process.env.CI === "true" && process.env.PUBLISH_PACKAGES === "true";
 const isChangesetRelease =
   isRelease &&
   (process.env.GITHUB_HEAD_REF === "changeset-release/main" ||
@@ -20,14 +21,19 @@ console.log(`isRelease: ${isRelease}`);
 console.log(`isChangesetRelease: ${isChangesetRelease}`);
 console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 
-const VERSION = isChangesetRelease ? CLI_VERSION : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
+// -----------------------------------------------------------------------------
+// Set the metadata
+// -----------------------------------------------------------------------------
+
+const VERSION = isChangesetRelease
+  ? CLI_VERSION
+  : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
 const TAG = process.env.TAG || (isChangesetRelease ? "latest" : "snapshot");
 
 console.log(`VERSION: ${VERSION}`);
 console.log(`TAG: ${TAG}`);
 console.log(`CLI_VERSION: ${CLI_VERSION}`);
 console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
-
 
 // -----------------------------------------------------------------------------
 // Set the targets
@@ -217,7 +223,6 @@ if (isRelease) {
   // ---------------------------------------------------------------------------
   // Publish the binaries of the packages if `RELEASE_OPENCOMPOSER_BINS` is set
   // ---------------------------------------------------------------------------
-
 
   if (process.env.RELEASE_OPENCOMPOSER_BINS) {
     // -------------------------------------------------------------------------
