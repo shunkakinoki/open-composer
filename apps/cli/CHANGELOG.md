@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.5
+
+### Patch Changes
+
+- 34e1715: Add correct naming
+
 ## 0.3.4
 
 ### Patch Changes
