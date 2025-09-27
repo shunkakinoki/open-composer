@@ -1,9 +1,7 @@
 {
   "name": "open-composer",
   "version": "0.3.6",
-  "publishConfig": {
-    "access": "public"
-  },
+  "private": true,
   "main": "src/index.ts",
   "bin": {
     "open-composer": "./src/index.ts",

@@ -10,7 +10,6 @@
     "test": "turbo test",
     "prepublishOnly": "turbo run prepublishOnly",
     "publish": "changeset publish",
-    "publish:packages": "changeset publish --ignore open-composer",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status --verbose --since origin/main",
     "check": "biome check .",
