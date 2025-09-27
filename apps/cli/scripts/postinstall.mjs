@@ -81,7 +81,7 @@ function installBinary() {
     if (!isWindows) {
       fs.chmodSync(binScript, "755"); // Ensure executable permissions on Unix-like systems
     }
-    console.log(`Installed binary: ${binScript} -> ${binaryPath}`);
+    console.log(`Installed binary: ${binaryPath} -> ${binScript}`);
 
     // On Windows, ensure the .cmd wrapper exists and points to the .exe
     if (isWindows) {
