@@ -1,20 +1,44 @@
 import { fs } from "node:fs";
+import { createRequire } from "node:module";
 import { os } from "node:os";
 import { path } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+
+// -----------------------------------------------------------------------------
+// Find the binary dynamically
+// -----------------------------------------------------------------------------
+
+function findBinary() {
+  const platform = os.platform() === "win32" ? "windows" : os.platform();
+  const arch = os.arch();
+  const binaryDirName = `cli-${platform}-${arch}`;
+  const packageName = `@open-composer/${binaryDirName}`;
+  const binary = platform === "windows" ? "opencomposer.exe" : "opencomposer";
+
+  try {
+    // Use require.resolve to find the package
+    const packageJsonPath = require.resolve(`${packageName}/package.json`);
+    const packageDir = path.dirname(packageJsonPath);
+    const binaryPath = path.join(packageDir, "bin", binary);
+
+    if (!fs.existsSync(binaryPath)) {
+      throw new Error(`Binary not found at ${binaryPath}`);
+    }
+
+    return binaryPath;
+  } catch (error) {
+    throw new Error(`Could not find package ${packageName}: ${error.message}`);
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Install the binary
 // -----------------------------------------------------------------------------
 
-const platform = os.platform() === "win32" ? "windows" : os.platform();
-const arch = os.arch();
-const binaryName = platform === "windows" ? "opencomposer.exe" : "opencomposer";
-const binaryPath = path.join(
-  __dirname,
-  "bin",
-  `${platform}-${arch}`,
-  binaryName,
-);
+const binaryPath = findBinary();
 const binScript = path.join(__dirname, "bin", "opencomposer");
 
 // -----------------------------------------------------------------------------
@@ -24,8 +48,8 @@ const binScript = path.join(__dirname, "bin", "opencomposer");
 if (fs.existsSync(binaryPath)) {
   fs.copyFileSync(binaryPath, binScript);
   fs.chmodSync(binScript, "755"); // Ensure executable permissions on Unix-like systems
-  console.log(`Installed binary: ${binScript}`);
+  console.log(`Installed binary: ${binScript} -> ${binaryPath}`);
 } else {
-  console.error(`No binary found for ${platform}-${arch}`);
+  console.error(`No binary found at ${binaryPath}`);
   process.exit(1);
 }
