@@ -1,7 +1,9 @@
-name = "posthog-anonymous-worker"
+name = "posthog-worker"
 main = "src/index.ts"
 compatibility_date = "2024-12-30"
 compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
 
 [vars]
 POSTHOG_HOST = "https://app.posthog.com"
@@ -12,4 +14,4 @@ bindings = [{ name = "RATE_LIMITER", class_name = "RateLimiter" }]
 
 [[migrations]]
 tag = "v1"
-new_classes = ["RateLimiter"]
+new_sqlite_classes = ["RateLimiter"]
