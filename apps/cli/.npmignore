@@ -1,8 +1,7 @@
-# Exclude dist directory from npm package
-dist/
-
 # Also exclude other development files
+
 scripts/
 test/
 *.tgz
 *.tar.gz
+*.zip
