@@ -102,6 +102,12 @@ for (const [os, arch] of targets) {
   );
 
   // ---------------------------------------------------------------------------
+  // Add the package to the binaries object
+  // ---------------------------------------------------------------------------
+
+  binaries[packageName] = version;
+
+  // ---------------------------------------------------------------------------
   // Create zip file for the package if `RELEASE_ZIP_FILES` is set
   // ---------------------------------------------------------------------------
 
@@ -114,55 +120,54 @@ for (const [os, arch] of targets) {
     // Create zip file containing the entire package directory
     await $`cd dist && zip -r ${zipName} ${packageName}`;
 
-    binaries[packageName] = version;
     console.log(`Built and zipped: ${packageName}`);
   }
+}
+
+// -----------------------------------------------------------------------------
+// Create tar file for the package if `RELEASE_OPENCOMPOSER_BINS` is set
+// -----------------------------------------------------------------------------
+
+if (process.env.RELEASE_OPENCOMPOSER_BINS) {
+  // ---------------------------------------------------------------------------
+  // Set the __dirname
+  // ---------------------------------------------------------------------------
+
+  const dir = new URL("..", import.meta.url).pathname;
+  process.chdir(dir);
 
   // ---------------------------------------------------------------------------
-  // Create tar file for the package if `RELEASE_OPENCOMPOSER_BINS` is set
+  // Copy the binary to the dist directory and copy the required scripts
   // ---------------------------------------------------------------------------
 
-  if (process.env.RELEASE_OPENCOMPOSER_BINS) {
-    // -------------------------------------------------------------------------
-    // Set the __dirname
-    // -------------------------------------------------------------------------
-
-    const dir = new URL("..", import.meta.url).pathname;
-    process.chdir(dir);
-
-    // -------------------------------------------------------------------------
-    // Copy the binary to the dist directory and copy the required scripts
-    // -------------------------------------------------------------------------
-
-    await $`mkdir -p ./dist/opencomposer`;
-    await $`cp -r ./bin ./dist/opencomposer/bin`;
-    await $`cp ./scripts/preinstall.mjs ./dist/opencomposer/preinstall.mjs`;
-    await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
-    await Bun.file(`./dist/opencomposer/package.json`).write(
-      JSON.stringify(
-        {
-          name: "open-composer",
-          bin: {
-            "open-composer": "./bin/opencomposer",
-            opencomposer: "./bin/opencomposer",
-            oc: "./bin/opencomposer",
-          },
-          scripts: {
-            preinstall: "node ./preinstall.mjs",
-            postinstall: "node ./postinstall.mjs",
-          },
-          version: CLI_VERSION,
-          optionalDependencies: binaries,
+  await $`mkdir -p ./dist/opencomposer`;
+  await $`cp -r ./bin ./dist/opencomposer/bin`;
+  await $`cp ./scripts/preinstall.mjs ./dist/opencomposer/preinstall.mjs`;
+  await $`cp ./scripts/postinstall.mjs ./dist/opencomposer/postinstall.mjs`;
+  await Bun.file(`./dist/opencomposer/package.json`).write(
+    JSON.stringify(
+      {
+        name: "open-composer",
+        bin: {
+          "open-composer": "./bin/opencomposer",
+          opencomposer: "./bin/opencomposer",
+          oc: "./bin/opencomposer",
         },
-        null,
-        2,
-      ),
-    );
+        scripts: {
+          preinstall: "node ./preinstall.mjs",
+          postinstall: "node ./postinstall.mjs",
+        },
+        version: CLI_VERSION,
+        optionalDependencies: binaries,
+      },
+      null,
+      2,
+    ),
+  );
 
-    console.log(
-      "Prepared main package for publishing - Changesets will handle the actual publish",
-    );
-  }
+  console.log(
+    "Prepared main package for publishing - Changesets will handle the actual publish",
+  );
 }
 
 console.log("Binaries built:", binaries);
