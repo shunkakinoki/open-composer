@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.2
+
+### Patch Changes
+
+- e635bba: Add `bun run publish:packages` to defer publishing command to `bun run publish.ts`
+
 ## 0.3.1
 
 ### Patch Changes
