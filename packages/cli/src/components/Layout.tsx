@@ -1,6 +1,7 @@
 // biome-ignore assist/source/organizeImports: False positive
 import type React from "react";
 import { Box, Text } from "ink";
+import { CLI_VERSION } from "../lib/version.js";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <Box flexDirection="column" height="100%">
       <Box borderStyle="single" borderColor="blue" justifyContent="center">
         <Text color="blue" bold>
-          🎼 Open Composer CLI v0.1.0
+          🎼 Open Composer CLI v{CLI_VERSION}
         </Text>
       </Box>
 

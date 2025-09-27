@@ -2,6 +2,7 @@ import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { GitWorktreeCli } from "../services/git-worktree-cli.js";
+import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
 
 export function buildGitWorktreeCommand() {
   return Command.make("gw").pipe(
@@ -19,6 +20,9 @@ function buildListCommand() {
     Command.withDescription("List git worktrees"),
     Command.withHandler(() =>
       Effect.gen(function* () {
+        yield* trackCommand("gw", "list");
+        yield* trackFeatureUsage("git_worktree_list");
+
         const cli = yield* GitWorktreeCli.make();
         yield* cli.list();
       }),
@@ -69,6 +73,16 @@ function buildCreateCommand() {
     Command.withDescription("Create a new git worktree"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("gw", "create");
+        yield* trackFeatureUsage("git_worktree_create", {
+          has_ref: Option.isSome(config.ref),
+          has_branch: Option.isSome(config.branch),
+          force: config.force,
+          detach: config.detach,
+          no_checkout: config.noCheckout,
+          branch_force: config.branchForce,
+        });
+
         const cli = yield* GitWorktreeCli.make();
         yield* cli.create({
           path: config.path,
@@ -105,6 +119,11 @@ function buildEditCommand() {
     Command.withDescription("Move or rename an existing worktree"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("gw", "edit");
+        yield* trackFeatureUsage("git_worktree_edit", {
+          force: config.force,
+        });
+
         const cli = yield* GitWorktreeCli.make();
         yield* cli.edit({
           from: config.from,

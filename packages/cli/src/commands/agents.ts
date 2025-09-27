@@ -2,6 +2,7 @@ import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { AgentCli } from "../services/agent-cli.js";
+import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
 
 export function buildAgentsCommand() {
   return Command.make("agents").pipe(
@@ -24,6 +25,11 @@ function buildListCommand() {
     Command.withDescription("List available agents"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("agents", "list");
+        yield* trackFeatureUsage("agent_list", {
+          active_only: config.activeOnly,
+        });
+
         const cli = yield* AgentCli.make();
         yield* cli.list({ activeOnly: config.activeOnly });
       }),
@@ -40,6 +46,11 @@ function buildActivateCommand() {
     Command.withDescription("Activate an agent"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("agents", "activate");
+        yield* trackFeatureUsage("agent_activate", {
+          agent: config.agent,
+        });
+
         const cli = yield* AgentCli.make();
         yield* cli.activate(config.agent);
       }),
@@ -56,6 +67,11 @@ function buildDeactivateCommand() {
     Command.withDescription("Deactivate an agent"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("agents", "deactivate");
+        yield* trackFeatureUsage("agent_deactivate", {
+          agent: config.agent,
+        });
+
         const cli = yield* AgentCli.make();
         yield* cli.deactivate(config.agent);
       }),
@@ -86,6 +102,13 @@ function buildRouteCommand() {
     Command.withDescription("Route a query through the agent router"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
+        yield* trackCommand("agents", "route");
+        yield* trackFeatureUsage("agent_route", {
+          has_path: Option.isSome(config.path),
+          has_agent: Option.isSome(config.agent),
+          query_length: config.query.length,
+        });
+
         const cli = yield* AgentCli.make();
         yield* cli.route({
           query: config.query,
