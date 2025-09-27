@@ -30,6 +30,13 @@ jobs:
         uses: actions/checkout@v5
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
+      - name: Detect if Changeset Release
+        run: |
+          if [ "${{ github.head_ref }}" = "changeset-release/main" ] || [ "${{ github.ref_name }}" = "changeset-release/main" ]; then
+            echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
+          else
+            echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
+          fi
       - name: Set Environment Variables
         run: |
           echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
@@ -44,10 +51,11 @@ jobs:
         env:
           PUBLISH_PACKAGES: true
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@32b69faae6a02cb50f07fb8d072fa2682d4df893
+        uses: shunkakinoki/actions/.github/actions/changesets@9506b99db7f595bd28dc7e27d22d7f3f6297334a
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
+          version-command: ${{ env.CHANGESET_RELEASE == 'true' && 'bun run version' || 'bun run version:snapshot' }}
           publish-command: 'bun run publish'
           create-github-releases: 'true'
           commit-mode: 'git-cli'

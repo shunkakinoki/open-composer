@@ -10,6 +10,8 @@
     "test": "turbo test",
     "prepublishOnly": "turbo run prepublishOnly",
     "publish": "turbo run prepublishOnly && changeset publish",
+    "version": "changeset version",
+    "version:snapshot": "changeset version --snapshot",
     "changeset:status": "changeset status --verbose --since origin/main",
     "check": "biome check .",
     "check:fix": "biome check --write --unsafe .",

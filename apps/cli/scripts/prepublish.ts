@@ -11,8 +11,7 @@ import { CLI_VERSION } from "../src/lib/version.js";
 console.log(`CI: ${process.env.CI}`);
 console.log(`PUBLISH_PACKAGES: ${process.env.PUBLISH_PACKAGES}`);
 console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
-console.log(`GITHUB_HEAD_REF: ${process.env.GITHUB_HEAD_REF}`);
-console.log(`GITHUB_REF_NAME: ${process.env.GITHUB_REF_NAME}`);
+console.log(`CHANGESET_RELEASE: ${process.env.CHANGESET_RELEASE}`);
 
 // Use snapshot tag for changeset releases (Version Packages PR merges)
 const isRelease =
@@ -21,8 +20,7 @@ const isRelease =
   process.env.GITHUB_SHA !== undefined;
 const isChangesetRelease =
   isRelease &&
-  (process.env.GITHUB_HEAD_REF === "changeset-release/main" ||
-    process.env.GITHUB_REF_NAME?.startsWith("changeset-release/"));
+  process.env.CHANGESET_RELEASE === "true";
 const isSnapshotRelease = isRelease && !isChangesetRelease;
 
 console.log(`isRelease: ${isRelease}`);
@@ -33,15 +31,10 @@ console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 // Set the metadata
 // -----------------------------------------------------------------------------
 
-const VERSION = isChangesetRelease
-  ? CLI_VERSION
-  : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
-const TAG = process.env.TAG || (isChangesetRelease ? "latest" : "snapshot");
+const TAG = isChangesetRelease ? "latest" : "snapshot";
 
-console.log(`VERSION: ${VERSION}`);
 console.log(`TAG: ${TAG}`);
 console.log(`CLI_VERSION: ${CLI_VERSION}`);
-console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
 
 // -----------------------------------------------------------------------------
 // Set the targets
@@ -130,7 +123,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name: packageName,
-        version: VERSION,
+        version: CLI_VERSION,
         main: "bin/opencomposer",
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
@@ -202,7 +195,7 @@ if (isRelease) {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
         },
-        version: VERSION,
+        version: CLI_VERSION,
         optionalDependencies: binaries,
       },
       null,
@@ -233,22 +226,6 @@ if (isRelease) {
   await $`bun publish --access public --tag ${TAG}`;
 
   console.log("Main package published");
-}
-
-// -----------------------------------------------------------------------------
-// Reset git directory if `isChangesetRelease` is set
-// -----------------------------------------------------------------------------
-
-if (isChangesetRelease) {
-  // ---------------------------------------------------------------------------
-  // Reset git directory
-  // ---------------------------------------------------------------------------
-
-  console.log("Resetting git directory");
-
-  await $`git reset --hard`;
-
-  console.log("Git directory reset");
 }
 
 export { binaries };
