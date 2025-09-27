@@ -1,4 +1,9 @@
 import * as path from "node:path";
+import {
+  type GitCommandError,
+  type GitCommandOptions,
+  run as runGit,
+} from "@open-composer/git";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
 import {
@@ -7,11 +12,6 @@ import {
   parseError,
   worktreeNotFoundError,
 } from "./errors.js";
-import {
-  type GitCommandError,
-  type GitCommandOptions,
-  run as runGit,
-} from "@open-composer/git";
 import { type ParsedWorktree, parsePorcelainList } from "./parse.js";
 
 // -----------------------------------------------------------------------------

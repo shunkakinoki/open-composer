@@ -1,18 +1,16 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import * as Context from "effect/Context";
-import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
 import {
   checkoutNewBranch,
   deleteBranch,
+  type GitCommandError,
   getCurrentBranch,
   getLastCommitMessage,
   checkout as gitCheckout,
-  run as runGit,
-  type GitCommandError,
-  type GitCommandOptions,
 } from "@open-composer/git";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 
 export interface StackNode {
   readonly name: string;
@@ -52,7 +50,10 @@ export interface GitStackService {
   ) => Effect.Effect<{ branch: string; base: string }, GitCommandError>;
   readonly track: (branch: string, parent: string) => Effect.Effect<void>;
   readonly untrack: (branch: string) => Effect.Effect<void>;
-  readonly remove: (branch: string, force?: boolean) => Effect.Effect<void, GitCommandError>;
+  readonly remove: (
+    branch: string,
+    force?: boolean,
+  ) => Effect.Effect<void, GitCommandError>;
   readonly checkout: (branch: string) => Effect.Effect<void, GitCommandError>;
   readonly sync: Effect.Effect<ReadonlyArray<string>>;
   readonly submit: Effect.Effect<ReadonlyArray<string>, GitCommandError>;
@@ -89,7 +90,6 @@ const saveState = (statePath: string, state: StackState): Effect.Effect<void> =>
       throw new Error(`Failed to persist git stack state: ${cause}`);
     },
   });
-
 
 const extractPRNumber = (commitMessage: string): string | undefined => {
   // Look for patterns like #12345 or PR #12345 in commit messages
@@ -204,7 +204,10 @@ const renderStackedPRs = (
 
     const lines: string[] = [];
 
-    const processBranch = (name: string, depth: number): Effect.Effect<void, GitCommandError> =>
+    const processBranch = (
+      name: string,
+      depth: number,
+    ): Effect.Effect<void, GitCommandError> =>
       Effect.gen(function* () {
         const prInfo = yield* getBranchPRInfo(cwd, name);
         const isCurrentBranch = name === currentBranch;
@@ -311,8 +314,7 @@ const makeService = (cwd: string): GitStackService => {
         );
       }),
 
-    checkout: (branch) =>
-      gitCheckout(branch, { cwd }).pipe(Effect.asVoid),
+    checkout: (branch) => gitCheckout(branch, { cwd }).pipe(Effect.asVoid),
 
     sync: readOnlyState((state) => {
       const branches = Object.keys(state.nodes);

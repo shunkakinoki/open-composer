@@ -1,3 +1,4 @@
+import type { GitCommandError } from "@open-composer/git";
 import {
   checkoutStackBranch,
   configureStack,
@@ -12,7 +13,6 @@ import {
   trackStackBranch,
   untrackStackBranch,
 } from "@open-composer/git-stack";
-import type { GitCommandError } from "@open-composer/git";
 import * as Effect from "effect/Effect";
 
 const printLines = (lines: ReadonlyArray<string>) =>

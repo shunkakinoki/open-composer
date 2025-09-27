@@ -1,11 +1,4 @@
 // Core git functionality
-export type {
-  GitCommandError,
-  GitCommandOptions,
-  GitCommandResult,
-  GitService,
-} from "./core.js";
-export { Git, GitLive, run } from "./core.js";
 
 // High-level git commands
 export {
@@ -28,3 +21,10 @@ export {
   status,
   tag,
 } from "./commands.js";
+export type {
+  GitCommandError,
+  GitCommandOptions,
+  GitCommandResult,
+  GitService,
+} from "./core.js";
+export { Git, GitLive, run } from "./core.js";

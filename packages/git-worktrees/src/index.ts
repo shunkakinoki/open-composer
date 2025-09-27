@@ -2,6 +2,14 @@
 // Exports
 // -----------------------------------------------------------------------------
 
+// Git
+export type {
+  GitCommandError,
+  GitCommandOptions,
+  GitCommandResult,
+  GitService,
+} from "@open-composer/git";
+export { Git, GitLive, run as runGit } from "@open-composer/git";
 // Errors
 export type {
   GitWorktreeError,
@@ -12,14 +20,6 @@ export {
   parseError,
   worktreeNotFoundError,
 } from "./errors.js";
-// Git
-export type {
-  GitCommandError,
-  GitCommandOptions,
-  GitCommandResult,
-  GitService,
-} from "@open-composer/git";
-export { Git, GitLive, run as runGit } from "@open-composer/git";
 // Worktrees
 export type {
   AddOptions,

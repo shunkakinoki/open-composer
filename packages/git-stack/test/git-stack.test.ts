@@ -4,16 +4,15 @@ import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as Effect from "effect/Effect";
-import * as Exit from "effect/Exit";
 import {
   createStackBranch,
   deleteStackBranch,
   logStack,
   runWithGitStack,
+  type StackStatus,
   statusStack,
   submitStack,
   trackStackBranch,
-  type StackStatus,
 } from "../src/index.js";
 
 // Test setup utilities
@@ -76,9 +75,9 @@ describe("GitStack", () => {
     });
 
     // Create new branch from current
-    const result = await runEffect(
+    const result = (await runEffect(
       runWithGitStack(createStackBranch({ name: "feature-branch" }) as any),
-    ) as { branch: string; base: string };
+    )) as { branch: string; base: string };
 
     expect(result.branch).toBe("feature-branch");
 
@@ -88,7 +87,9 @@ describe("GitStack", () => {
     );
 
     // Check submit shows the PR
-    const submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
+    const submitLines = (await runEffect(
+      runWithGitStack(submitStack as any),
+    )) as ReadonlyArray<string>;
     expect(submitLines[0]).toContain(
       "feat: implement feature #12345 #12345 Open Composer",
     );
@@ -124,7 +125,9 @@ describe("GitStack", () => {
     );
 
     // Check submit shows stacked PRs
-    const submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
+    const submitLines = (await runEffect(
+      runWithGitStack(submitStack as any),
+    )) as ReadonlyArray<string>;
     expect(
       submitLines.some((line) =>
         line.includes("feat: add base feature #12346 #12346 Open Composer"),
@@ -144,11 +147,11 @@ describe("GitStack", () => {
 
     // Create and track a branch
     execSync("git checkout -b test-branch", { cwd: testDir });
-    await runEffect(
-      runWithGitStack(trackStackBranch("test-branch", "master")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("test-branch", "master")));
 
-    const status = await runEffect(runWithGitStack(statusStack as any)) as StackStatus;
+    const status = (await runEffect(
+      runWithGitStack(statusStack as any),
+    )) as StackStatus;
     expect(status.currentBranch).toBe("test-branch");
   });
 
@@ -166,12 +169,12 @@ describe("GitStack", () => {
       cwd: testDir,
     });
 
-    await runEffect(
-      runWithGitStack(trackStackBranch("temp-branch", "master")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("temp-branch", "master")));
 
     // Verify it's tracked (should not show "No tracked stack branches")
-    let submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
+    let submitLines = (await runEffect(
+      runWithGitStack(submitStack as any),
+    )) as ReadonlyArray<string>;
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
@@ -184,7 +187,9 @@ describe("GitStack", () => {
     );
 
     // Verify it's no longer tracked (#99999 should not appear)
-    submitLines = await runEffect(runWithGitStack(submitStack as any)) as ReadonlyArray<string>;
+    submitLines = (await runEffect(
+      runWithGitStack(submitStack as any),
+    )) as ReadonlyArray<string>;
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(false);
   });
 
@@ -193,14 +198,10 @@ describe("GitStack", () => {
 
     // Create and track multiple branches
     execSync("git checkout -b branch1", { cwd: testDir });
-    await runEffect(
-      runWithGitStack(trackStackBranch("branch1", "master")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("branch1", "master")));
 
     execSync("git checkout -b branch2", { cwd: testDir });
-    await runEffect(
-      runWithGitStack(trackStackBranch("branch2", "branch1")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("branch2", "branch1")));
 
     const logLines = await runEffect(runWithGitStack(logStack));
     expect(logLines.some((line) => line.includes("branch1"))).toBe(true);

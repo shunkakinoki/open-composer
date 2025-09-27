@@ -1,5 +1,9 @@
 import * as Effect from "effect/Effect";
-import type { GitCommandError, GitCommandOptions, GitCommandResult } from "./core.js";
+import type {
+  GitCommandError,
+  GitCommandOptions,
+  GitCommandResult,
+} from "./core.js";
 import { run } from "./core.js";
 
 export const getCurrentBranch = (
@@ -40,9 +44,7 @@ export const getLastCommitMessage = (
   const args = branch
     ? ["show", "-s", "--format=%s", branch]
     : ["show", "-s", "--format=%s"];
-  return run(args, options).pipe(
-    Effect.map(({ stdout }) => stdout.trim()),
-  );
+  return run(args, options).pipe(Effect.map(({ stdout }) => stdout.trim()));
 };
 
 export const status = (
@@ -52,14 +54,15 @@ export const status = (
 
 export const diff = (
   options?: GitCommandOptions,
-): Effect.Effect<GitCommandResult, GitCommandError> =>
-  run(["diff"], options);
+): Effect.Effect<GitCommandResult, GitCommandError> => run(["diff"], options);
 
 export const log = (
   maxCount?: number,
   options?: GitCommandOptions,
 ): Effect.Effect<GitCommandResult, GitCommandError> => {
-  const args = maxCount ? ["log", `--max-count=${maxCount}`, "--oneline"] : ["log", "--oneline"];
+  const args = maxCount
+    ? ["log", `--max-count=${maxCount}`, "--oneline"]
+    : ["log", "--oneline"];
   return run(args, options);
 };
 
