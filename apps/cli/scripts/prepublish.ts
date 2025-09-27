@@ -157,11 +157,7 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
           opencomposer: "./bin/opencomposer",
           oc: "./bin/opencomposer",
         },
-        files: [
-          "bin/**/*",
-          "preinstall.mjs",
-          "postinstall.mjs",
-        ],
+        files: ["bin/**/*", "preinstall.mjs", "postinstall.mjs"],
         scripts: {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
@@ -174,7 +170,7 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
     ),
   );
 
-   console.log(
+  console.log(
     "Prepared main package for publishing - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it",
   );
 }
