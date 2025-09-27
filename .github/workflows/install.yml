@@ -37,7 +37,11 @@ jobs:
         run: npm install -g opencomposer@${{ github.event.inputs.tag || 'latest' }}
       - name: Verify opencomposer command
         run: opencomposer --version
-        shell: ${{ matrix.os == 'windows-latest' && 'cmd' || 'bash' }}
+        shell: bash
+      - name: Verify opencomposer command (Windows)
+        if: matrix.os == 'windows-latest'
+        run: opencomposer --version
+        shell: cmd
   install-check:
     if: always()
     needs:
