@@ -165,19 +165,25 @@ for (const [os, arch] of targets) {
       ),
     );
 
-    // -------------------------------------------------------------------------
-    // Publish the binaries
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Publish the binaries
+  // -------------------------------------------------------------------------
 
-    for (const [name] of Object.entries(binaries)) {
-      await $`cd dist/${name} && bun publish --access public --tag latest`;
-    }
+  for (const [name] of Object.entries(binaries)) {
+    await $`cd dist/${name} && bun publish --access public --tag latest`;
+  }
 
-    // -------------------------------------------------------------------------
-    // Publish the package
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Publish the main package (only when NOT run by Changesets)
+  // -------------------------------------------------------------------------
 
+  // Skip publishing the main package if RELEASE_OPENCOMPOSER_BINS is set
+  // This indicates we're running in Changesets, which will handle the main package
+  if (!process.env.RELEASE_OPENCOMPOSER_BINS) {
     await $`cd ./dist/opencomposer && bun publish --access public --tag latest`;
+  } else {
+    console.log('Skipping main package publish - RELEASE_OPENCOMPOSER_BINS is set, letting Changesets handle it');
+  }
   }
 }
 
