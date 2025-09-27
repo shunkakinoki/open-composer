@@ -32,7 +32,7 @@ console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 
 const VERSION = isChangesetRelease
   ? CLI_VERSION
-  : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
+  : `${CLI_VERSION}-canary.${process.env.GITHUB_SHA?.slice(0, 7)}`;
 const TAG = isChangesetRelease ? "latest" : "snapshot";
 
 console.log(`TAG: ${TAG}`);
