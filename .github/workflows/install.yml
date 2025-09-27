@@ -33,14 +33,14 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
       - name: Setup Node.js
         uses: actions/setup-node@v5
-      - name: Install opencomposer globally
-        run: npm install -g opencomposer@${{ github.event.inputs.tag || 'latest' }}
+      - name: Install open-composer globally
+        run: npm install -g open-composer@${{ github.event.inputs.tag || 'latest' }}
       - name: Verify opencomposer command
-        run: opencomposer --version
+        run: open-composer --version
         shell: bash
       - name: Verify opencomposer command (Windows)
         if: matrix.os == 'windows-latest'
-        run: opencomposer --version
+        run: open-composer --version
         shell: cmd
   install-check:
     if: always()
