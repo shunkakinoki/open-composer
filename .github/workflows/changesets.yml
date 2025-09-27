@@ -30,22 +30,25 @@ jobs:
         uses: actions/checkout@v5
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
+      - name: Set Environment Variables
+        run: |
+          echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
+          echo "RELEASE_OPENCOMPOSER_BINS=${RELEASE_OPENCOMPOSER_BINS}" >> $GITHUB_ENV
+          echo "RELEASE_OPENCOMPOSER_ZIPS=${RELEASE_OPENCOMPOSER_ZIPS}" >> $GITHUB_ENV
+          echo "PREPARE_OPENCOMPOSER_RELEASE=${PREPARE_OPENCOMPOSER_RELEASE}" >> $GITHUB_ENV
+        env:
+          PUBLISH_PACKAGES: true
+          RELEASE_OPENCOMPOSER_BINS: true
+          RELEASE_OPENCOMPOSER_ZIPS: true
+          PREPARE_OPENCOMPOSER_RELEASE: true
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@36c30e5cf16d45445c026abf8f71a437443cbd33
+        uses: shunkakinoki/actions/.github/actions/changesets@fbd9749bb500885ae9709fec43ed14016b0b928f
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
           publish-command: 'bun run publish'
           create-github-releases: 'true'
           commit-mode: 'git-cli'
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_HEAD_REF: ${{ github.head_ref }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
-          PREPARE_OPENCOMPOSER_RELEASE: true
-          PUBLISH_PACKAGES: true
-          RELEASE_OPENCOMPOSER_BINS: true
   changesets-pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
