@@ -28,11 +28,12 @@ function main() {
 
   // ---------------------------------------------------------------------------
   // Ensure the .cmd wrapper exists (create a minimal one if needed)
+  // Note: This will be updated by postinstall.mjs with the correct binary path
   // ---------------------------------------------------------------------------
 
-  const cmdContent = `@ECHO OFF\nnode "${path.join(__dirname, "bin", "opencomposer.js")}" %*\n`;
+  const cmdContent = `@ECHO OFF\nREM Placeholder - will be updated by postinstall.mjs\n`;
   fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
-  console.log("Created opencomposer.cmd wrapper for Windows");
+  console.log("Created placeholder opencomposer.cmd wrapper for Windows (will be updated by postinstall)");
 }
 
 // -----------------------------------------------------------------------------

@@ -40,18 +40,49 @@ function findBinary() {
 // Install the binary
 // -----------------------------------------------------------------------------
 
-const binaryPath = findBinary();
-const binScript = path.join(__dirname, "bin", "opencomposer");
+function installBinary() {
+  // In development, the platform-specific packages might not exist
+  // Check if binary already exists in bin directory
+  const existingBinary = path.join(__dirname, "bin", "opencomposer");
+  if (fs.existsSync(existingBinary)) {
+    console.log("Binary already exists in bin directory (development mode), skipping installation");
+    return;
+  }
 
-// -----------------------------------------------------------------------------
-// Copy the binary to the bin directory
-// -----------------------------------------------------------------------------
+  let binaryPath;
+  try {
+    binaryPath = findBinary();
+  } catch (error) {
+    console.error("Could not find platform-specific binary package:", error.message);
+    console.log("This is expected in development. Make sure the binary exists in bin/opencomposer");
+    return;
+  }
 
-if (fs.existsSync(binaryPath)) {
-  fs.copyFileSync(binaryPath, binScript);
-  fs.chmodSync(binScript, "755"); // Ensure executable permissions on Unix-like systems
-  console.log(`Installed binary: ${binScript} -> ${binaryPath}`);
-} else {
-  console.error(`No binary found at ${binaryPath}`);
-  process.exit(1);
+  const isWindows = os.platform() === "win32";
+  const binScript = path.join(__dirname, "bin", isWindows ? "opencomposer.exe" : "opencomposer");
+
+  // -----------------------------------------------------------------------------
+  // Copy the binary to the bin directory
+  // -----------------------------------------------------------------------------
+
+  if (fs.existsSync(binaryPath)) {
+    fs.copyFileSync(binaryPath, binScript);
+    if (!isWindows) {
+      fs.chmodSync(binScript, "755"); // Ensure executable permissions on Unix-like systems
+    }
+    console.log(`Installed binary: ${binScript} -> ${binaryPath}`);
+
+    // On Windows, ensure the .cmd wrapper exists and points to the .exe
+    if (isWindows) {
+      const cmdScriptPath = path.join(__dirname, "bin", "opencomposer.cmd");
+      const cmdContent = `@ECHO OFF\n"${binScript}" %*\n`;
+      fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
+      console.log("Updated opencomposer.cmd wrapper for Windows");
+    }
+  } else {
+    console.error(`No binary found at ${binaryPath}`);
+    process.exit(1);
+  }
 }
+
+installBinary();
