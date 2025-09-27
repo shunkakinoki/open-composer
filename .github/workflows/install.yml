@@ -37,8 +37,12 @@ jobs:
           ref: ${{ github.event.release.tag_name || github.event.inputs.tag || github.ref }}
       - name: Setup Node.js
         uses: actions/setup-node@v5
-      - name: Install open-composer globally
-        run: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
+      - name: Install open-composer globally with retry
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 30
+          max_attempts: 3
+          command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
         run: open-composer --version
         shell: bash
