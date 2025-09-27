@@ -148,7 +148,7 @@ if (process.env.PREPARE_OPENCOMPOSER_RELEASE) {
 
   await $`cp ./scripts/preinstall.mjs ./preinstall.mjs`;
   await $`cp ./scripts/postinstall.mjs ./postinstall.mjs`;
-  await Bun.file(`./dist/opencomposer/package.json`).write(
+  await Bun.file(`./package.json`).write(
     JSON.stringify(
       {
         name: "open-composer",
