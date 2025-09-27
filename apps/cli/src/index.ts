@@ -41,9 +41,10 @@ if (require.main === module) {
       // Add global error handling
       Effect.catchAll((error) => {
         // Track only actual Error instances, not ValidationError
-        const trackEffect = error instanceof Error
-          ? trackException(error, "cli_execution_error")
-          : Effect.void;
+        const trackEffect =
+          error instanceof Error
+            ? trackException(error, "cli_execution_error")
+            : Effect.void;
 
         return trackEffect.pipe(
           Effect.provide(TelemetryLive),
