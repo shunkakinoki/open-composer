@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.3
+
+### Patch Changes
+
+- 8fafe61: Add version release
+
 ## 0.3.2
 
 ### Patch Changes
