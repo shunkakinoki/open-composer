@@ -15,6 +15,7 @@ jobs:
   release-upload:
     if: startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != ''
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -42,6 +43,7 @@ jobs:
     needs: release-upload
     if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'open-composer@')
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     permissions:
       contents: write
     steps:
