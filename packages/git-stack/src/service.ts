@@ -4,6 +4,7 @@ import {
   checkoutNewBranch,
   deleteBranch,
   type GitCommandError,
+  GitLive,
   getCurrentBranch,
   getLastCommitMessage,
   checkout as gitCheckout,
@@ -360,5 +361,7 @@ export const GitStackLive = Layer.effect(
   Effect.sync(() => makeService(process.cwd())),
 );
 
+export const GitStackWithGitLive = Layer.merge(GitStackLive, GitLive);
+
 export const provideGitStack = <A>(effect: Effect.Effect<A>) =>
-  effect.pipe(Effect.provide(GitStackLive));
+  effect.pipe(Effect.provide(GitStackWithGitLive));

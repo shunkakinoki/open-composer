@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import {
   GitStack,
   GitStackLive,
+  GitStackWithGitLive,
   type GitStackService,
   provideGitStack,
   type StackNode,
@@ -12,7 +13,7 @@ import {
 } from "./service.js";
 
 export type { GitStackService, StackNode, StackState, StackStatus };
-export { GitStack, GitStackLive, provideGitStack };
+export { GitStack, GitStackLive, type GitStackWithGitLive, provideGitStack };
 
 const withService = <A, E = never>(
   f: (service: GitStackService) => Effect.Effect<A, E>,

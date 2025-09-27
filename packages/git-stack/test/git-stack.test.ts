@@ -4,12 +4,12 @@ import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as Effect from "effect/Effect";
+import type { GitCommandError } from "@open-composer/git";
 import {
   createStackBranch,
   deleteStackBranch,
   logStack,
   runWithGitStack,
-  type StackStatus,
   statusStack,
   submitStack,
   trackStackBranch,
@@ -20,8 +20,8 @@ let testDir: string;
 let originalCwd: string;
 
 // Helper to run effects that can fail and extract the value
-const runEffect = async <A>(effect: Effect.Effect<A, any>): Promise<A> => {
-  return Effect.runPromise(Effect.orDie(effect));
+const runEffect = async <A>(effect: Effect.Effect<A, GitCommandError>): Promise<A> => {
+  return Effect.runPromise(effect);
 };
 
 const setupTestRepo = async (): Promise<string> => {
@@ -75,21 +75,21 @@ describe("GitStack", () => {
     });
 
     // Create new branch from current
-    const result = (await runEffect(
-      runWithGitStack(createStackBranch({ name: "feature-branch" }) as any),
-    )) as { branch: string; base: string };
+    const result = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(createStackBranch({ name: "feature-branch" })),
+    );
 
     expect(result.branch).toBe("feature-branch");
 
     // Track the branch
-    await runEffect(
-      runWithGitStack(trackStackBranch("feature-branch", "master")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("feature-branch", "master")));
 
     // Check submit shows the PR
-    const submitLines = (await runEffect(
-      runWithGitStack(submitStack as any),
-    )) as ReadonlyArray<string>;
+    const submitLines = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(submitStack),
+    );
     expect(submitLines[0]).toContain(
       "feat: implement feature #12345 #12345 Open Composer",
     );
@@ -106,9 +106,7 @@ describe("GitStack", () => {
     execSync('git commit -m "feat: add base feature #12346"', { cwd: testDir });
 
     // Track base feature
-    await runEffect(
-      runWithGitStack(trackStackBranch("base-feature", "master")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("base-feature", "master")));
 
     // Create dependent feature
     execSync("git checkout -b dependent-feature", { cwd: testDir });
@@ -120,14 +118,13 @@ describe("GitStack", () => {
     });
 
     // Track dependent feature
-    await runEffect(
-      runWithGitStack(trackStackBranch("dependent-feature", "base-feature")),
-    );
+    await runEffect(runWithGitStack(trackStackBranch("dependent-feature", "base-feature")));
 
     // Check submit shows stacked PRs
-    const submitLines = (await runEffect(
-      runWithGitStack(submitStack as any),
-    )) as ReadonlyArray<string>;
+    const submitLines = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(submitStack)
+    );
     expect(
       submitLines.some((line) =>
         line.includes("feat: add base feature #12346 #12346 Open Composer"),
@@ -149,9 +146,10 @@ describe("GitStack", () => {
     execSync("git checkout -b test-branch", { cwd: testDir });
     await runEffect(runWithGitStack(trackStackBranch("test-branch", "master")));
 
-    const status = (await runEffect(
-      runWithGitStack(statusStack as any),
-    )) as StackStatus;
+    const status = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(statusStack)
+    );
     expect(status.currentBranch).toBe("test-branch");
   });
 
@@ -172,9 +170,10 @@ describe("GitStack", () => {
     await runEffect(runWithGitStack(trackStackBranch("temp-branch", "master")));
 
     // Verify it's tracked (should not show "No tracked stack branches")
-    let submitLines = (await runEffect(
-      runWithGitStack(submitStack as any),
-    )) as ReadonlyArray<string>;
+    let submitLines = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(submitStack)
+    );
     expect(submitLines[0]).not.toContain("No tracked stack branches");
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(true);
 
@@ -183,13 +182,15 @@ describe("GitStack", () => {
 
     // Delete the branch from stack (force delete since it's not merged)
     await runEffect(
-      runWithGitStack(deleteStackBranch("temp-branch", true) as any),
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(deleteStackBranch("temp-branch", true))
     );
 
     // Verify it's no longer tracked (#99999 should not appear)
-    submitLines = (await runEffect(
-      runWithGitStack(submitStack as any),
-    )) as ReadonlyArray<string>;
+    submitLines = await runEffect(
+      // @ts-expect-error - TypeScript is incorrectly inferring the error type
+      runWithGitStack(submitStack)
+    );
     expect(submitLines.some((line) => line.includes("#99999"))).toBe(false);
   });
 
