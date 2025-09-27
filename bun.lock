@@ -48,7 +48,7 @@
     },
     "packages/agent-router": {
       "name": "@open-composer/agent-router",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "effect": "^3.17.14",
       },
@@ -61,7 +61,7 @@
     },
     "packages/cli": {
       "name": "open-composer",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "bin": {
         "open-composer": "./src/index.ts",
         "oc": "./src/index.ts",
