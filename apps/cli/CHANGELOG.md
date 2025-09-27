@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.3.1
+
+### Patch Changes
+
+- a4fdd97: Fix 413 Payload Too Large error with custom publish script
+
 ## 0.3.0
 
 ### Minor Changes
