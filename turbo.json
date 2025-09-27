@@ -34,7 +34,7 @@
       "outputs": []
     },
     "prepublishOnly": {
-      "dependsOn": ["^prepublishOnly"]
+      "dependsOn": ["^build", "^prepublishOnly"]
     }
   },
   "globalEnv": [

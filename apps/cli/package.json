@@ -13,6 +13,7 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run scripts/prepublish.ts",
+    "publish": "bun run scripts/publish.ts",
     "type-check": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
