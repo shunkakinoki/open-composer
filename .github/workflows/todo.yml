@@ -1,20 +1,21 @@
 name: Todo
-on: 
-push:
-  branches:
-    - main
-pull_request:
-  branches:
-    - main
-  pull_request_target:
+on:
+  push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    pull_request_target:
+      branches:
+        - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.sha }}
   cancel-in-progress: true
 jobs:
-  build:
+  todo:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
     - name: Checkout
       uses: actions/checkout@v5
