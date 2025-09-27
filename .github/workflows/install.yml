@@ -1,5 +1,7 @@
 name: Install
 on:
+  release:
+    types: [published]
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
@@ -13,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   install-test:
+    if: startsWith(github.event.release.tag_name, 'open-composer@')
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,11 +33,11 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.tag || github.ref }}
       - name: Setup Node.js
         uses: actions/setup-node@v5
       - name: Install open-composer globally
-        run: npm install -g open-composer@${{ github.event.inputs.tag || 'latest' }}
+        run: npm install -g open-composer@${{ github.event.release.tag_name || github.event.inputs.tag || 'latest' }}
       - name: Verify opencomposer command
         run: open-composer --version
         shell: bash
