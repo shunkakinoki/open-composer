@@ -215,6 +215,7 @@ export const TelemetryLive = Layer.effect(
 
     const telemetryConfig = {
       enabled,
+      apiKey: "dummy-key-for-worker",
       host: defaultConfig.host,
       distinctId: anonymousId,
     };
@@ -223,6 +224,7 @@ export const TelemetryLive = Layer.effect(
     if (process.env.DEBUG_TELEMETRY) {
       console.log("Telemetry config:", {
         enabled: telemetryConfig.enabled,
+        hasApiKey: !!telemetryConfig.apiKey,
         host: telemetryConfig.host,
         distinctId: `${telemetryConfig.distinctId?.slice(0, 8)}...`,
       });
