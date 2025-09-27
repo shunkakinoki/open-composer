@@ -30,7 +30,9 @@ console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 // Set the metadata
 // -----------------------------------------------------------------------------
 
-const VERSION = isChangesetRelease ? CLI_VERSION : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
+const VERSION = isChangesetRelease
+  ? CLI_VERSION
+  : `${CLI_VERSION}-${process.env.GITHUB_SHA?.slice(0, 7)}`;
 const TAG = isChangesetRelease ? "latest" : "snapshot";
 
 console.log(`TAG: ${TAG}`);
@@ -236,9 +238,9 @@ if (isRelease) {
 
     // Go to the root directory
     process.chdir(new URL("..", import.meta.url).pathname);
-    
+
     await $`git reset --hard`;
-    
+
     console.log("Git directory reset");
   }
 }
