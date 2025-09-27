@@ -5,10 +5,6 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-// -----------------------------------------------------------------------------
-// Git
-// -----------------------------------------------------------------------------
-
 const execFileAsync = promisify(execFile);
 
 export interface GitCommandOptions
@@ -70,7 +66,7 @@ export interface GitService {
   ) => Effect.Effect<GitCommandResult, GitCommandError>;
 }
 
-export const Git = Context.GenericTag<GitService>("git-worktrees/Git");
+export const Git = Context.GenericTag<GitService>("@open-composer/git/Git");
 
 export const GitLive = Layer.effect(
   Git,

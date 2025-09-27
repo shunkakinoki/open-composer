@@ -16,6 +16,7 @@
     "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
+    "@open-composer/git": "workspace:*",
     "effect": "^3.17.14"
   },
   "devDependencies": {

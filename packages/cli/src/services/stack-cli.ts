@@ -1,3 +1,4 @@
+import type { GitCommandError } from "@open-composer/git";
 import {
   checkoutStackBranch,
   configureStack,
@@ -19,8 +20,16 @@ const printLines = (lines: ReadonlyArray<string>) =>
     discard: true,
   });
 
-const provideStack = <A>(effect: Effect.Effect<A>) =>
+const provideStack = <A, E>(effect: Effect.Effect<A, E>) =>
   effect.pipe(Effect.provide(GitStackLive));
+
+const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
+  Effect.sync(() => {
+    console.error(`Git command failed: ${error.message}`);
+    if (error.stderr) {
+      console.error(error.stderr);
+    }
+  });
 
 export class StackCli {
   log(): Effect.Effect<void> {
@@ -38,6 +47,7 @@ export class StackCli {
             : "Children: <none>",
         ]),
       ),
+      Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
@@ -48,6 +58,7 @@ export class StackCli {
           `Created branch ${result.branch} on top of ${result.base}.`,
         ]),
       ),
+      Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
@@ -72,12 +83,14 @@ export class StackCli {
       Effect.flatMap(() =>
         printLines([`Deleted branch ${branch}${force ? " (force)" : ""}.`]),
       ),
+      Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
   checkout(branch: string): Effect.Effect<void> {
     return provideStack(checkoutStackBranch(branch)).pipe(
       Effect.flatMap(() => printLines([`Checked out branch ${branch}.`])),
+      Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
@@ -86,7 +99,10 @@ export class StackCli {
   }
 
   submit(): Effect.Effect<void> {
-    return provideStack(submitStack).pipe(Effect.flatMap(printLines));
+    return provideStack(submitStack).pipe(
+      Effect.flatMap(printLines),
+      Effect.catchTag("GitCommandError", handleGitError),
+    );
   }
 
   restack(): Effect.Effect<void> {

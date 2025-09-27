@@ -1,11 +1,11 @@
 {
-  "name": "@open-composer/git-stack",
+  "name": "@open-composer/git",
   "version": "0.1.0",
-  "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "main": "src/index.ts",
+  "type": "module",
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
@@ -16,7 +16,6 @@
     "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
-    "@open-composer/git": "workspace:*",
     "effect": "^3.17.14"
   },
   "devDependencies": {

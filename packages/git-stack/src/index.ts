@@ -1,9 +1,11 @@
+import type { GitCommandError } from "@open-composer/git";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import {
   GitStack,
   GitStackLive,
   type GitStackService,
+  type GitStackWithGitLive,
   provideGitStack,
   type StackNode,
   type StackState,
@@ -11,11 +13,11 @@ import {
 } from "./service.js";
 
 export type { GitStackService, StackNode, StackState, StackStatus };
-export { GitStack, GitStackLive, provideGitStack };
+export { GitStack, GitStackLive, type GitStackWithGitLive, provideGitStack };
 
-const withService = <A>(
-  f: (service: GitStackService) => Effect.Effect<A>,
-): Effect.Effect<A> =>
+const withService = <A, E = never>(
+  f: (service: GitStackService) => Effect.Effect<A, E>,
+): Effect.Effect<A, E> =>
   Effect.flatMap(
     Effect.contextWith((context) => Context.unsafeGet(context, GitStack)),
     f,
@@ -23,21 +25,30 @@ const withService = <A>(
 
 export const listStack = withService((service) => service.list);
 export const logStack = withService((service) => service.log);
-export const statusStack = withService((service) => service.status);
+export const statusStack = withService<StackStatus, GitCommandError>(
+  (service) => service.status,
+);
 export const createStackBranch = (input: {
   readonly name: string;
   readonly base?: string;
-}) => withService((service) => service.create(input));
+}) =>
+  withService<{ branch: string; base: string }, GitCommandError>((service) =>
+    service.create(input),
+  );
 export const trackStackBranch = (branch: string, parent: string) =>
   withService((service) => service.track(branch, parent));
 export const untrackStackBranch = (branch: string) =>
   withService((service) => service.untrack(branch));
 export const deleteStackBranch = (branch: string, force = false) =>
-  withService((service) => service.remove(branch, force));
+  withService<void, GitCommandError>((service) =>
+    service.remove(branch, force),
+  );
 export const checkoutStackBranch = (branch: string) =>
-  withService((service) => service.checkout(branch));
+  withService<void, GitCommandError>((service) => service.checkout(branch));
 export const syncStack = withService((service) => service.sync);
-export const submitStack = withService((service) => service.submit);
+export const submitStack = withService<ReadonlyArray<string>, GitCommandError>(
+  (service) => service.submit,
+);
 export const restackStack = withService((service) => service.restack);
 export const configureStack = (remote: string) =>
   withService((service) => service.config({ remote }));

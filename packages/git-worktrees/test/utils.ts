@@ -1,12 +1,12 @@
-import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
 import type {
   GitCommandError,
   GitCommandOptions,
   GitCommandResult,
   GitService,
-} from "../src/git.js";
-import { Git as GitTag } from "../src/git.js";
+} from "@open-composer/git";
+import { Git as GitTag } from "@open-composer/git";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 
 export interface GitCall {
   readonly args: ReadonlyArray<string>;
