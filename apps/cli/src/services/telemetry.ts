@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
-import type { TelemetryConfig, ConfigServiceInterface } from "./config.js";
+import type { ConfigServiceInterface, TelemetryConfig } from "./config.js";
 import { ConfigService } from "./config.js";
 
 // Get or create a persistent anonymous user ID using the config system
@@ -47,10 +47,7 @@ function getOrCreateAnonymousId(): Effect.Effect<
 // Default telemetry configuration
 const defaultConfig: TelemetryConfig = {
   enabled: false, // Disable telemetry by default - enable via environment variable
-  apiKey:
-    process.env.OPEN_COMPOSER_POSTHOG_API_KEY ||
-    "phc_myz44Az2Eim07Kk1aP3jWLVb2pzn75QWVDhOMv9dSsU",
-  host: process.env.OPEN_COMPOSER_POSTHOG_HOST || "https://us.i.posthog.com",
+  host: "https://posthog-worker.shunkakinoki.workers.dev",
   distinctId: undefined,
 };
 
@@ -109,6 +106,9 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
     ) =>
       client
         ? Effect.try(() => {
+            if (process.env.DEBUG_TELEMETRY) {
+              console.log("Tracking event:", event, "properties:", properties);
+            }
             client.capture({
               distinctId: config.distinctId || "anonymous",
               event,
@@ -118,8 +118,19 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
                 source: "cli",
               },
             });
-          }).pipe(Effect.catchAll(() => Effect.void))
-        : Effect.void,
+          }).pipe(
+            Effect.catchAll((error) => {
+              if (process.env.DEBUG_TELEMETRY) {
+                console.log("Telemetry track error:", error);
+              }
+              return Effect.void;
+            }),
+          )
+        : Effect.sync(() => {
+            if (process.env.DEBUG_TELEMETRY) {
+              console.log("Telemetry disabled - not tracking:", event);
+            }
+          }),
 
     identify: (
       distinctId: string,
@@ -194,19 +205,31 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 // Create telemetry layer
 export const TelemetryLive = Layer.effect(
   TelemetryService,
-  getOrCreateAnonymousId().pipe(
-    Effect.map((anonymousId) =>
-      createTelemetryService({
-        enabled:
-          process.env.OPEN_COMPOSER_TELEMETRY === "true" ||
-          defaultConfig.enabled,
-        apiKey:
-          process.env.OPEN_COMPOSER_POSTHOG_API_KEY || defaultConfig.apiKey,
-        host: process.env.OPEN_COMPOSER_POSTHOG_HOST || defaultConfig.host,
-        distinctId: process.env.OPEN_COMPOSER_DISTINCT_ID || anonymousId,
-      }),
-    ),
-  ),
+  Effect.gen(function* (_) {
+    const configService = yield* _(ConfigService);
+    const config = yield* _(configService.getConfig());
+    const anonymousId = yield* _(getOrCreateAnonymousId());
+
+    // Check telemetry enabled status from config, environment, or default
+    const enabled = config.telemetry?.enabled || defaultConfig.enabled;
+
+    const telemetryConfig = {
+      enabled,
+      host: defaultConfig.host,
+      distinctId: anonymousId,
+    };
+
+    // Debug logging
+    if (process.env.DEBUG_TELEMETRY) {
+      console.log("Telemetry config:", {
+        enabled: telemetryConfig.enabled,
+        host: telemetryConfig.host,
+        distinctId: `${telemetryConfig.distinctId?.slice(0, 8)}...`,
+      });
+    }
+
+    return createTelemetryService(telemetryConfig);
+  }),
 );
 
 // Helper functions for common telemetry events
