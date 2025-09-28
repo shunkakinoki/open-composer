@@ -1,4 +1,8 @@
-import { type GitHubCommandError, type GitHubCommandResult, run } from "@open-composer/gh";
+import {
+  type GitHubCommandError,
+  type GitHubCommandResult,
+  run,
+} from "@open-composer/gh";
 import * as Effect from "effect/Effect";
 
 // Types

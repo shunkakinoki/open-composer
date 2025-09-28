@@ -1,4 +1,4 @@
-import { afterAll, afterEach } from "bun:test";
+import { afterAll, afterEach, mock } from "bun:test";
 import { configure } from "@testing-library/react";
 import { cleanup } from "./utils";
 
