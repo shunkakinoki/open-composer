@@ -118,6 +118,8 @@ function buildListCommand() {
 
         const cli = yield* _(GitWorktreeCli.make());
         yield* _(cli.list());
+
+        process.exit(0);
       }),
     ),
   );
@@ -264,6 +266,9 @@ function buildCreateCommand() {
               branchForce: options.branchForce,
             }),
           );
+
+          // Exit cleanly after interactive creation
+          process.exit(0);
         }
 
         // Use command line arguments for worktree creation
@@ -291,6 +296,9 @@ function buildCreateCommand() {
             branchForce: config.branchForce,
           }),
         );
+
+        // Exit cleanly after CLI creation
+        process.exit(0);
       }),
     ),
   );
