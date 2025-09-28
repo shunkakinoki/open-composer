@@ -2,7 +2,7 @@
   "name": "@open-composer/agent-codex",
   "version": "0.1.0",
   "description": "Codex agent for GitHub Copilot CLI integration",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",

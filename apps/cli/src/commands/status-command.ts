@@ -1,5 +1,8 @@
 import { Command } from "@effect/cli";
-import { getAvailableAgents } from "@open-composer/agent-router";
+import {
+  type AgentChecker,
+  getAvailableAgents,
+} from "@open-composer/agent-router";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
@@ -178,12 +181,12 @@ function displayStatus(
     // Get available agents and show agents not running
     const availableAgents = yield* getAvailableAgents;
     const availableAgentNames = availableAgents.map(
-      (agent: any) => agent.definition.name,
+      (agent: AgentChecker) => agent.definition.name,
     );
 
     const runningAgents = worktreeStatuses
       .filter((s) => s.tmuxPid)
-      .map((s: any) => s.agent);
+      .map((s: WorktreeStatus) => s.agent);
     const notRunningAgents = availableAgentNames.filter(
       (agent: string) => !runningAgents.includes(agent),
     );

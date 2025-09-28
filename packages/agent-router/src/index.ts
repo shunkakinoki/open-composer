@@ -1,58 +1,47 @@
-import type { AgentChecker, AgentStatus } from "@open-composer/agent-types";
+import { default as claudeCodeAgent } from "@open-composer/agent-claude-code";
+import { default as codexAgent } from "@open-composer/agent-codex";
+import { default as opencodeAgent } from "@open-composer/agent-opencode";
+import type {
+  Agent,
+  AgentChecker,
+  AgentResponse,
+  AgentStatus,
+} from "@open-composer/agent-types";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
 import * as Layer from "effect/Layer";
 import * as Ref from "effect/Ref";
 
-// Dynamically load agents from built packages
-const loadAgent = async (agentPath: string): Promise<AgentChecker> => {
-  try {
-    const agentModule = await import(agentPath);
-    return agentModule.default || agentModule;
-  } catch (error) {
-    throw new Error(`Failed to load agent from ${agentPath}: ${error}`);
-  }
-};
-
 export const AVAILABLE_AGENTS: readonly AgentChecker[] = [
-  // These will be loaded dynamically by the agent router
+  codexAgent,
+  claudeCodeAgent,
+  opencodeAgent,
 ] as const;
 
 // Function to get all available agents (called by agent router)
 const getAvailableAgentsFromAgents = async (): Promise<
   readonly AgentChecker[]
 > => {
-  const agentPaths = ["agents/codex", "agents/claude-code", "agents/opencode"];
+  // Check installation status for each agent
+  const checkedAgents = await Effect.runPromise(
+    pipe(
+      Effect.forEach(AVAILABLE_AGENTS, (agentChecker) =>
+        pipe(
+          agentChecker.check(),
+          Effect.map((status) => ({ agentChecker, status })),
+        ),
+      ),
+      Effect.map((results) =>
+        results
+          .filter(({ status }) => status.available)
+          .map(({ agentChecker }) => agentChecker),
+      ),
+    ),
+  );
 
-  const agents: AgentChecker[] = [];
-
-  for (const path of agentPaths) {
-    try {
-      const agent = await loadAgent(path);
-      agents.push(agent);
-    } catch (error) {
-      console.warn(`Failed to load agent from ${path}:`, error);
-      // Continue loading other agents even if one fails
-    }
-  }
-
-  return agents;
+  return checkedAgents;
 };
-
-export interface Agent {
-  readonly name: string;
-  readonly icon: string;
-  readonly role: string;
-  readonly active: boolean;
-}
-
-export interface AgentResponse {
-  readonly agent: string;
-  readonly content: string;
-  readonly timestamp: Date;
-  readonly success: boolean;
-}
 
 export interface RouteQueryInput {
   readonly query: string;
@@ -327,5 +316,6 @@ export const executeSquadMode = (input: SquadModeInput) =>
 export type {
   AgentChecker,
   AgentDefinition,
+  AgentResponse,
   AgentStatus,
 } from "@open-composer/agent-types";
