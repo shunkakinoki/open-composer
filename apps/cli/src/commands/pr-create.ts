@@ -79,7 +79,7 @@ function buildRegularCreateCommand() {
             "   Please install GitHub CLI: https://cli.github.com/",
             "   Then run: gh auth login",
           ]);
-          process.exit(1);
+          yield* Effect.die("GitHub CLI not installed");
         }
 
         if (!setup.authenticated) {
@@ -87,7 +87,7 @@ function buildRegularCreateCommand() {
             "❌ Not authenticated with GitHub CLI.",
             "   Please run: gh auth login",
           ]);
-          process.exit(1);
+          yield* Effect.die("Not authenticated with GitHub CLI");
         }
 
         console.log(
@@ -104,7 +104,7 @@ function buildRegularCreateCommand() {
             "   Please create a feature branch first:",
             "   git checkout -b feature/your-feature-name",
           ]);
-          process.exit(1);
+          yield* Effect.die("Currently on main/master branch");
         }
 
         if (gitState.hasUncommittedChanges) {
@@ -115,7 +115,7 @@ function buildRegularCreateCommand() {
             "   OR",
             "   git stash",
           ]);
-          process.exit(1);
+          yield* Effect.die("Has uncommitted changes");
         }
 
         if (!gitState.hasChanges) {
@@ -123,7 +123,7 @@ function buildRegularCreateCommand() {
             "❌ No commits found to create PR from.",
             "   Please make some commits first.",
           ]);
-          process.exit(1);
+          yield* Effect.die("No commits found to create PR from");
         }
 
         console.log(
@@ -314,7 +314,7 @@ function buildAutoCreateCommand() {
             "   Please ensure GitHub CLI is installed and authenticated:",
             "   https://cli.github.com/",
           ]);
-          process.exit(1);
+          yield* Effect.die("GitHub CLI setup incomplete");
         }
 
         console.log(
@@ -337,7 +337,7 @@ function buildAutoCreateCommand() {
             "   - You have committed changes",
             "   - No uncommitted changes remain",
           ]);
-          process.exit(1);
+          yield* Effect.die("Git state not ready for PR creation");
         }
 
         console.log(
