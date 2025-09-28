@@ -188,3 +188,34 @@ exports[`Open Composer CLI Component Snapshots GitWorktreeCreatePrompt renders c
 
 "
 `;
+
+exports[`Open Composer CLI Component Snapshots GitWorktreeSwitchPrompt renders correctly with worktrees 1`] = `
+"
+
+  🔄 Switch Git Worktree
+
+  Select a worktree to switch to:
+
+  ▶    main at /path/to/main
+       feature-1 at /path/to/feature-1
+       feature-2 at /path/to/feature-2 [locked: in use]
+
+
+  ↑/↓: Navigate • Enter: Switch • Esc: Cancel
+
+  📍 = current worktree
+
+"
+`;
+
+exports[`Open Composer CLI Component Snapshots GitWorktreeSwitchPrompt renders correctly with no worktrees 1`] = `
+"
+
+  ⚠️ No Git Worktrees Found
+
+  No worktrees available to switch to.
+
+  Press Esc to cancel
+
+"
+`;
