@@ -29,6 +29,7 @@ import {
 } from "../services/telemetry-service.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildCacheCommand } from "./cache-command.js";
+import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
@@ -128,6 +129,9 @@ export function buildRootCommand() {
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
     Command.withSubcommands([
+      buildTUICommand(),
+      buildConfigCommand(),
+      buildGitWorktreeCommand(),
       buildAgentsCommand(),
       // buildCacheCommand(), Disabled since internal
       buildGHPRCommand(),
