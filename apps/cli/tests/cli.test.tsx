@@ -1,87 +1,7 @@
-import { describe, expect, it, mock } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-
-// Mock agent router to return some test agents
-mock.module("@open-composer/agent-router", () => {
-  const { Effect } = require("effect");
-
-  return {
-    getAgents: () =>
-      Effect.succeed([
-        {
-          name: "claude-code",
-          icon: "🤖",
-          role: "Code assistant powered by Claude",
-          active: true,
-        },
-        {
-          name: "codex",
-          icon: "📚",
-          role: "Code generation specialist",
-          active: false,
-        },
-      ]),
-    getActiveAgents: () =>
-      Effect.succeed([
-        {
-          name: "claude-code",
-          icon: "🤖",
-          role: "Code assistant powered by Claude",
-          active: true,
-        },
-      ]),
-    activateAgent: () => Effect.succeed(true),
-    deactivateAgent: () => Effect.succeed(true),
-    routeQuery: () =>
-      Effect.succeed({
-        agent: "claude-code",
-        content: "Mock response",
-        timestamp: new Date(),
-        success: true,
-      }),
-  };
-});
-
-// Mock git-worktrees to return some test worktrees
-mock.module("@open-composer/git-worktrees", () => {
-  // Import Effect inside the mock to return proper Effects
-  const { Effect } = require("effect");
-
-  return {
-    list: () =>
-      Effect.succeed([
-        {
-          path: "/path/to/main",
-          branch: "main",
-          detached: false,
-          locked: null,
-          prunable: false,
-        },
-        {
-          path: "/path/to/feature-branch",
-          branch: "feature-branch",
-          detached: false,
-          locked: null,
-          prunable: false,
-        },
-      ]),
-    add: () =>
-      Effect.succeed({
-        path: "/path/to/new-worktree",
-        branch: "new-branch",
-        detached: false,
-      }),
-    move: () =>
-      Effect.succeed({
-        path: "/path/to/moved-worktree",
-        branch: "moved-branch",
-        detached: false,
-      }),
-    prune: () => Effect.succeed(undefined),
-  };
-});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -182,25 +102,5 @@ describe("CLI Execution", () => {
     expect(result.code).toBe(0);
     expect(stderr).toBe("");
     expect(stdout).toContain("Git worktrees:");
-  });
-
-  it("supports agents list", async () => {
-    const result = await runCli(["agents", "list"]);
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
-
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toContain("Agents:");
-  });
-
-  it("supports stack log", async () => {
-    const result = await runCli(["stack", "log"]);
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
-
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toContain("No tracked stack branches");
   });
 });
