@@ -104,6 +104,7 @@ export function buildGitWorktreeCommand() {
       buildCreateCommand(),
       buildEditCommand(),
       buildPruneCommand(),
+      buildSwitchCommand(),
     ]),
   );
 }
@@ -388,6 +389,84 @@ function buildPruneCommand() {
             expire: config.expire.pipe(Option.getOrUndefined),
           }),
         );
+
+        process.exit(0);
+      }),
+    ),
+  );
+}
+
+function buildSwitchCommand() {
+  const pathArg = Args.text({ name: "path" }).pipe(
+    Args.withDescription("Path of the worktree to switch to"),
+    Args.optional,
+  );
+
+  return Command.make("switch", { path: pathArg }).pipe(
+    Command.withDescription("Switch to a different git worktree"),
+    Command.withHandler((config) =>
+      Effect.gen(function* (_) {
+        yield* _(trackCommand("gw", "switch"));
+        yield* _(trackFeatureUsage("git_worktree_switch"));
+
+        // If path is not provided, show interactive prompt
+        const pathValue = Option.getOrElse(config.path, () => "");
+        if (!pathValue.trim()) {
+          // Get worktree selection from interactive prompt
+          const selectedWorktree = yield* _(
+            Effect.tryPromise({
+              try: async () => {
+                const { render } = await import("ink");
+                const React = await import("react");
+                const { GitWorktreeSwitchPrompt } = await import(
+                  "../components/GitWorktreeSwitchPrompt"
+                );
+
+                return new Promise<string | null>((resolve, reject) => {
+                  try {
+                    const { waitUntilExit } = render(
+                      React.createElement(GitWorktreeSwitchPrompt, {
+                        onSubmit: (worktreePath) => {
+                          // Clean up the Ink app and resolve
+                          waitUntilExit()
+                            .then(() => resolve(worktreePath))
+                            .catch(reject);
+                        },
+                        onCancel: () => {
+                          // Clean up the Ink app and resolve with null
+                          waitUntilExit()
+                            .then(() => resolve(null))
+                            .catch(reject);
+                        },
+                      }),
+                    );
+                  } catch (error) {
+                    reject(error);
+                  }
+                });
+              },
+              catch: (error) => {
+                return Effect.fail(
+                  new Error(
+                    `Failed to show interactive worktree switch prompt: ${error}`,
+                  ),
+                );
+              },
+            }),
+          );
+
+          if (!selectedWorktree) {
+            // User cancelled
+            process.exit(0);
+          }
+
+          const cli = yield* _(GitWorktreeCli.make());
+          yield* _(cli.switch(selectedWorktree));
+        } else {
+          // Use command line argument
+          const cli = yield* _(GitWorktreeCli.make());
+          yield* _(cli.switch(Option.getOrElse(config.path, () => "")));
+        }
 
         process.exit(0);
       }),

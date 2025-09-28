@@ -260,6 +260,34 @@ export class GitWorktreeCli {
     );
   }
 
+  switch(worktreePath: string): Effect.Effect<void, Error, never> {
+    return listWorktrees({ cwd: this.cwd }).pipe(
+      Effect.flatMap((worktrees) => {
+        const targetWorktree = worktrees.find((wt) => wt.path === worktreePath);
+
+        if (!targetWorktree) {
+          return Effect.fail(new Error(`Worktree not found: ${worktreePath}`));
+        }
+
+        return this.printGitWorktreeLines([
+          `Switching to worktree: ${targetWorktree.path}`,
+          `Tracking: ${targetWorktree.branch ?? (targetWorktree.detached ? "detached" : "HEAD")}`,
+        ]).pipe(
+          Effect.flatMap(() =>
+            this.printGitWorktreeLines([
+              `To switch to this worktree, run: cd ${targetWorktree.path}`,
+            ]),
+          ),
+        );
+      }),
+      Effect.catchAll((error) =>
+        Effect.fail(
+          new Error(`Failed to switch git worktree: ${this.toMessage(error)}`),
+        ),
+      ),
+    );
+  }
+
   private toMessage(error: unknown): string {
     if (error instanceof Error && error.message) {
       return error.message;
