@@ -128,6 +128,11 @@ export function buildRootCommand() {
 
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
+    Command.withHandler(() =>
+      Effect.sync(() => {
+        console.log(generateHelpText(commandBuilders));
+      }),
+    ),
     Command.withSubcommands([
       buildTUICommand(),
       buildConfigCommand(),
@@ -144,10 +149,6 @@ export function buildRootCommand() {
       buildTelemetryCommand(),
       buildTUICommand(),
     ]),
-    Command.withHandler(() => {
-      console.log(generateHelpText(commandBuilders));
-      return Effect.void;
-    }),
   );
 }
 
