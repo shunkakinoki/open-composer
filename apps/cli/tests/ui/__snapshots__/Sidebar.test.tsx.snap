@@ -2,22 +2,22 @@
 
 exports[`Sidebar renders correctly with worktrees 1`] = `
 "
- \x1B[1m\x1B[34m📂 Workspaces\x1B[39m\x1B[22m
+ 📂 Workspaces
 
- \x1B[32m● main\x1B[39m
- \x1B[90m○ feature-1\x1B[39m
-
-
- \x1B[1m\x1B[33m🌿 Branches\x1B[39m\x1B[22m
-
- \x1B[32m● main\x1B[39m
- \x1B[90m\x1B[2m+ New worktree\x1B[22m\x1B[39m
+ ● main
+ ○ feature-1
 
 
- \x1B[1m\x1B[35m🤖 Agents\x1B[39m\x1B[22m
+ 🌿 Branches
 
- \x1B[32m● claude-code\x1B[39m
- \x1B[90m○ codex-nation\x1B[39m
- \x1B[90m○ cursor-agent\x1B[39m
+ ● main
+ + New worktree
+
+
+ 🤖 Agents
+
+ ● claude-code
+ ○ codex-nation
+ ○ cursor-agent
 "
 `;

@@ -3,12 +3,12 @@
 exports[`TelemetryConsentPrompt renders correctly 1`] = `
 "
 
-  \x1B[1m\x1B[36m🔒 Open Composer - Privacy Notice\x1B[39m\x1B[22m
+  🔒 Open Composer - Privacy Notice
 
   Open Composer respects your privacy and is committed to protecting your data.
 
 
-  \x1B[1m📊 Telemetry Collection (Optional)\x1B[22m
+  📊 Telemetry Collection (Optional)
 
 
   We can collect anonymous usage statistics to help improve Open Composer.
@@ -26,10 +26,10 @@ exports[`TelemetryConsentPrompt renders correctly 1`] = `
 
   Enable telemetry collection?
 
-  \x1B[90mUse arrow keys to select, Enter to confirm, Esc to skip\x1B[39m
+  Use arrow keys to select, Enter to confirm, Esc to skip
 
 
-  \x1B[32m● Yes, enable telemetry\x1B[39m  \x1B[90m○ No, keep disabled\x1B[39m
+  ● Yes, enable telemetry  ○ No, keep disabled
 
 "
 `;
