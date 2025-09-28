@@ -3,30 +3,30 @@
 exports[`GitWorktreeCreatePrompt renders correctly 1`] = `
 "
 
-  \x1B[1m\x1B[36m🚀 Create Git Worktree\x1B[39m\x1B[22m
+  🚀 Create Git Worktree
 
   Create a new git worktree with interactive configuration.
 
 
 
-  \x1B[1mConfiguration:\x1B[22m
+  Configuration:
 
-  \x1B[36mPath:\x1B[32mEnter worktree path *\x1B[90m\x1B[2m_\x1B[22m\x1B[39m
-  \x1B[36mRef:\x1B[90mOptional commit/branch ref\x1B[39m
-  \x1B[36mBranch:\x1B[90mOptional branch name\x1B[39m
-
-
-  \x1B[1mOptions:\x1B[22m
-
-  \x1B[31m[○] Force\x1B[90m\x1B[2m (F)\x1B[22m\x1B[39m
-  \x1B[31m[○] Detach\x1B[90m\x1B[2m (D)\x1B[22m\x1B[39m
-  \x1B[31m[○] No Checkout\x1B[90m\x1B[2m (N)\x1B[22m\x1B[39m
-  \x1B[31m[○] Branch Force\x1B[90m\x1B[2m (B)\x1B[22m\x1B[39m
+  Path:Enter worktree path *_
+  Ref:Optional commit/branch ref
+  Branch:Optional branch name
 
 
-  \x1B[90mTab/Shift+Tab: Navigate • Enter: Next/Submit • ↑/↓: Toggle options • Esc: Cancel\x1B[39m
+  Options:
 
-  \x1B[33m⚠️  Path is required\x1B[39m
+  [○] Force (F)
+  [○] Detach (D)
+  [○] No Checkout (N)
+  [○] Branch Force (B)
+
+
+  Tab/Shift+Tab: Navigate • Enter: Next/Submit • ↑/↓: Toggle options • Esc: Cancel
+
+  ⚠️  Path is required
 
 "
 `;
