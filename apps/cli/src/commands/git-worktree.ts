@@ -1,9 +1,87 @@
+import { execFile } from "node:child_process";
+import path from "node:path";
+import { promisify } from "node:util";
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import type { GitWorktreeCreateOptions } from "../components/GitWorktreeCreatePrompt.js";
 import { GitWorktreeCli } from "../services/git-worktree-cli.js";
 import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+
+const execFileAsync = promisify(execFile);
+
+const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
+  Effect.gen(function* (_) {
+    // Check if we're inside a git repository
+    const isInsideWorkTreeResult = yield* _(
+      Effect.tryPromise({
+        try: () =>
+          execFileAsync("git", ["rev-parse", "--is-inside-work-tree"], {
+            cwd: process.cwd(),
+          }),
+        catch: (_) => Promise.reject(new Error("Not in a git repository")),
+      }),
+    );
+
+    if (isInsideWorkTreeResult.stdout.trim() !== "true") {
+      return "";
+    }
+
+    // Get the git directory to determine if we're in a worktree
+    const gitDirResult = yield* _(
+      Effect.tryPromise({
+        try: () =>
+          execFileAsync("git", ["rev-parse", "--git-dir"], {
+            cwd: process.cwd(),
+          }),
+        catch: (error) =>
+          Promise.reject(new Error(`Failed to get git directory: ${error}`)),
+      }),
+    );
+
+    const gitDirPath = gitDirResult.stdout.trim();
+
+    // Get repository name from remote origin or current directory
+    const repoName = yield* _(
+      Effect.tryPromise({
+        try: async () => {
+          try {
+            const remoteUrl = await execFileAsync(
+              "git",
+              ["config", "--get", "remote.origin.url"],
+              { cwd: process.cwd() },
+            );
+            const url = remoteUrl.stdout.trim();
+            // Extract repo name from URL (e.g., "github.com/user/repo.git" -> "repo")
+            const match = url.match(/\/([^/]+?)(\.git)?$/);
+            if (match) {
+              return match[1];
+            }
+          } catch {
+            // If no remote, use directory name
+          }
+          // Fallback to directory name
+          return path.basename(path.resolve(process.cwd(), ".."));
+        },
+        catch: (error) =>
+          Promise.reject(new Error(`Failed to get repository name: ${error}`)),
+      }),
+    );
+
+    // Check if we're in a worktree (git dir contains "worktrees")
+    const isInWorktree =
+      gitDirPath.includes("worktrees") || gitDirPath.includes(".git/worktrees");
+
+    if (isInWorktree) {
+      // If we're already in a worktree, create relatively
+      return "";
+    } else {
+      // If we're in the main repo, use <repo>.worktree/<name> format
+      return `${repoName}.worktree/`;
+    }
+  }).pipe(
+    Effect.catchAll(() => Effect.succeed("")), // If anything fails, return empty string (no default)
+  );
 
 export function buildGitWorktreeCommand() {
   return Command.make("gw").pipe(
@@ -94,6 +172,9 @@ function buildCreateCommand() {
             );
           }
 
+          // Calculate default path based on current location
+          const defaultPath = yield* _(calculateDefaultWorktreePath());
+
           // Get options from interactive prompt
           const options = yield* _(
             Effect.tryPromise({
@@ -109,6 +190,7 @@ function buildCreateCommand() {
                     try {
                       const { waitUntilExit } = render(
                         React.createElement(GitWorktreeCreatePrompt, {
+                          defaultPath,
                           onSubmit: (options) => {
                             // Clean up the Ink app and resolve
                             waitUntilExit()

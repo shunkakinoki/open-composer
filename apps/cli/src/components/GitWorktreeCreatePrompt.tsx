@@ -15,16 +15,17 @@ export interface GitWorktreeCreateOptions {
 interface GitWorktreeCreatePromptProps {
   onSubmit: (options: GitWorktreeCreateOptions) => void;
   onCancel?: () => void;
+  defaultPath?: string;
 }
 
 export const GitWorktreeCreatePrompt: React.FC<
   GitWorktreeCreatePromptProps
-> = ({ onSubmit, onCancel }) => {
+> = ({ onSubmit, onCancel, defaultPath = "" }) => {
   const [currentField, setCurrentField] = useState<
     "path" | "ref" | "branch" | "options"
   >("path");
   const [options, setOptions] = useState<GitWorktreeCreateOptions>({
-    path: "",
+    path: defaultPath,
     ref: "",
     branch: "",
     force: false,
