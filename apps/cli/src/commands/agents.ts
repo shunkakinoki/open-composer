@@ -16,7 +16,7 @@ export function buildAgentsCommand() {
   );
 }
 
-function buildListCommand() {
+export function buildListCommand() {
   const activeOnlyOption = Options.boolean("active").pipe(
     Options.withDescription("Only show active agents"),
   );
@@ -37,7 +37,7 @@ function buildListCommand() {
   );
 }
 
-function buildActivateCommand() {
+export function buildActivateCommand() {
   const agentArg = Args.text({ name: "agent" }).pipe(
     Args.withDescription("Agent name to activate"),
   );
@@ -58,7 +58,7 @@ function buildActivateCommand() {
   );
 }
 
-function buildDeactivateCommand() {
+export function buildDeactivateCommand() {
   const agentArg = Args.text({ name: "agent" }).pipe(
     Args.withDescription("Agent name to deactivate"),
   );
@@ -79,7 +79,7 @@ function buildDeactivateCommand() {
   );
 }
 
-function buildRouteCommand() {
+export function buildRouteCommand() {
   const queryArg = Args.text({ name: "query" }).pipe(
     Args.withDescription("The request to send to the router"),
   );
