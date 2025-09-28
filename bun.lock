@@ -12,7 +12,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.6.1",
+      "version": "0.7.1",
       "bin": {
         "open-composer": "./src/index.ts",
         "oc": "./src/index.ts",
@@ -30,6 +30,7 @@
         "@open-composer/git": "workspace:*",
         "@open-composer/git-stack": "workspace:*",
         "@open-composer/git-worktrees": "workspace:*",
+        "@open-composer/tmux": "workspace:*",
         "effect": "^3.17.14",
         "ink": "^6.3.1",
         "posthog-node": "^4.2.0",
@@ -96,7 +97,7 @@
     },
     "packages/db": {
       "name": "@open-composer/db",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@effect/platform-bun": "^0.80.0",
         "@effect/sql": "^0.45.0",
@@ -114,7 +115,7 @@
     },
     "packages/gh": {
       "name": "@open-composer/gh",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "effect": "^3.17.14",
       },
@@ -127,7 +128,7 @@
     },
     "packages/gh-pr": {
       "name": "@open-composer/gh-pr",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@open-composer/gh": "workspace:*",
         "effect": "^3.17.14",
@@ -171,6 +172,19 @@
       "version": "0.2.2",
       "dependencies": {
         "@open-composer/git": "workspace:*",
+        "effect": "^3.17.14",
+      },
+      "devDependencies": {
+        "@effect/language-service": "^0.41.0",
+        "@types/bun": "^1.2.22",
+        "@types/node": "^24.5.2",
+        "typescript": "^5.9.2",
+      },
+    },
+    "packages/tmux": {
+      "name": "@open-composer/tmux",
+      "version": "0.1.0",
+      "dependencies": {
         "effect": "^3.17.14",
       },
       "devDependencies": {
@@ -476,6 +490,8 @@
     "@open-composer/git-worktrees": ["@open-composer/git-worktrees@workspace:packages/git-worktrees"],
 
     "@open-composer/posthog-worker": ["@open-composer/posthog-worker@workspace:workers/posthog"],
+
+    "@open-composer/tmux": ["@open-composer/tmux@workspace:packages/tmux"],
 
     "@parcel/watcher": ["@parcel/watcher@2.5.1", "", { "dependencies": { "detect-libc": "^1.0.3", "is-glob": "^4.0.3", "micromatch": "^4.0.5", "node-addon-api": "^7.0.0" }, "optionalDependencies": { "@parcel/watcher-android-arm64": "2.5.1", "@parcel/watcher-darwin-arm64": "2.5.1", "@parcel/watcher-darwin-x64": "2.5.1", "@parcel/watcher-freebsd-x64": "2.5.1", "@parcel/watcher-linux-arm-glibc": "2.5.1", "@parcel/watcher-linux-arm-musl": "2.5.1", "@parcel/watcher-linux-arm64-glibc": "2.5.1", "@parcel/watcher-linux-arm64-musl": "2.5.1", "@parcel/watcher-linux-x64-glibc": "2.5.1", "@parcel/watcher-linux-x64-musl": "2.5.1", "@parcel/watcher-win32-arm64": "2.5.1", "@parcel/watcher-win32-ia32": "2.5.1", "@parcel/watcher-win32-x64": "2.5.1" } }, "sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg=="],
 
