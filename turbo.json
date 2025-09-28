@@ -6,11 +6,11 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
-    "lint": {
-      "dependsOn": ["^lint"]
+    "//#__lint__": {
+      "dependsOn": ["//#__check__"]
     },
-    "lint:fix": {
-      "dependsOn": ["^lint:fix"]
+    "//#__fix__": {
+      "dependsOn": ["//#check:fix", "//#format:fix"]
     },
     "dev": {
       "cache": false,
@@ -20,11 +20,17 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "check": {
+    "//#__check__": {
       "dependsOn": ["^check"]
     },
-    "format": {
+    "//#check:fix": {
+      "cache": false
+    },
+    "//#__format__": {
       "dependsOn": ["^format"]
+    },
+    "//#format:fix": {
+      "cache": false
     },
     "clean": {
       "cache": false
