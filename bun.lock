@@ -12,7 +12,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.5.0",
+      "version": "0.6.1",
       "bin": {
         "open-composer": "./src/index.ts",
         "oc": "./src/index.ts",
@@ -24,6 +24,7 @@
         "@effect/printer": "^0.45.0",
         "@effect/printer-ansi": "^0.45.0",
         "@open-composer/agent-router": "workspace:*",
+        "@open-composer/db": "workspace:*",
         "@open-composer/git": "workspace:*",
         "@open-composer/git-stack": "workspace:*",
         "@open-composer/git-worktrees": "workspace:*",
@@ -93,13 +94,12 @@
     },
     "packages/db": {
       "name": "@open-composer/db",
-      "version": "0.1.0",
+      "version": "0.3.0",
       "dependencies": {
         "@effect/platform-bun": "^0.80.0",
         "@effect/sql": "^0.45.0",
         "@effect/sql-drizzle": "^0.44.0",
         "@effect/sql-sqlite-bun": "^0.46.0",
-        "@effect/sql-sqlite-node": "^0.46.0",
         "drizzle-orm": "^0.43.1",
         "effect": "^3.17.14",
       },
@@ -275,8 +275,6 @@
     "@effect/sql-drizzle": ["@effect/sql-drizzle@0.44.0", "", { "peerDependencies": { "@effect/sql": "^0.45.0", "drizzle-orm": ">=0.43.1 <0.50", "effect": "^3.17.14" } }, "sha512-/SAqIicgXYKFUjAAKT1EFCOZuM/K4qgym/u6z9Mm300Itg0U/Y2nULP/hHP1L00C6pe5Wppi6su0+l8tAJnjqg=="],
 
     "@effect/sql-sqlite-bun": ["@effect/sql-sqlite-bun@0.46.0", "", { "peerDependencies": { "@effect/experimental": "^0.55.0", "@effect/platform": "^0.91.0", "@effect/sql": "^0.45.0", "effect": "^3.17.14" } }, "sha512-0H2+mflgKad5elHIfVohPwc7s3Q4EDWUVB3j2vVlltzz3SXd8J8mqrjKR776x4+f9N7Q5SGyc2yt4+CVkKMa7A=="],
-
-    "@effect/sql-sqlite-node": ["@effect/sql-sqlite-node@0.46.0", "", { "dependencies": { "better-sqlite3": "^11.10.0" }, "peerDependencies": { "@effect/experimental": "^0.55.0", "@effect/platform": "^0.91.0", "@effect/sql": "^0.45.0", "effect": "^3.17.14" } }, "sha512-1aVgsA03nPgLY6ls4Z9ICtxjhHFq/YBCXfOoIWKIEtyRCmGhQWVL2G0P8q0x0+DAS+RlswlkQPg3cGHSAEgbTQ=="],
 
     "@effect/typeclass": ["@effect/typeclass@0.36.0", "", { "peerDependencies": { "effect": "^3.17.0" } }, "sha512-+8xYvX4tjD7gKwGYzOyFh90I+ptdXzoNHLQTSa8kGh/xOVZMIGYb0VgLoNHE02UsuVrB+JJJuBmKLdd5TeDTPg=="],
 
