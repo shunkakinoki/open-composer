@@ -60,7 +60,7 @@ function buildRegularCreateCommand() {
     ),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("gh-pr", "create");
+        yield* trackCommand("pr", "create");
         yield* trackFeatureUsage("pr_create", {
           has_body: !!config.body,
           has_base: !!config.base,
@@ -296,7 +296,7 @@ function buildAutoCreateCommand() {
     ),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("gh-pr", "auto");
+        yield* trackCommand("pr", "auto");
         yield* trackFeatureUsage("pr_create_auto", {
           has_body: !!config.body,
           has_base: !!config.base,
@@ -497,7 +497,7 @@ function buildViewCommand() {
     Command.withDescription("View details of a GitHub Pull Request"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("gh-pr", "view");
+        yield* trackCommand("pr", "view");
         yield* trackFeatureUsage("gh_pr_view", {
           json: !!config.json,
           web: config.web,
@@ -565,7 +565,7 @@ function buildMergeCommand() {
     Command.withDescription("Merge a GitHub Pull Request"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("gh-pr", "merge");
+        yield* trackCommand("pr", "merge");
         yield* trackFeatureUsage("gh_pr_merge", {
           method: !!config.method,
           auto: config.auto,
@@ -647,7 +647,7 @@ function buildListCommand() {
     Command.withDescription("List GitHub Pull Requests"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("gh-pr", "list");
+        yield* trackCommand("pr", "list");
         yield* trackFeatureUsage("gh_pr_list", {
           has_state: !!config.state,
           has_author: !!config.author,
