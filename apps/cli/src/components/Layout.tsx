@@ -1,6 +1,5 @@
-// biome-ignore assist/source/organizeImports: False positive
-import type React from "react";
 import { Box, Text } from "ink";
+import type React from "react";
 import { CLI_VERSION } from "../lib/version.js";
 
 interface LayoutProps {
