@@ -105,7 +105,7 @@ mock.module("node:child_process", () => ({
 
 // Mock util.promisify to return our mocked function
 mock.module("node:util", () => ({
-  promisify: mock((_fn: any) => mockExecFileAsync),
+  promisify: mock((_fn: (...args: unknown[]) => void) => mockExecFileAsync),
 }));
 
 // Now import the service after mocks are set up
