@@ -33,6 +33,7 @@ function buildListCommand() {
 function buildCreateCommand() {
   const pathArg = Args.text({ name: "path" }).pipe(
     Args.withDescription("Destination path for the worktree"),
+    Args.optional, // Make path optional for interactive mode
   );
 
   const refArg = Args.text({ name: "ref" }).pipe(
@@ -73,6 +74,59 @@ function buildCreateCommand() {
     Command.withDescription("Create a new git worktree"),
     Command.withHandler((config) =>
       Effect.gen(function* (_) {
+        // If path is not provided, show interactive prompt
+        if (!config.path || !Option.getOrElse(config.path, () => "").trim()) {
+          // Check if we're in a CI environment
+          const isCI = process.env.CI || process.env.CONTINUOUS_INTEGRATION || process.env.GITHUB_ACTIONS;
+
+          if (isCI) {
+            return yield* _(Effect.fail(
+              new Error("Path argument is required. Run 'open-composer gw create <path>' with a path argument.")
+            ));
+          }
+
+          return yield* _(
+            Effect.tryPromise({
+              try: async () => {
+                const { render } = await import("ink");
+                const React = await import("react");
+                const { GitWorktreeCreatePrompt } = await import(
+                  "../components/GitWorktreeCreatePrompt.js"
+                );
+
+                return new Promise<void>((resolve, reject) => {
+                  try {
+                    const { waitUntilExit } = render(
+                      React.createElement(GitWorktreeCreatePrompt, {
+                        onSubmit: async (options) => {
+                          // For now, just log the options - we can implement actual worktree creation later
+                          console.log("Interactive worktree creation with options:", options);
+                          resolve();
+                        },
+                        onCancel: () => {
+                          resolve();
+                        },
+                      }),
+                    );
+
+                    waitUntilExit().then(() => {
+                      resolve();
+                    }).catch(reject);
+                  } catch (error) {
+                    reject(error);
+                  }
+                });
+              },
+              catch: (error) => {
+                return Effect.fail(
+                  new Error(`Failed to show interactive worktree creation prompt: ${error}`)
+                );
+              },
+            }),
+          );
+        }
+
+        // Normal flow when path is provided
         yield* _(trackCommand("gw", "create"));
         yield* _(
           trackFeatureUsage("git_worktree_create", {
@@ -88,7 +142,7 @@ function buildCreateCommand() {
         const cli = yield* _(GitWorktreeCli.make());
         yield* _(
           cli.create({
-            path: config.path,
+            path: Option.getOrElse(config.path, () => ""),
             ref: config.ref.pipe(Option.getOrUndefined),
             branch: config.branch.pipe(Option.getOrUndefined),
             force: config.force,
