@@ -7,13 +7,13 @@ import { GitWorktreeCli } from "../../src/lib/index.js";
 describe("Open Composer CLI", () => {
   describe("GitWorktreeCli", () => {
     test("should initialize with current directory", async () => {
-      // @ts-ignore - Effect.runPromise expects no services but GitWorktreeCli.make requires GitService
+      // @ts-expect-error - Effect.runPromise expects no services but GitWorktreeCli.make requires GitService
       const cli = await Effect.runPromise(GitWorktreeCli.make());
       expect(cli).toBeInstanceOf(GitWorktreeCli);
     });
 
     test("should list worktrees", async () => {
-      // @ts-ignore - Effect.runPromise expects no services but GitWorktreeCli.make requires GitService
+      // @ts-expect-error - Effect.runPromise expects no services but GitWorktreeCli.make requires GitService
       const cli = await Effect.runPromise(GitWorktreeCli.make());
       await expect(
         Effect.runPromise(cli.list().pipe(Effect.provide(GitLive))),
