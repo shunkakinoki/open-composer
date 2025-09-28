@@ -40,6 +40,40 @@ mock.module("@open-composer/agent-router", () => ({
     }),
 }));
 
+// Mock git-worktrees to return some test worktrees
+mock.module("@open-composer/git-worktrees", () => ({
+  list: () =>
+    Promise.resolve([
+      {
+        path: "/path/to/main",
+        branch: "main",
+        detached: false,
+        locked: null,
+        prunable: false,
+      },
+      {
+        path: "/path/to/feature-branch",
+        branch: "feature-branch",
+        detached: false,
+        locked: null,
+        prunable: false,
+      },
+    ]),
+  add: () =>
+    Promise.resolve({
+      path: "/path/to/new-worktree",
+      branch: "new-branch",
+      detached: false,
+    }),
+  move: () =>
+    Promise.resolve({
+      path: "/path/to/moved-worktree",
+      branch: "moved-branch",
+      detached: false,
+    }),
+  prune: () => Promise.resolve(),
+}));
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
