@@ -89,7 +89,7 @@ export const createDatabaseSnapshot = Effect.gen(function* () {
     ORDER BY name
   `;
 
-  const tables = tablesResult.map((row: any) => row.name);
+  const tables = tablesResult.map((row) => (row as { name: string }).name);
   const snapshot: Record<string, unknown[]> = {};
 
   // Export data from each table (simplified for now)
@@ -120,7 +120,7 @@ export const createSettingsSnapshot = Effect.gen(function* () {
 
   return {
     timestamp: new Date().toISOString(),
-    settings: settings.map((setting: any) => ({
+    settings: settings.map((setting: schema.Setting) => ({
       key: setting.key,
       value: setting.value,
       updatedAt: setting.updatedAt,
@@ -177,10 +177,10 @@ export const getMigrationStatus = Effect.gen(function* () {
 
   return {
     initialized: true,
-    migrations: migrations.map((m: any) => ({
-      id: m.migration_id,
-      name: m.name,
-      createdAt: m.created_at,
+    migrations: migrations.map((m) => ({
+      id: (m as { migration_id: string }).migration_id,
+      name: (m as { name: string }).name,
+      createdAt: (m as { created_at: string }).created_at,
     })),
   };
 });
@@ -199,7 +199,7 @@ export const validateDatabaseSchema = Effect.gen(function* () {
   `;
 
   const missingTables = requiredTables.filter(
-    (table) => !existingTables.some((row: any) => row.name === table),
+    (table) => !existingTables.some((row) => (row as { name: string }).name === table),
   );
 
   if (missingTables.length > 0) {
@@ -216,7 +216,7 @@ export const validateDatabaseSchema = Effect.gen(function* () {
   `;
 
   const expectedColumns = ["key", "value", "updated_at"];
-  const actualColumns = settingsSchema.map((col: any) => col.name);
+  const actualColumns = settingsSchema.map((col) => (col as { name: string }).name);
 
   const missingColumns = expectedColumns.filter(
     (col) => !actualColumns.includes(col),
