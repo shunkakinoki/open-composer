@@ -28,6 +28,7 @@ import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
+import { buildSpawnCommand } from "./spawn-command.js";
 import { buildStackCommand } from "./stack-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
 import { buildTUICommand } from "./tui-command.js";
@@ -70,6 +71,7 @@ export function buildRootCommand() {
       buildGHPRCommand(),
       buildSessionsCommand(),
       buildSettingsCommand(),
+      buildSpawnCommand(),
       buildStackCommand(),
       buildTelemetryCommand(),
     ]),
