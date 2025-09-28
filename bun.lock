@@ -71,6 +71,8 @@
         "@effect/printer": "^0.45.0",
         "@effect/printer-ansi": "^0.45.0",
         "@open-composer/agent-router": "workspace:*",
+        "@open-composer/cache": "workspace:*",
+        "@open-composer/config": "workspace:*",
         "@open-composer/db": "workspace:*",
         "@open-composer/gh": "workspace:*",
         "@open-composer/gh-pr": "workspace:*",
@@ -137,6 +139,7 @@
         "@open-composer/agent-codex": "workspace:*",
         "@open-composer/agent-opencode": "workspace:*",
         "@open-composer/agent-types": "workspace:*",
+        "@open-composer/cache": "workspace:*",
         "effect": "^3.17.14",
       },
       "devDependencies": {
@@ -144,6 +147,39 @@
         "@types/bun": "^1.2.22",
         "@types/node": "^24.5.2",
         "typescript": "^5.9.2",
+      },
+    },
+    "packages/cache": {
+      "name": "@open-composer/cache",
+      "version": "0.1.0",
+      "dependencies": {
+        "effect": "^3.0.0",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.0.0",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+      },
+      "optionalDependencies": {
+        "@types/node": "^20.0.0",
+      },
+      "peerDependencies": {
+        "effect": "^3.0.0",
+      },
+    },
+    "packages/config": {
+      "name": "@open-composer/config",
+      "version": "0.1.0",
+      "dependencies": {
+        "effect": "^3.0.0",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.0.0",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+      },
+      "peerDependencies": {
+        "effect": "^3.0.0",
       },
     },
     "packages/db": {
@@ -535,6 +571,10 @@
     "@open-composer/agent-router": ["@open-composer/agent-router@workspace:packages/agent-router"],
 
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
+
+    "@open-composer/cache": ["@open-composer/cache@workspace:packages/cache"],
+
+    "@open-composer/config": ["@open-composer/config@workspace:packages/config"],
 
     "@open-composer/db": ["@open-composer/db@workspace:packages/db"],
 

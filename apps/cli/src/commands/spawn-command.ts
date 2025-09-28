@@ -3,6 +3,7 @@ import {
   type AgentChecker,
   getAvailableAgents,
 } from "@open-composer/agent-router";
+import type { CacheServiceInterface } from "@open-composer/cache";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
 import * as Effect from "effect/Effect";
@@ -17,7 +18,11 @@ import {
 } from "../services/telemetry-service.js";
 
 // Function to get available agents from agent router
-export const getAvailableAgentNames = Effect.gen(function* () {
+export const getAvailableAgentNames: Effect.Effect<
+  readonly string[],
+  never,
+  CacheServiceInterface
+> = Effect.gen(function* () {
   const agents = yield* getAvailableAgents;
   return agents.map(
     (agent: AgentChecker) => agent.definition.name,
@@ -131,7 +136,11 @@ function buildSpawnCommandInternal() {
 
 function executeSpawn(
   config: SpawnConfig,
-): Effect.Effect<void, Error | TmuxCommandError | GitCommandError, GitService> {
+): Effect.Effect<
+  void,
+  Error | TmuxCommandError | GitCommandError,
+  GitService | CacheServiceInterface
+> {
   return Effect.gen(function* () {
     console.log(`\n🪄 Spawning session: ${config.sessionName}`);
     console.log(`📋 Agents: ${config.agents.join(", ")}`);
@@ -314,7 +323,7 @@ function createPR(
 function showSpawnOutput(
   config: SpawnConfig,
   worktreeResults: WorktreeResult[],
-): Effect.Effect<void> {
+): Effect.Effect<void, never, CacheServiceInterface> {
   return Effect.gen(function* () {
     // Status overview
     console.log("----------------------------");

@@ -1,0 +1,28 @@
+{
+  "name": "@open-composer/cache",
+  "version": "0.1.0",
+  "description": "Caching functionality for Open Composer",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "effect": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "effect": "^3.0.0"
+  }
+}

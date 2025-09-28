@@ -11,6 +11,7 @@ import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
+import { CacheLive } from "../services/cache-service.js";
 import {
   ConfigLive,
   type ConfigServiceInterface,
@@ -52,8 +53,9 @@ const baseLayer = Layer.mergeAll(
   DatabaseLive,
   GitLive,
   GitStackLive,
-  AgentRouterLive,
   ConfigLive,
+  CacheLive,
+  AgentRouterLive,
   SettingsLive,
 );
 

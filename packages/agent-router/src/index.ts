@@ -7,6 +7,12 @@ import type {
   AgentResponse,
   AgentStatus,
 } from "@open-composer/agent-types";
+import {
+  type AgentCache,
+  type CacheServiceInterface,
+  getAgentCache,
+  updateAgentCache,
+} from "@open-composer/cache";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
@@ -19,31 +25,47 @@ export const AVAILABLE_AGENTS: readonly AgentChecker[] = [
   opencodeAgent,
 ] as const;
 
-// Function to get all available agents (called by agent router)
-const getAvailableAgentsFromAgents = async (): Promise<
-  readonly AgentChecker[]
-> => {
-  // Check installation status for each agent concurrently
-  const checkedAgents = await Effect.runPromise(
-    pipe(
-      Effect.all(
-        AVAILABLE_AGENTS.map((agentChecker) =>
-          pipe(
-            agentChecker.check(),
-            Effect.map((status) => ({ agentChecker, status })),
-          ),
-        ),
-        { concurrency: "unbounded" },
-      ),
-      Effect.map((results) =>
-        results
-          .filter(({ status }) => status.available)
-          .map(({ agentChecker }) => agentChecker),
-      ),
-    ),
-  );
+// Cache TTL in milliseconds (5 minutes)
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
-  return checkedAgents;
+// Function to get all available agents (called by agent router)
+const getAvailableAgentsFromAgents = (): Effect.Effect<
+  readonly AgentChecker[],
+  never,
+  CacheServiceInterface
+> => {
+  return pipe(
+    getAgentCache(),
+    Effect.map((cache: AgentCache | undefined): readonly AgentChecker[] => {
+      if (cache) {
+        const cacheAge = Date.now() - new Date(cache.lastUpdated).getTime();
+        if (cacheAge <= CACHE_TTL_MS) {
+          // Cache is valid, return cached agents without checking
+          const cachedAgentNames = new Set(
+            cache.agents.map(
+              (a: { name: string; available: boolean; lastChecked: string }) =>
+                a.name,
+            ),
+          );
+          return AVAILABLE_AGENTS.filter(
+            (agent) =>
+              cachedAgentNames.has(agent.definition.name) &&
+              cache.agents.find(
+                (c: {
+                  name: string;
+                  available: boolean;
+                  lastChecked: string;
+                }) => c.name === agent.definition.name,
+              )?.available,
+          );
+        }
+      }
+
+      // Cache is invalid or missing, we need to check agents (but this will be handled by the caller)
+      // For now, return empty array - the actual checking happens in the refresh or when cache is updated
+      return [];
+    }),
+  );
 };
 
 export interface RouteQueryInput {
@@ -57,15 +79,38 @@ export interface SquadModeInput extends RouteQueryInput {
 }
 
 export interface AgentRouter {
-  readonly getAgents: Effect.Effect<readonly Agent[]>;
-  readonly getActiveAgents: Effect.Effect<readonly Agent[]>;
-  readonly getAvailableAgents: Effect.Effect<readonly AgentChecker[]>;
-  readonly activateAgent: (agentName: string) => Effect.Effect<boolean>;
-  readonly deactivateAgent: (agentName: string) => Effect.Effect<boolean>;
-  readonly routeQuery: (input: RouteQueryInput) => Effect.Effect<AgentResponse>;
+  readonly getAgents: Effect.Effect<
+    readonly Agent[],
+    never,
+    CacheServiceInterface
+  >;
+  readonly getActiveAgents: Effect.Effect<
+    readonly Agent[],
+    never,
+    CacheServiceInterface
+  >;
+  readonly getAvailableAgents: Effect.Effect<
+    readonly AgentChecker[],
+    never,
+    CacheServiceInterface
+  >;
+  readonly refreshAgentCache: Effect.Effect<
+    readonly AgentChecker[],
+    never,
+    CacheServiceInterface
+  >;
+  readonly activateAgent: (
+    agentName: string,
+  ) => Effect.Effect<boolean, never, CacheServiceInterface>;
+  readonly deactivateAgent: (
+    agentName: string,
+  ) => Effect.Effect<boolean, never, CacheServiceInterface>;
+  readonly routeQuery: (
+    input: RouteQueryInput,
+  ) => Effect.Effect<AgentResponse, never, CacheServiceInterface>;
   readonly executeSquadMode: (
     input: SquadModeInput,
-  ) => Effect.Effect<readonly AgentResponse[]>;
+  ) => Effect.Effect<readonly AgentResponse[], never, CacheServiceInterface>;
 }
 
 export const AgentRouter = Context.GenericTag<AgentRouter>(
@@ -101,13 +146,101 @@ const createMatcher =
     });
   };
 
-const makeAgents = (): Effect.Effect<ReadonlyArray<AgentState>, never> =>
-  pipe(
-    Effect.suspend(() =>
-      Effect.tryPromise(() => getAvailableAgentsFromAgents()).pipe(
-        Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
+// Cache-aware agent loading functions
+const getAvailableAgentsEffect: Effect.Effect<
+  readonly AgentChecker[],
+  never,
+  CacheServiceInterface
+> = pipe(
+  getAvailableAgentsFromAgents(),
+  Effect.flatMap((cachedAgents) => {
+    if (cachedAgents.length > 0) {
+      // Cache hit - return cached agents
+      return Effect.succeed(cachedAgents);
+    } else {
+      // Cache miss - do fresh check and update cache
+      return pipe(
+        Effect.all(
+          AVAILABLE_AGENTS.map((agentChecker) =>
+            pipe(
+              agentChecker.check(),
+              Effect.map((status) => ({ agentChecker, status })),
+            ),
+          ),
+          { concurrency: "unbounded" },
+        ),
+        Effect.flatMap((results) => {
+          const availableAgents = results
+            .filter(({ status }) => status.available)
+            .map(({ agentChecker }) => agentChecker);
+
+          // Update cache with fresh results
+          const cacheData: AgentCache = {
+            agents: results.map(({ agentChecker, status }) => ({
+              name: agentChecker.definition.name,
+              available: status.available,
+              lastChecked: new Date().toISOString(),
+            })),
+            lastUpdated: new Date().toISOString(),
+          };
+
+          return pipe(
+            updateAgentCache(cacheData),
+            Effect.map(() => availableAgents),
+            Effect.catchAll(() => Effect.succeed(availableAgents)), // Ignore cache update errors
+          );
+        }),
+      );
+    }
+  }),
+  Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
+);
+
+const refreshAgentCacheEffect: Effect.Effect<
+  readonly AgentChecker[],
+  never,
+  CacheServiceInterface
+> = pipe(
+  Effect.all(
+    AVAILABLE_AGENTS.map((agentChecker) =>
+      pipe(
+        agentChecker.check(),
+        Effect.map((status) => ({ agentChecker, status })),
       ),
     ),
+    { concurrency: "unbounded" },
+  ),
+  Effect.flatMap((results) => {
+    const availableAgents = results
+      .filter(({ status }) => status.available)
+      .map(({ agentChecker }) => agentChecker);
+
+    // Update cache with fresh results
+    const cacheData: AgentCache = {
+      agents: results.map(({ agentChecker, status }) => ({
+        name: agentChecker.definition.name,
+        available: status.available,
+        lastChecked: new Date().toISOString(),
+      })),
+      lastUpdated: new Date().toISOString(),
+    };
+
+    return pipe(
+      updateAgentCache(cacheData),
+      Effect.map(() => availableAgents),
+      Effect.catchAll(() => Effect.succeed(availableAgents)), // Ignore cache update errors
+    );
+  }),
+  Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
+);
+
+const makeAgents = (): Effect.Effect<
+  ReadonlyArray<AgentState>,
+  never,
+  CacheServiceInterface
+> =>
+  pipe(
+    getAvailableAgentsEffect,
     Effect.flatMap((availableAgents) =>
       pipe(
         Effect.forEach(availableAgents, (agentChecker) =>
@@ -225,19 +358,51 @@ const sendToAgent = (agent: AgentState, query: string): AgentResponse => {
 export const AgentRouterLive = Layer.effect(
   AgentRouter,
   Effect.gen(function* () {
-    const initialAgents = yield* makeAgents();
-    const agentsRef = yield* Ref.make<ReadonlyArray<AgentState>>(initialAgents);
+    // Initialize with empty agents and load them lazily to avoid initialization issues
+    const agentsRef = yield* Ref.make<ReadonlyArray<AgentState>>([]);
 
     const getAgents = pipe(
       Ref.get(agentsRef),
-      Effect.map((agents) => agents.map(stripMatcher)),
+      Effect.flatMap((agents) => {
+        if (agents.length === 0) {
+          // Load agents lazily on first access
+          return pipe(
+            makeAgents(),
+            Effect.flatMap((loadedAgents) =>
+              pipe(
+                Ref.set(agentsRef, loadedAgents),
+                Effect.map(() => loadedAgents.map(stripMatcher)),
+              ),
+            ),
+          );
+        }
+        return Effect.succeed(agents.map(stripMatcher));
+      }),
     );
 
     const getActiveAgents = pipe(
       Ref.get(agentsRef),
-      Effect.map((agents) =>
-        agents.filter((agent) => agent.active).map(stripMatcher),
-      ),
+      Effect.flatMap((agents) => {
+        if (agents.length === 0) {
+          // Load agents lazily on first access
+          return pipe(
+            makeAgents(),
+            Effect.flatMap((loadedAgents) =>
+              pipe(
+                Ref.set(agentsRef, loadedAgents),
+                Effect.map(() =>
+                  loadedAgents
+                    .filter((agent) => agent.active)
+                    .map(stripMatcher),
+                ),
+              ),
+            ),
+          );
+        }
+        return Effect.succeed(
+          agents.filter((agent) => agent.active).map(stripMatcher),
+        );
+      }),
     );
 
     const activateAgent = (agentName: string) =>
@@ -248,23 +413,52 @@ export const AgentRouterLive = Layer.effect(
     const routeQuery = (input: RouteQueryInput) =>
       pipe(
         Ref.get(agentsRef),
-        Effect.map((agents) => selectAgent(agents, input)),
-        Effect.map((agent) => sendToAgent(agent, input.query)),
+        Effect.flatMap((agents) => {
+          if (agents.length === 0) {
+            // Load agents lazily on first access
+            return pipe(
+              makeAgents(),
+              Effect.flatMap((loadedAgents) =>
+                pipe(
+                  Ref.set(agentsRef, loadedAgents),
+                  Effect.map(() => selectAgent(loadedAgents, input)),
+                  Effect.map((agent) => sendToAgent(agent, input.query)),
+                ),
+              ),
+            );
+          }
+          return pipe(
+            Effect.succeed(selectAgent(agents, input)),
+            Effect.map((agent) => sendToAgent(agent, input.query)),
+          );
+        }),
       );
 
-    const getAvailableAgentsEffect = pipe(
-      Effect.tryPromise(() => getAvailableAgentsFromAgents()),
-      Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
-    );
-
     const executeSquadMode = ({ agents, ...rest }: SquadModeInput) =>
-      Effect.forEach(
-        agents,
-        (agentName) =>
-          pipe(
-            Ref.get(agentsRef),
-            Effect.flatMap((state) => {
-              const found = state.find((agent) => agent.name === agentName);
+      pipe(
+        Ref.get(agentsRef),
+        Effect.flatMap((currentAgents) => {
+          if (currentAgents.length === 0) {
+            // Load agents lazily on first access
+            return pipe(
+              makeAgents(),
+              Effect.flatMap((loadedAgents) =>
+                pipe(
+                  Ref.set(agentsRef, loadedAgents),
+                  Effect.map(() => loadedAgents),
+                ),
+              ),
+            );
+          }
+          return Effect.succeed(currentAgents);
+        }),
+        Effect.flatMap((agentStates) =>
+          Effect.forEach(
+            agents,
+            (agentName) => {
+              const found = agentStates.find(
+                (agent) => agent.name === agentName,
+              );
               if (!found) {
                 return Effect.succeed({
                   agent: agentName,
@@ -274,15 +468,17 @@ export const AgentRouterLive = Layer.effect(
                 } satisfies AgentResponse);
               }
               return Effect.succeed(sendToAgent(found, rest.query));
-            }),
+            },
+            { concurrency: "unbounded" },
           ),
-        { concurrency: "unbounded" },
+        ),
       );
 
     const service: AgentRouter = {
       getAgents,
       getActiveAgents,
       getAvailableAgents: getAvailableAgentsEffect,
+      refreshAgentCache: refreshAgentCacheEffect,
       activateAgent,
       deactivateAgent,
       routeQuery,
@@ -294,25 +490,48 @@ export const AgentRouterLive = Layer.effect(
 );
 
 const withRouter = <A>(
-  f: (router: AgentRouter) => Effect.Effect<A>,
-): Effect.Effect<A> =>
+  f: (router: AgentRouter) => Effect.Effect<A, never, CacheServiceInterface>,
+): Effect.Effect<A, never, CacheServiceInterface> =>
   Effect.flatMap(
     Effect.contextWith((context) => Context.unsafeGet(context, AgentRouter)),
     f,
   );
 
-export const getAgents = withRouter((router) => router.getAgents);
-export const getActiveAgents = withRouter((router) => router.getActiveAgents);
-export const getAvailableAgents = withRouter(
-  (router) => router.getAvailableAgents,
-);
-export const activateAgent = (agentName: string) =>
+export const getAgents: Effect.Effect<
+  readonly Agent[],
+  never,
+  CacheServiceInterface
+> = withRouter((router) => router.getAgents);
+export const getActiveAgents: Effect.Effect<
+  readonly Agent[],
+  never,
+  CacheServiceInterface
+> = withRouter((router) => router.getActiveAgents);
+export const getAvailableAgents: Effect.Effect<
+  readonly AgentChecker[],
+  never,
+  CacheServiceInterface
+> = withRouter((router) => router.getAvailableAgents);
+export const refreshAgentCache = (): Effect.Effect<
+  readonly AgentChecker[],
+  never,
+  CacheServiceInterface
+> => refreshAgentCacheEffect;
+export const activateAgent = (
+  agentName: string,
+): Effect.Effect<boolean, never, CacheServiceInterface> =>
   withRouter((router) => router.activateAgent(agentName));
-export const deactivateAgent = (agentName: string) =>
+export const deactivateAgent = (
+  agentName: string,
+): Effect.Effect<boolean, never, CacheServiceInterface> =>
   withRouter((router) => router.deactivateAgent(agentName));
-export const routeQuery = (input: RouteQueryInput) =>
+export const routeQuery = (
+  input: RouteQueryInput,
+): Effect.Effect<AgentResponse, never, CacheServiceInterface> =>
   withRouter((router) => router.routeQuery(input));
-export const executeSquadMode = (input: SquadModeInput) =>
+export const executeSquadMode = (
+  input: SquadModeInput,
+): Effect.Effect<readonly AgentResponse[], never, CacheServiceInterface> =>
   withRouter((router) => router.executeSquadMode(input));
 
 // Re-export types for convenience

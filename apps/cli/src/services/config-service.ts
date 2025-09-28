@@ -1,35 +1,21 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { Context, Effect, Layer } from "effect";
+import {
+  ConfigService as ConfigServiceTag,
+  defaultConfig,
+  type UserConfig,
+} from "@open-composer/config";
+import { Effect, Layer } from "effect";
 
-// Telemetry configuration interface
-export interface TelemetryConfig {
-  readonly enabled: boolean;
-  readonly apiKey?: string;
-  readonly host?: string;
-  readonly distinctId?: string;
-  readonly consentedAt?: string;
-  readonly version?: string;
-  readonly anonymousId?: string;
-}
+// Re-export types for backward compatibility
+export type {
+  AgentCache,
+  TelemetryConfig,
+  UserConfig,
+} from "@open-composer/config";
 
-// Configuration interface
-export interface UserConfig {
-  readonly telemetry?: TelemetryConfig;
-  readonly version: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-// Default configuration
-const defaultConfig: UserConfig = {
-  version: "1.0.0",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
-// Config service interface
+// Config service interface (extending the shared interface)
 export interface ConfigServiceInterface {
   readonly getConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly updateConfig: (
@@ -41,10 +27,8 @@ export interface ConfigServiceInterface {
   readonly getTelemetryConsent: () => Effect.Effect<boolean, never, never>;
 }
 
-// Config service tag
-export const ConfigService = Context.GenericTag<ConfigServiceInterface>(
-  "@open-composer/config/ConfigService",
-);
+// Config service tag (using the shared one)
+export const ConfigService = ConfigServiceTag;
 
 // Get config directory path
 function getConfigDir(): string {
@@ -167,15 +151,6 @@ export const ConfigLive = Layer.effect(
   ConfigService,
   Effect.succeed(createConfigService()),
 );
-
-// Helper functions for common operations
-export const getTelemetryConsent = () =>
-  ConfigService.pipe(Effect.flatMap((config) => config.getTelemetryConsent()));
-
-export const setTelemetryConsent = (enabled: boolean) =>
-  ConfigService.pipe(
-    Effect.flatMap((config) => config.setTelemetryConsent(enabled)),
-  );
 
 export const promptForTelemetryConsent = () =>
   Effect.gen(function* (_) {
