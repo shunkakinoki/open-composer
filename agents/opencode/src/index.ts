@@ -21,15 +21,16 @@ const execCommand = (command: string): Effect.Effect<string, Error> =>
       execSync(command, {
         encoding: "utf8",
         timeout: 5000,
+        stdio: "pipe", // Suppress output to console
       }),
     catch: (error) =>
       new Error(`Command failed: ${command} - ${(error as Error).message}`),
   });
 
-const checkFileExists = (path: string): Effect.Effect<boolean> =>
+const _checkFileExists = (path: string): Effect.Effect<boolean> =>
   Effect.sync(() => existsSync(path));
 
-const checkToolAtPath = (
+const _checkToolAtPath = (
   path: string,
 ): Effect.Effect<{ version?: string; path: string }, Error> =>
   pipe(
@@ -41,77 +42,32 @@ const checkToolAtPath = (
     }),
   );
 
-const checkTool = (tool: {
-  command: string;
-  paths: readonly string[];
-}): Effect.Effect<{ version?: string; path: string }, Error> =>
-  pipe(
-    // First try the command in PATH
-    execCommand(`${tool.command} --version`),
-    Effect.map((result) => {
-      const versionMatch = result.match(/(\d+\.\d+\.\d+)/);
-      const version = versionMatch ? versionMatch[0] : undefined;
-      return { version, path: tool.command };
-    }),
-    Effect.orElse(() =>
-      // If that fails, try alternative paths
-      pipe(
-        Effect.forEach(tool.paths, (path) =>
-          pipe(
-            checkFileExists(path),
-            Effect.flatMap((exists) =>
-              exists
-                ? checkToolAtPath(path)
-                : Effect.fail(new Error(`Path does not exist: ${path}`)),
-            ),
-          ),
-        ),
-        Effect.map((results) => results[0]), // Take first successful result
-      ),
-    ),
-  );
+const checkInstallation = (): Effect.Effect<AgentStatus> =>
+  Effect.gen(function* () {
+    // Check if Codex is available
+    const result = yield* execCommand("opencode --version");
 
-const checkInstallation = (): Effect.Effect<AgentStatus> => {
-  const tools = [
-    {
-      name: "opencode-interpreter",
-      command: "opencode",
-      paths: ["/usr/local/bin/opencode", "/usr/bin/opencode"] as const,
-    },
-    {
-      name: "aider",
-      command: "aider",
-      paths: ["/usr/local/bin/aider", "/usr/bin/aider"] as const,
-    },
-    {
-      name: "codey",
-      command: "codey",
-      paths: ["/usr/local/bin/codey", "/usr/bin/codey"] as const,
-    },
-  ] as const;
+    const versionMatch = result.match(/version\s+([\d.]+)/i);
+    const version = versionMatch ? versionMatch[1] : undefined;
 
-  return pipe(
-    Effect.forEach(tools, checkTool),
-    Effect.map((results) => results[0]), // Take first successful result
-    Effect.map(
-      ({ version, path }) =>
-        ({
-          name: "opencode",
-          available: true,
-          version,
-          path,
-        }) satisfies AgentStatus,
-    ),
-    Effect.catchAll(() =>
+    // Check if copilot is properly authenticated
+    yield* execCommand("gh auth status");
+
+    return {
+      name: "opencode",
+      available: true,
+      version,
+      path: "opencode",
+    } satisfies AgentStatus;
+  }).pipe(
+    Effect.catchAll((error) =>
       Effect.succeed({
         name: "opencode",
         available: false,
-        error:
-          "No open-source coding assistant found. Try installing aider, opencode-interpreter, or codey.",
+        error: (error as Error).message,
       } satisfies AgentStatus),
     ),
   );
-};
 
 const checkOpencode: AgentChecker = {
   check: checkInstallation,

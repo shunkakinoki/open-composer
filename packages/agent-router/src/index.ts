@@ -23,14 +23,17 @@ export const AVAILABLE_AGENTS: readonly AgentChecker[] = [
 const getAvailableAgentsFromAgents = async (): Promise<
   readonly AgentChecker[]
 > => {
-  // Check installation status for each agent
+  // Check installation status for each agent concurrently
   const checkedAgents = await Effect.runPromise(
     pipe(
-      Effect.forEach(AVAILABLE_AGENTS, (agentChecker) =>
-        pipe(
-          agentChecker.check(),
-          Effect.map((status) => ({ agentChecker, status })),
+      Effect.all(
+        AVAILABLE_AGENTS.map((agentChecker) =>
+          pipe(
+            agentChecker.check(),
+            Effect.map((status) => ({ agentChecker, status })),
+          ),
         ),
+        { concurrency: "unbounded" },
       ),
       Effect.map((results) =>
         results

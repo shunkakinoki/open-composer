@@ -19,6 +19,7 @@ const execCommand = (command: string): Effect.Effect<string, Error> =>
       execSync(command, {
         encoding: "utf8",
         timeout: 5000,
+        stdio: "pipe", // Suppress output to console
       }),
     catch: (error) =>
       new Error(`Command failed: ${command} - ${(error as Error).message}`),
@@ -26,8 +27,8 @@ const execCommand = (command: string): Effect.Effect<string, Error> =>
 
 const checkInstallation = (): Effect.Effect<AgentStatus> =>
   Effect.gen(function* () {
-    // Check if GitHub Copilot CLI (gh copilot) is available
-    const result = yield* execCommand("gh copilot --version");
+    // Check if Codex is available
+    const result = yield* execCommand("codex --version");
 
     const versionMatch = result.match(/version\s+([\d.]+)/i);
     const version = versionMatch ? versionMatch[1] : undefined;

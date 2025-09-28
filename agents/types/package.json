@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
-    "test": "vitest run",
+    "test": "bun test",
     "lint": "biome check .",
     "lint:fix": "tsc"
   },

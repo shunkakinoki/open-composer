@@ -20,6 +20,7 @@ const execCommand = (command: string): Effect.Effect<string, Error> =>
       execSync(command, {
         encoding: "utf8",
         timeout: 5000,
+        stdio: "pipe", // Suppress output to console
       }),
     catch: (error) =>
       new Error(`Command failed: ${command} - ${(error as Error).message}`),
