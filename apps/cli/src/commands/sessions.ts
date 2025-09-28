@@ -18,8 +18,43 @@ function buildCreateCommand() {
         yield* trackCommand("sessions", "create");
         yield* trackFeatureUsage("sessions_create");
 
-        const cli = new SessionsCli();
-        yield* cli.create(Option.getOrUndefined(config.name));
+        const providedName = Option.getOrUndefined(config.name);
+
+        if (providedName) {
+          // If name is provided, use the traditional CLI approach
+          const cli = new SessionsCli();
+          yield* cli.create(providedName);
+        } else {
+          // If no name provided, use the interactive React component
+          return yield* Effect.tryPromise({
+            try: async () => {
+              const { render } = await import("ink");
+              const React = await import("react");
+              const { SessionCreatePrompt } = await import(
+                "../components/SessionCreatePrompt.js"
+              );
+
+              const { waitUntilExit } = render(
+                React.createElement(SessionCreatePrompt, {
+                  onComplete: (sessionId: number) => {
+                    console.log(`✅ Created session with ID: ${sessionId}`);
+                  },
+                  onCancel: () => {
+                    console.log("❌ Session creation cancelled");
+                    process.exit(0);
+                  },
+                }),
+              );
+              await waitUntilExit();
+            },
+            catch: (error) =>
+              new Error(
+                `Failed to start interactive session creation: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              ),
+          });
+        }
       }),
     ),
   );
