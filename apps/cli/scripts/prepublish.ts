@@ -150,10 +150,10 @@ for (const [os, arch] of targets) {
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
 
 // -----------------------------------------------------------------------------
-// Create zip file for the package if `RELEASE_OPENCOMPOSER_ZIPS` is set
+// Create zip file for the package if `RELEASE_ZIP_FILES` is set
 // -----------------------------------------------------------------------------
 
-if (process.env.RELEASE_OPENCOMPOSER_ZIPS) {
+if (process.env.RELEASE_ZIP_FILES) {
   for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
