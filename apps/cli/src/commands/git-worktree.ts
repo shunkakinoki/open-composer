@@ -93,7 +93,8 @@ function buildCreateCommand() {
             );
           }
 
-          return yield* _(
+          // Get options from interactive prompt
+          const options = yield* _(
             Effect.tryPromise({
               try: async () => {
                 const { render } = await import("ink");
@@ -108,21 +109,15 @@ function buildCreateCommand() {
                       const { waitUntilExit } = render(
                         React.createElement(GitWorktreeCreatePrompt, {
                           onSubmit: (options) => {
-                            resolve(options);
+                            // Clean up the Ink app and resolve
+                            waitUntilExit().then(() => resolve(options)).catch(reject);
                           },
                           onCancel: () => {
-                            reject(
-                              new Error("User cancelled worktree creation"),
-                            );
+                            // Clean up the Ink app and reject
+                            waitUntilExit().then(() => reject(new Error("User cancelled worktree creation"))).catch(reject);
                           },
                         }),
                       );
-
-                      waitUntilExit()
-                        .then(() => {
-                          reject(new Error("Prompt exited without selection"));
-                        })
-                        .catch(reject);
                     } catch (error) {
                       reject(error);
                     }
@@ -138,9 +133,35 @@ function buildCreateCommand() {
               },
             }),
           );
+
+          // Track the interactive creation
+          yield* _(trackCommand("gw", "create"));
+          yield* _(trackFeatureUsage(
+            "git_worktree_create_interactive",
+            {
+              has_ref: !!options.ref,
+              has_branch: !!options.branch,
+              force: options.force,
+              detach: options.detach,
+              no_checkout: options.noCheckout,
+              branch_force: options.branchForce,
+            },
+          ));
+
+          // Create the worktree using the selected options
+          const cli = yield* _(GitWorktreeCli.make());
+          yield* _(cli.create({
+            path: options.path,
+            ref: options.ref || undefined,
+            branch: options.branch || undefined,
+            force: options.force,
+            detach: options.detach,
+            checkout: options.noCheckout ? false : undefined,
+            branchForce: options.branchForce,
+          }));
         }
 
-        // Normal flow when path is provided
+        // Use command line arguments for worktree creation
         yield* _(trackCommand("gw", "create"));
         yield* _(
           trackFeatureUsage("git_worktree_create", {
