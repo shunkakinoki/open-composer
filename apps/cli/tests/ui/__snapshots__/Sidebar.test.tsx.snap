@@ -1,0 +1,23 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Sidebar renders correctly with worktrees 1`] = `
+"
+ 📂 Workspaces
+
+ ● main
+ ○ feature-1
+
+
+ 🌿 Branches
+
+ ● main
+ + New worktree
+
+
+ 🤖 Agents
+
+ ● claude-code
+ ○ codex-nation
+ ○ cursor-agent
+"
+`;
