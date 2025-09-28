@@ -114,8 +114,12 @@ export const render = async (tree: ReactElement): Promise<Instance> => {
 
   instances.push(instance);
 
-  // Wait for the next tick to allow Ink to render
-  await new Promise(resolve => setTimeout(resolve, 0));
+  // Wait for Ink to render by checking if lastFrame has content
+  let attempts = 0;
+  while (!stdout.lastFrame() && attempts < 50) { // Max 50 attempts to prevent infinite loop
+    await new Promise(resolve => setTimeout(resolve, 1));
+    attempts++;
+  }
 
   return {
     rerender: instance.rerender,
