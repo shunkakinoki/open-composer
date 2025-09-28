@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildPRCreateCommand } from "../../src/commands/pr-create.js";
+import { buildPRCreateCommand } from "../../src/commands/pr-create-command.js";
 
 describe("pr-create command", () => {
   describe("Command Structure", () => {

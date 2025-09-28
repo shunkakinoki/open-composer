@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { SessionsCli } from "../services/sessions-cli.js";
+import { SessionsService } from "../services/sessions-service.js";
 
 /**
  * Interactive React component for creating development sessions.
@@ -90,7 +90,7 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
     setError(null);
 
     try {
-      const cli = new SessionsCli();
+      const cli = new SessionsService();
       const sessionId = await cli
         .createInteractive(sessionName, workspaceChoice, workspacePath)
         .pipe(Effect.provide(DatabaseLive), Effect.runPromise);

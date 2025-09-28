@@ -5,7 +5,7 @@ import {
   buildDeactivateCommand,
   buildListCommand,
   buildRouteCommand,
-} from "../../src/commands/agents.js";
+} from "../../src/commands/agents-command.js";
 
 describe("agents command", () => {
   describe("command structure", () => {

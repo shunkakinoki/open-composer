@@ -1,8 +1,11 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { PRCreateCli } from "../services/pr-create-cli.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { PRCreateService } from "../services/pr-create-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
@@ -67,7 +70,7 @@ function buildRegularCreateCommand() {
           skip_changeset: config.skipChangeset,
         });
 
-        const cli = new PRCreateCli();
+        const cli = new PRCreateService();
 
         // Step 1: Check GitHub CLI setup
         console.log("🔍 Checking GitHub CLI setup...");
@@ -302,7 +305,7 @@ function buildAutoCreateCommand() {
           skip_changeset: config.skipChangeset,
         });
 
-        const cli = new PRCreateCli();
+        const cli = new PRCreateService();
 
         // Run the same validation and setup as regular create
         console.log("🔍 Checking GitHub CLI setup...");

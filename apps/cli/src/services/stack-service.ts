@@ -31,7 +31,7 @@ const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
     }
   });
 
-export class StackCli {
+export class StackService {
   log(): Effect.Effect<void> {
     return provideStack(logStack).pipe(Effect.flatMap(printLines));
   }

@@ -1,8 +1,11 @@
 import { Args, Command } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { SessionsCli } from "../services/sessions-cli.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { SessionsService } from "../services/sessions-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 function buildCreateCommand() {
   const nameArg = Args.text({ name: "name" }).pipe(
@@ -22,7 +25,7 @@ function buildCreateCommand() {
 
         if (providedName) {
           // If name is provided, use the traditional CLI approach
-          const cli = new SessionsCli();
+          const cli = new SessionsService();
           yield* cli.create(providedName);
         } else {
           // If no name provided, use the interactive React component
@@ -68,7 +71,7 @@ function buildListCommand() {
         yield* trackCommand("sessions", "list");
         yield* trackFeatureUsage("sessions_list");
 
-        const cli = new SessionsCli();
+        const cli = new SessionsService();
         yield* cli.list();
       }),
     ),
@@ -86,7 +89,7 @@ function buildSwitchCommand() {
         yield* trackCommand("sessions", "switch");
         yield* trackFeatureUsage("sessions_switch");
 
-        const cli = new SessionsCli();
+        const cli = new SessionsService();
         yield* cli.switch(config.sessionId);
       }),
     ),
@@ -104,7 +107,7 @@ function buildArchiveCommand() {
         yield* trackCommand("sessions", "archive");
         yield* trackFeatureUsage("sessions_archive");
 
-        const cli = new SessionsCli();
+        const cli = new SessionsService();
         yield* cli.archive(config.sessionId);
       }),
     ),
@@ -122,7 +125,7 @@ function buildDeleteCommand() {
         yield* trackCommand("sessions", "delete");
         yield* trackFeatureUsage("sessions_delete");
 
-        const cli = new SessionsCli();
+        const cli = new SessionsService();
         yield* cli.delete(config.sessionId);
       }),
     ),

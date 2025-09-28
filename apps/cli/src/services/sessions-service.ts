@@ -1,14 +1,14 @@
 import { type Session, SqliteDrizzle, sessions } from "@open-composer/db";
 import { desc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { StackCli } from "./stack-cli.js";
+import { StackService } from "./stack-service.js";
 
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
     discard: true,
   });
 
-export class SessionsCli {
+export class SessionsService {
   /**
    * Create a new session with provided parameters (for React component integration)
    */
@@ -63,7 +63,7 @@ export class SessionsCli {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (finalWorkspacePath) {
-        yield* SessionsCli.createStackForSession(newSession);
+        yield* SessionsService.createStackForSession(newSession);
       }
 
       return newSession.id;
@@ -218,7 +218,7 @@ export class SessionsCli {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (workspacePath) {
-        yield* SessionsCli.createStackForSession(newSession);
+        yield* SessionsService.createStackForSession(newSession);
       }
 
       yield* printLines([
@@ -358,7 +358,7 @@ export class SessionsCli {
       if (!session.workspacePath) return;
 
       // Change to the workspace directory and create a stack branch
-      const stackCli = new StackCli();
+      const stackCli = new StackService();
       const branchName = `session-${session.id}-${session.name.toLowerCase().replace(/\s+/g, "-")}`;
 
       // Note: This assumes we're in the correct directory context

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { buildRootCommand, buildRunner } from "../../src/commands/composer.js";
-import { buildPRCreateCommand } from "../../src/commands/pr-create.js";
-import { buildSessionsCommand } from "../../src/commands/sessions.js";
+import {
+  buildRootCommand,
+  buildRunner,
+} from "../../src/commands/composer-command.js";
+import { buildPRCreateCommand } from "../../src/commands/pr-create-command.js";
+import { buildSessionsCommand } from "../../src/commands/sessions-command.js";
 
 describe("composer command", () => {
   describe("Root Command Structure", () => {

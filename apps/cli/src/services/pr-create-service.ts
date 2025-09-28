@@ -17,7 +17,7 @@ const execFileAsync = promisify(execFile);
 // Re-export types for backward compatibility
 export type { PRCreateOptions, PRCreateResult, PRStatus };
 
-export class PRCreateCli {
+export class PRCreateService {
   /**
    * Check if GitHub CLI is available and authenticated
    */

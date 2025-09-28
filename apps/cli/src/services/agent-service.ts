@@ -30,11 +30,11 @@ const printLines = (lines: ReadonlyArray<string>) =>
 
 const defaultCliPath = () => ["open-composer"] as const;
 
-export class AgentCli {
+export class AgentService {
   constructor(private readonly cliPath: ReadonlyArray<string>) {}
 
-  static make(): Effect.Effect<AgentCli> {
-    return Effect.sync(() => new AgentCli(defaultCliPath()));
+  static make(): Effect.Effect<AgentService> {
+    return Effect.sync(() => new AgentService(defaultCliPath()));
   }
 
   list(options: ListOptions = {}): Effect.Effect<void> {
