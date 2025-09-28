@@ -4,6 +4,7 @@ import {
   type GitService,
   list as listWorktrees,
   move as moveWorktree,
+  prune as pruneWorktrees,
   type Worktree,
 } from "@open-composer/git-worktrees";
 import * as Effect from "effect/Effect";
@@ -22,6 +23,12 @@ export interface EditGitWorktreeOptions {
   readonly from: string;
   readonly to: string;
   readonly force: boolean;
+}
+
+export interface PruneGitWorktreeOptions {
+  readonly dryRun?: boolean;
+  readonly verbose?: boolean;
+  readonly expire?: string;
 }
 
 export type GitWorktreeCliServices = GitService;
@@ -108,6 +115,85 @@ export class GitWorktreeCli {
       Effect.catchAll((error) =>
         Effect.fail(
           new Error(`Failed to edit git worktree: ${this.toMessage(error)}`),
+        ),
+      ),
+    );
+  }
+
+  prune(options: PruneGitWorktreeOptions = {}): Effect.Effect<void, Error> {
+    const { dryRun, verbose, expire } = options;
+
+    // If dry-run, list worktrees to show what would be pruned
+    if (dryRun) {
+      return listWorktrees({ cwd: this.cwd }).pipe(
+        Effect.flatMap((worktrees) => {
+          const prunableWorktrees = worktrees.filter(
+            (worktree) => worktree.prunable,
+          );
+
+          if (prunableWorktrees.length === 0) {
+            return this.printGitWorktreeLines(["No prunable worktrees found."]);
+          }
+
+          const prunablePaths = prunableWorktrees.map(
+            (worktree) => worktree.path,
+          );
+          return this.printGitWorktreeLines([
+            `Would prune ${prunableWorktrees.length} worktree(s):`,
+            ...prunablePaths.map((path) => `  • ${path}`),
+          ]);
+        }),
+        Effect.catchAll((error) =>
+          Effect.fail(
+            new Error(
+              `Failed to list prunable git worktrees: ${this.toMessage(error)}`,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // For actual pruning, list worktrees before and after to show what was pruned
+    return listWorktrees({ cwd: this.cwd }).pipe(
+      Effect.flatMap((worktreesBefore) =>
+        pruneWorktrees({
+          cwd: this.cwd,
+          dryRun: false,
+          verbose,
+          expire,
+        }).pipe(
+          Effect.flatMap(() =>
+            listWorktrees({ cwd: this.cwd }).pipe(
+              Effect.flatMap((worktreesAfter) => {
+                const prunedWorktrees = worktreesBefore.filter(
+                  (before) =>
+                    !worktreesAfter.some(
+                      (after) =>
+                        path.resolve(after.path) === path.resolve(before.path),
+                    ),
+                );
+
+                if (prunedWorktrees.length === 0) {
+                  return this.printGitWorktreeLines([
+                    "No worktrees were pruned.",
+                  ]);
+                }
+
+                const prunedPaths = prunedWorktrees.map(
+                  (worktree) => worktree.path,
+                );
+                return this.printGitWorktreeLines([
+                  `Pruned ${prunedWorktrees.length} worktree(s):`,
+                  ...prunedPaths.map((path) => `  • ${path}`),
+                ]);
+              }),
+            ),
+          ),
+        ),
+      ),
+      Effect.catchAll((error) =>
+        Effect.fail(
+          new Error(`Failed to prune git worktrees: ${this.toMessage(error)}`),
         ),
       ),
     );

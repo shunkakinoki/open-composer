@@ -12,6 +12,7 @@ export function buildGitWorktreeCommand() {
       buildListCommand(),
       buildCreateCommand(),
       buildEditCommand(),
+      buildPruneCommand(),
     ]),
   );
 }
@@ -110,11 +111,19 @@ function buildCreateCommand() {
                         React.createElement(GitWorktreeCreatePrompt, {
                           onSubmit: (options) => {
                             // Clean up the Ink app and resolve
-                            waitUntilExit().then(() => resolve(options)).catch(reject);
+                            waitUntilExit()
+                              .then(() => resolve(options))
+                              .catch(reject);
                           },
                           onCancel: () => {
                             // Clean up the Ink app and reject
-                            waitUntilExit().then(() => reject(new Error("User cancelled worktree creation"))).catch(reject);
+                            waitUntilExit()
+                              .then(() =>
+                                reject(
+                                  new Error("User cancelled worktree creation"),
+                                ),
+                              )
+                              .catch(reject);
                           },
                         }),
                       );
@@ -136,29 +145,30 @@ function buildCreateCommand() {
 
           // Track the interactive creation
           yield* _(trackCommand("gw", "create"));
-          yield* _(trackFeatureUsage(
-            "git_worktree_create_interactive",
-            {
+          yield* _(
+            trackFeatureUsage("git_worktree_create_interactive", {
               has_ref: !!options.ref,
               has_branch: !!options.branch,
               force: options.force,
               detach: options.detach,
               no_checkout: options.noCheckout,
               branch_force: options.branchForce,
-            },
-          ));
+            }),
+          );
 
           // Create the worktree using the selected options
           const cli = yield* _(GitWorktreeCli.make());
-          yield* _(cli.create({
-            path: options.path,
-            ref: options.ref || undefined,
-            branch: options.branch || undefined,
-            force: options.force,
-            detach: options.detach,
-            checkout: options.noCheckout ? false : undefined,
-            branchForce: options.branchForce,
-          }));
+          yield* _(
+            cli.create({
+              path: options.path,
+              ref: options.ref || undefined,
+              branch: options.branch || undefined,
+              force: options.force,
+              detach: options.detach,
+              checkout: options.noCheckout ? false : undefined,
+              branchForce: options.branchForce,
+            }),
+          );
         }
 
         // Use command line arguments for worktree creation
@@ -225,6 +235,52 @@ function buildEditCommand() {
             from: config.from,
             to: config.to,
             force: config.force,
+          }),
+        );
+      }),
+    ),
+  );
+}
+
+function buildPruneCommand() {
+  const dryRunOption = Options.boolean("dry-run").pipe(
+    Options.withDescription(
+      "Show what would be pruned without actually pruning",
+    ),
+  );
+
+  const verboseOption = Options.boolean("verbose").pipe(
+    Options.withDescription("Show verbose output"),
+  );
+
+  const expireOption = Options.text("expire").pipe(
+    Options.optional,
+    Options.withDescription("Only expire loose worktrees older than <time>"),
+  );
+
+  return Command.make("prune", {
+    dryRun: dryRunOption,
+    verbose: verboseOption,
+    expire: expireOption,
+  }).pipe(
+    Command.withDescription("Prune worktrees not in any branch or tag"),
+    Command.withHandler((config) =>
+      Effect.gen(function* (_) {
+        yield* _(trackCommand("gw", "prune"));
+        yield* _(
+          trackFeatureUsage("git_worktree_prune", {
+            dry_run: config.dryRun,
+            verbose: config.verbose,
+            has_expire: Option.isSome(config.expire),
+          }),
+        );
+
+        const cli = yield* _(GitWorktreeCli.make());
+        yield* _(
+          cli.prune({
+            dryRun: config.dryRun,
+            verbose: config.verbose,
+            expire: config.expire.pipe(Option.getOrUndefined),
           }),
         );
       }),
