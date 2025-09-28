@@ -157,3 +157,34 @@ exports[`Open Composer CLI Component Snapshots TelemetryConsentPrompt renders co
 
 "
 `;
+
+exports[`Open Composer CLI Component Snapshots GitWorktreeCreatePrompt renders correctly 1`] = `
+"
+
+  🚀 Create Git Worktree
+
+  Create a new git worktree with interactive configuration.
+
+
+
+  Configuration:
+
+  Path:Enter worktree path *_
+  Ref:Optional commit/branch ref
+  Branch:Optional branch name
+
+
+  Options:
+
+  [○] Force (F)
+  [○] Detach (D)
+  [○] No Checkout (N)
+  [○] Branch Force (B)
+
+
+  Tab/Shift+Tab: Navigate • Enter: Next/Submit • ↑/↓: Toggle options • Esc: Cancel
+
+  ⚠️  Path is required
+
+"
+`;

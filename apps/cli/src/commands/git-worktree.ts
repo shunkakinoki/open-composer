@@ -19,12 +19,12 @@ function buildListCommand() {
   return Command.make("list").pipe(
     Command.withDescription("List git worktrees"),
     Command.withHandler(() =>
-      Effect.gen(function* () {
-        yield* trackCommand("gw", "list");
-        yield* trackFeatureUsage("git_worktree_list");
+      Effect.gen(function* (_) {
+        yield* _(trackCommand("gw", "list"));
+        yield* _(trackFeatureUsage("git_worktree_list"));
 
-        const cli = yield* GitWorktreeCli.make();
-        yield* cli.list();
+        const cli = yield* _(GitWorktreeCli.make());
+        yield* _(cli.list());
       }),
     ),
   );
@@ -72,27 +72,27 @@ function buildCreateCommand() {
   }).pipe(
     Command.withDescription("Create a new git worktree"),
     Command.withHandler((config) =>
-      Effect.gen(function* () {
-        yield* trackCommand("gw", "create");
-        yield* trackFeatureUsage("git_worktree_create", {
+      Effect.gen(function* (_) {
+        yield* _(trackCommand("gw", "create"));
+        yield* _(trackFeatureUsage("git_worktree_create", {
           has_ref: Option.isSome(config.ref),
           has_branch: Option.isSome(config.branch),
           force: config.force,
           detach: config.detach,
           no_checkout: config.noCheckout,
           branch_force: config.branchForce,
-        });
+        }));
 
-        const cli = yield* GitWorktreeCli.make();
-        yield* cli.create({
+        const cli = yield* _(GitWorktreeCli.make());
+        yield* _(cli.create({
           path: config.path,
-          ref: Option.getOrUndefined(config.ref),
-          branch: Option.getOrUndefined(config.branch),
+          ref: config.ref.pipe(Option.getOrUndefined),
+          branch: config.branch.pipe(Option.getOrUndefined),
           force: config.force,
           detach: config.detach,
           checkout: config.noCheckout ? false : undefined,
           branchForce: config.branchForce,
-        });
+        }));
       }),
     ),
   );
@@ -118,18 +118,18 @@ function buildEditCommand() {
   }).pipe(
     Command.withDescription("Move or rename an existing worktree"),
     Command.withHandler((config) =>
-      Effect.gen(function* () {
-        yield* trackCommand("gw", "edit");
-        yield* trackFeatureUsage("git_worktree_edit", {
+      Effect.gen(function* (_) {
+        yield* _(trackCommand("gw", "edit"));
+        yield* _(trackFeatureUsage("git_worktree_edit", {
           force: config.force,
-        });
+        }));
 
-        const cli = yield* GitWorktreeCli.make();
-        yield* cli.edit({
+        const cli = yield* _(GitWorktreeCli.make());
+        yield* _(cli.edit({
           from: config.from,
           to: config.to,
           force: config.force,
-        });
+        }));
       }),
     ),
   );

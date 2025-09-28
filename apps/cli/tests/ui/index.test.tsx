@@ -25,6 +25,7 @@ import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
 import { TelemetryConsentPrompt } from "../../src/components/TelemetryConsentPrompt.js";
+import { GitWorktreeCreatePrompt } from "../../src/components/GitWorktreeCreatePrompt.js";
 import { GitWorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 
@@ -120,6 +121,19 @@ describe("Open Composer CLI", () => {
       const { lastFrame } = render(
         <TelemetryConsentPrompt
           onConsent={mockOnConsent}
+          onCancel={mockOnCancel}
+        />,
+      );
+      expect(lastFrame()).toMatchSnapshot();
+    });
+
+    test("GitWorktreeCreatePrompt renders correctly", () => {
+      const mockOnSubmit = mock(() => {});
+      const mockOnCancel = mock(() => {});
+
+      const { lastFrame } = render(
+        <GitWorktreeCreatePrompt
+          onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />,
       );
