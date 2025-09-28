@@ -56,17 +56,13 @@ export const runMigration = <R, E>(migration: Effect.Effect<unknown, E, R>) =>
 /**
  * Initializes the database by running migrations
  */
-export const initializeDatabase = Effect.gen(function* () {
-  // Run migrations directly
-  const sql = yield* SqliteClient.SqliteClient;
-  yield* sql`
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-}).pipe(Effect.provide(SqliteClientLive));
+export const initializeDatabase = SqliteMigrator.run({
+  loader: SqliteMigrator.fromFileSystem(migrationsDirectory),
+  schemaDirectory: migrationsDirectory,
+}).pipe(
+  Effect.provide(BunContext.layer),
+  Effect.provide(SqliteClientLive)
+);
 
 export { SqliteClientLive, DrizzleLive, MigrationsLive };
 export { SqliteDrizzle } from "@effect/sql-drizzle/Sqlite";
