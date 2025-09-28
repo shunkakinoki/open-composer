@@ -9,7 +9,7 @@ export function buildTUICommand() {
   return Command.make("tui").pipe(
     Command.withDescription("Launch the interactive TUI"),
     Command.withHandler(() =>
-      Effect.gen(function* (_config) {
+      Effect.gen(function* () {
         yield* trackCommand("tui");
         yield* trackFeatureUsage("tui_launch");
 
