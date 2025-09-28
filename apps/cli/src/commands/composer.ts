@@ -5,6 +5,7 @@ import * as CliConfig from "@effect/cli/CliConfig";
 import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
 import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
+import { DatabaseLive, type SqliteDrizzle } from "@open-composer/db";
 import type { GitService } from "@open-composer/git";
 import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
@@ -19,6 +20,7 @@ import { buildTelemetryCommand } from "./telemetry.js";
 import { buildTUICommand } from "./tui.js";
 
 export type ComposerCliServices =
+  | SqliteDrizzle
   | AgentRouter
   | GitStackService
   | GitService
@@ -31,6 +33,7 @@ export type ComposerCliServices =
 const baseLayer = Layer.mergeAll(
   CliConfig.layer({ showBuiltIns: false }),
   BunContext.layer,
+  DatabaseLive,
   GitLive,
   GitStackLive,
   AgentRouterLive,

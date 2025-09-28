@@ -226,10 +226,9 @@ if (isRelease) {
   // ---------------------------------------------------------------------------
 
   if (isChangesetRelease) {
-    // Git reset the `CHANGELOG.md` file
-    await $`git reset HEAD CHANGELOG.md`;
+    // Remove the `CHANGELOG.md` file
+    await $`rm CHANGELOG.md`;
   }
-    
 }
 
 export { binaries };

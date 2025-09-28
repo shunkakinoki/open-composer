@@ -35,6 +35,7 @@
     "@effect/printer": "^0.45.0",
     "@effect/printer-ansi": "^0.45.0",
     "@open-composer/agent-router": "workspace:*",
+    "@open-composer/db": "workspace:*",
     "@open-composer/git": "workspace:*",
     "@open-composer/git-stack": "workspace:*",
     "@open-composer/git-worktrees": "workspace:*",
