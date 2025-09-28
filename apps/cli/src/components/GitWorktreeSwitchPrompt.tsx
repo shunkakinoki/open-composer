@@ -1,45 +1,19 @@
 import type { Worktree } from "@open-composer/git-worktrees";
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface GitWorktreeSwitchPromptProps {
+  worktrees: readonly Worktree[];
   onSubmit: (worktreePath: string) => void;
   onCancel?: () => void;
 }
 
 export const GitWorktreeSwitchPrompt: React.FC<
   GitWorktreeSwitchPromptProps
-> = ({ onSubmit, onCancel }) => {
-  const [worktrees, setWorktrees] = useState<readonly Worktree[]>([]);
+> = ({ worktrees, onSubmit, onCancel }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { exit } = useApp();
-
-  useEffect(() => {
-    const loadWorktrees = async () => {
-      try {
-        // Import the list function and Effect.runPromise
-        const [{ list }, { runPromise }] = await Promise.all([
-          import("@open-composer/git-worktrees"),
-          import("effect/Effect"),
-        ]);
-
-        // Get the worktrees list - run the Effect to get the value
-        const worktreesList = await runPromise(list({ cwd: process.cwd() }));
-        setWorktrees(worktreesList);
-        setLoading(false);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load worktrees",
-        );
-        setLoading(false);
-      }
-    };
-
-    loadWorktrees();
-  }, []);
 
   const handleSubmit = () => {
     if (worktrees.length === 0) return;
@@ -56,8 +30,6 @@ export const GitWorktreeSwitchPrompt: React.FC<
 
   useInput(
     (input, key) => {
-      if (loading) return;
-
       if (key.upArrow) {
         setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : worktrees.length - 1,
@@ -74,35 +46,6 @@ export const GitWorktreeSwitchPrompt: React.FC<
     },
     { isActive: true },
   );
-
-  if (loading) {
-    return (
-      <Box flexDirection="column" padding={2}>
-        <Text bold color="cyan">
-          🔄 Switch Git Worktree
-        </Text>
-        <Box marginTop={1}>
-          <Text>Loading worktrees...</Text>
-        </Box>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box flexDirection="column" padding={2}>
-        <Text bold color="red">
-          ❌ Error Loading Worktrees
-        </Text>
-        <Box marginTop={1}>
-          <Text>{error}</Text>
-        </Box>
-        <Box marginTop={1}>
-          <Text color="gray">Press Esc to cancel</Text>
-        </Box>
-      </Box>
-    );
-  }
 
   if (worktrees.length === 0) {
     return (

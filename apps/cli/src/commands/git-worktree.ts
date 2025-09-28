@@ -409,9 +409,19 @@ function buildSwitchCommand() {
         yield* _(trackCommand("gw", "switch"));
         yield* _(trackFeatureUsage("git_worktree_switch"));
 
+        // Create CLI instance for both interactive and direct modes
+        const cli = yield* _(GitWorktreeCli.make());
+
         // If path is not provided, show interactive prompt
         const pathValue = Option.getOrElse(config.path, () => "");
         if (!pathValue.trim()) {
+          // Load worktrees directly using the git-worktrees package
+          // The Git service context is provided at the CLI level
+          const { list: listWorktreesFn } = yield* _(
+            Effect.promise(() => import("@open-composer/git-worktrees"))
+          );
+          const worktrees = yield* _(listWorktreesFn({ cwd: process.cwd() }));
+
           // Get worktree selection from interactive prompt
           const selectedWorktree = yield* _(
             Effect.tryPromise({
@@ -426,6 +436,7 @@ function buildSwitchCommand() {
                   try {
                     const { waitUntilExit } = render(
                       React.createElement(GitWorktreeSwitchPrompt, {
+                        worktrees: worktrees,
                         onSubmit: (worktreePath) => {
                           // Clean up the Ink app and resolve
                           waitUntilExit()
@@ -460,11 +471,9 @@ function buildSwitchCommand() {
             process.exit(0);
           }
 
-          const cli = yield* _(GitWorktreeCli.make());
           yield* _(cli.switch(selectedWorktree));
         } else {
           // Use command line argument
-          const cli = yield* _(GitWorktreeCli.make());
           yield* _(cli.switch(Option.getOrElse(config.path, () => "")));
         }
 
