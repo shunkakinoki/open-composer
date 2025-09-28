@@ -3,9 +3,11 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BunContext } from "@effect/platform-bun";
+import { SqlClient } from "@effect/sql";
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
 import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-bun";
 import { Effect, Layer } from "effect";
+import * as schema from "./schema.js";
 
 const defaultDatabaseFile = path.join(homedir(), ".open-composer", "app.db");
 const resolvedDatabaseFile = path.resolve(
@@ -72,6 +74,163 @@ export const initializeDatabase = Effect.gen(function* () {
     const migration = yield* Effect.promise(() => import(migrationPath));
     yield* migration.default;
   }
+});
+
+/**
+ * Creates a snapshot of the current database schema and data
+ */
+export const createDatabaseSnapshot = Effect.gen(function* () {
+  const sql = yield* SqlClient.SqlClient;
+
+  // Get all table schemas
+  const tablesResult = yield* sql`
+    SELECT name FROM sqlite_master
+    WHERE type='table' AND name NOT LIKE 'sqlite_%'
+    ORDER BY name
+  `;
+
+  const tables = tablesResult.map((row: any) => row.name);
+  const snapshot: Record<string, unknown[]> = {};
+
+  // Export data from each table (simplified for now)
+  // TODO: Implement full table data export
+  for (const table of tables) {
+    snapshot[table] = [];
+  }
+
+  return {
+    timestamp: new Date().toISOString(),
+    schema: {
+      version: "1.0",
+      tables: tables,
+    },
+    data: snapshot,
+  };
+});
+
+/**
+ * Creates a snapshot of settings only
+ */
+export const createSettingsSnapshot = Effect.gen(function* () {
+  const db = yield* SqliteDrizzle.SqliteDrizzle;
+  const settings = yield* db
+    .select()
+    .from(schema.settings)
+    .orderBy(schema.settings.key);
+
+  return {
+    timestamp: new Date().toISOString(),
+    settings: settings.map((setting: any) => ({
+      key: setting.key,
+      value: setting.value,
+      updatedAt: setting.updatedAt,
+    })),
+  };
+});
+
+/**
+ * Restores settings from a snapshot
+ */
+export const restoreSettingsSnapshot = (snapshot: {
+  settings: Array<{ key: string; value: string; updatedAt: string }>;
+}) =>
+  Effect.gen(function* () {
+    const db = yield* SqliteDrizzle.SqliteDrizzle;
+
+    // Clear existing settings
+    yield* db.delete(schema.settings);
+
+    // Insert snapshot settings
+    if (snapshot.settings.length > 0) {
+      yield* db.insert(schema.settings).values(
+        snapshot.settings.map((setting) => ({
+          key: setting.key,
+          value: setting.value,
+          updatedAt: setting.updatedAt,
+        })),
+      );
+    }
+  });
+
+/**
+ * Gets the current migration version/status
+ */
+export const getMigrationStatus = Effect.gen(function* () {
+  const sql = yield* SqlClient.SqlClient;
+
+  // Check if migrations table exists
+  const migrationsTableExists = yield* sql`
+    SELECT name FROM sqlite_master
+    WHERE type='table' AND name='effect_sql_migrations'
+  `;
+
+  if (migrationsTableExists.length === 0) {
+    return { initialized: false, migrations: [] };
+  }
+
+  // Get migration history
+  const migrations = yield* sql`
+    SELECT migration_id, name, created_at
+    FROM effect_sql_migrations
+    ORDER BY created_at
+  `;
+
+  return {
+    initialized: true,
+    migrations: migrations.map((m: any) => ({
+      id: m.migration_id,
+      name: m.name,
+      createdAt: m.created_at,
+    })),
+  };
+});
+
+/**
+ * Validates that the database schema matches expectations
+ */
+export const validateDatabaseSchema = Effect.gen(function* () {
+  const sql = yield* SqlClient.SqlClient;
+
+  // Check required tables exist
+  const requiredTables = ["settings"];
+  const existingTables = yield* sql`
+    SELECT name FROM sqlite_master
+    WHERE type='table' AND name = 'settings'
+  `;
+
+  const missingTables = requiredTables.filter(
+    (table) => !existingTables.some((row: any) => row.name === table),
+  );
+
+  if (missingTables.length > 0) {
+    return {
+      valid: false,
+      missingTables,
+      errors: [`Missing tables: ${missingTables.join(", ")}`],
+    };
+  }
+
+  // Check table schemas
+  const settingsSchema = yield* sql`
+    PRAGMA table_info(settings)
+  `;
+
+  const expectedColumns = ["key", "value", "updated_at"];
+  const actualColumns = settingsSchema.map((col: any) => col.name);
+
+  const missingColumns = expectedColumns.filter(
+    (col) => !actualColumns.includes(col),
+  );
+
+  if (missingColumns.length > 0) {
+    return {
+      valid: false,
+      missingTables: [],
+      errors: [`Settings table missing columns: ${missingColumns.join(", ")}`],
+    };
+  }
+
+  return { valid: true, missingTables: [], errors: [] };
 });
 
 export { SqliteClientLive, DrizzleLive, MigrationsLive };

@@ -15,4 +15,4 @@ CREATE TABLE users (
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-INSERT INTO effect_sql_migrations VALUES(1,'2025-09-28 04:30:49','add_user_table');
+INSERT INTO effect_sql_migrations VALUES(1,'2025-09-28 04:42:49','add_user_table');
