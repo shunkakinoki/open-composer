@@ -1,5 +1,19 @@
 # open-composer
 
+## 0.6.1
+
+### Patch Changes
+
+- 7873fd3: fix: resolve CLI command test errors
+
+  - Export individual subcommand builders for proper testing
+  - Fix handler argument expectations in command definitions
+  - Simplify command structure tests to avoid type issues
+  - Update mock setups for better test reliability
+
+- Updated dependencies [3d93b2c]
+  - @open-composer/db@0.3.0
+
 ## 0.6.0
 
 ### Minor Changes
