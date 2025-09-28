@@ -24,6 +24,7 @@ import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
+import { TelemetryConsentPrompt } from "../../src/components/TelemetryConsentPrompt.js";
 import { GitWorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 
@@ -108,6 +109,19 @@ describe("Open Composer CLI", () => {
         <Layout>
           <Text>Test content</Text>
         </Layout>,
+      );
+      expect(lastFrame()).toMatchSnapshot();
+    });
+
+    test("TelemetryConsentPrompt renders correctly", () => {
+      const mockOnConsent = mock(() => {});
+      const mockOnCancel = mock(() => {});
+
+      const { lastFrame } = render(
+        <TelemetryConsentPrompt
+          onConsent={mockOnConsent}
+          onCancel={mockOnCancel}
+        />,
       );
       expect(lastFrame()).toMatchSnapshot();
     });
