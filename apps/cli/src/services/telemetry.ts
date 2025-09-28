@@ -21,7 +21,12 @@ function getOrCreateAnonymousId(): Effect.Effect<
       return telemetry.anonymousId;
     }
 
-    // Generate a new unique ID
+    // If no telemetry config exists or no consent given, return a temporary ID
+    if (!telemetry?.consentedAt) {
+      return "anonymous"; // Temporary anonymous ID until consent is given
+    }
+
+    // Generate a new unique ID only after consent is given
     const newId = randomUUID();
 
     // Update config with the new anonymous ID while preserving existing fields
