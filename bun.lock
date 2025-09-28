@@ -12,7 +12,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.3.17",
+      "version": "0.4.1",
       "bin": {
         "open-composer": "./src/index.ts",
         "oc": "./src/index.ts",
@@ -134,7 +134,7 @@
     },
     "workers/posthog": {
       "name": "@open-composer/posthog-worker",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "devDependencies": {
         "@biomejs/biome": "^1.9.0",
         "@cloudflare/vitest-pool-workers": "^0.9.7",
