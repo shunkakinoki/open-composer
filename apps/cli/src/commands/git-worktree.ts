@@ -77,12 +77,19 @@ function buildCreateCommand() {
         // If path is not provided, show interactive prompt
         if (!config.path || !Option.getOrElse(config.path, () => "").trim()) {
           // Check if we're in a CI environment
-          const isCI = process.env.CI || process.env.CONTINUOUS_INTEGRATION || process.env.GITHUB_ACTIONS;
+          const isCI =
+            process.env.CI ||
+            process.env.CONTINUOUS_INTEGRATION ||
+            process.env.GITHUB_ACTIONS;
 
           if (isCI) {
-            return yield* _(Effect.fail(
-              new Error("Path argument is required. Run 'open-composer gw create <path>' with a path argument.")
-            ));
+            return yield* _(
+              Effect.fail(
+                new Error(
+                  "Path argument is required. Run 'open-composer gw create <path>' with a path argument.",
+                ),
+              ),
+            );
           }
 
           return yield* _(
@@ -100,7 +107,10 @@ function buildCreateCommand() {
                       React.createElement(GitWorktreeCreatePrompt, {
                         onSubmit: async (options) => {
                           // For now, just log the options - we can implement actual worktree creation later
-                          console.log("Interactive worktree creation with options:", options);
+                          console.log(
+                            "Interactive worktree creation with options:",
+                            options,
+                          );
                           resolve();
                         },
                         onCancel: () => {
@@ -109,9 +119,11 @@ function buildCreateCommand() {
                       }),
                     );
 
-                    waitUntilExit().then(() => {
-                      resolve();
-                    }).catch(reject);
+                    waitUntilExit()
+                      .then(() => {
+                        resolve();
+                      })
+                      .catch(reject);
                   } catch (error) {
                     reject(error);
                   }
@@ -119,7 +131,9 @@ function buildCreateCommand() {
               },
               catch: (error) => {
                 return Effect.fail(
-                  new Error(`Failed to show interactive worktree creation prompt: ${error}`)
+                  new Error(
+                    `Failed to show interactive worktree creation prompt: ${error}`,
+                  ),
                 );
               },
             }),
