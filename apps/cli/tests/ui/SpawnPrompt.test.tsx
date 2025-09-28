@@ -4,12 +4,18 @@ import { SpawnPrompt } from "../../src/components/SpawnPrompt.js";
 import { render } from "../utils.js";
 
 describe("SpawnPrompt", () => {
+  const availableAgents = ["codex", "claude-code", "opencode"] as const;
+
   test("renders initial session name step correctly", () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
     expect(lastFrame()).toMatchSnapshot();
   });
@@ -19,7 +25,11 @@ describe("SpawnPrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
 
     const frame = lastFrame();
@@ -36,7 +46,11 @@ describe("SpawnPrompt", () => {
 
     expect(() => {
       render(
-        <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+        <SpawnPrompt
+          availableAgents={availableAgents}
+          onComplete={mockOnComplete}
+          onCancel={mockOnCancel}
+        />,
       );
     }).not.toThrow();
   });
@@ -46,7 +60,11 @@ describe("SpawnPrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
 
     expect(lastFrame()).toBeDefined();
@@ -59,7 +77,11 @@ describe("SpawnPrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
 
     const frame = lastFrame();
@@ -74,7 +96,11 @@ describe("SpawnPrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
 
     const frame = lastFrame();
@@ -87,7 +113,11 @@ describe("SpawnPrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SpawnPrompt onComplete={mockOnComplete} onCancel={mockOnCancel} />,
+      <SpawnPrompt
+        availableAgents={availableAgents}
+        onComplete={mockOnComplete}
+        onCancel={mockOnCancel}
+      />,
     );
 
     const frame = lastFrame();

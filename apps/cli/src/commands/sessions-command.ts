@@ -29,34 +29,45 @@ function buildCreateCommand() {
           yield* cli.create(providedName);
         } else {
           // If no name provided, use the interactive React component
-          return yield* Effect.tryPromise({
+          const sessionId = yield* Effect.tryPromise({
             try: async () => {
-              const { render } = await import("ink");
-              const React = await import("react");
-              const { SessionCreatePrompt } = await import(
-                "../components/SessionCreatePrompt.js"
-              );
+              const [{ render }, React, { SessionCreatePrompt }] =
+                await Promise.all([
+                  import("ink"),
+                  import("react"),
+                  import("../components/SessionCreatePrompt.js"),
+                ]);
 
-              const { waitUntilExit } = render(
-                React.createElement(SessionCreatePrompt, {
-                  onComplete: (sessionId: number) => {
-                    console.log(`✅ Created session with ID: ${sessionId}`);
-                  },
-                  onCancel: () => {
-                    console.log("❌ Session creation cancelled");
-                    process.exit(0);
-                  },
-                }),
-              );
-              await waitUntilExit();
+              return new Promise<number>((resolve, reject) => {
+                const { waitUntilExit } = render(
+                  React.createElement(SessionCreatePrompt, {
+                    onComplete: (id: number) => {
+                      resolve(id);
+                    },
+                    onCancel: () => {
+                      reject(new Error("Session creation cancelled by user"));
+                    },
+                  }),
+                );
+                waitUntilExit().catch(reject);
+              });
             },
-            catch: (error) =>
-              new Error(
+            catch: (error) => {
+              if (
+                error instanceof Error &&
+                error.message === "Session creation cancelled by user"
+              ) {
+                return error;
+              }
+              return new Error(
                 `Failed to start interactive session creation: ${
                   error instanceof Error ? error.message : String(error)
                 }`,
-              ),
+              );
+            },
           });
+
+          console.log(`✅ Created session with ID: ${sessionId}`);
         }
       }),
     ),

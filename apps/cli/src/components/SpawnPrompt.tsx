@@ -1,11 +1,11 @@
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { AVAILABLE_AGENTS } from "../commands/spawn-command.js";
 
 type Step = "session-name" | "agents" | "base-branch" | "create-pr" | "confirm";
 
 interface SpawnPromptProps {
+  availableAgents: readonly string[];
   onComplete: (config: SpawnConfig) => void;
   onCancel: () => void;
 }
@@ -18,6 +18,7 @@ export interface SpawnConfig {
 }
 
 export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
+  availableAgents,
   onComplete,
   onCancel,
 }) => {
@@ -70,15 +71,15 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
 
         case "agents":
           if (input === " ") {
-            const agent = AVAILABLE_AGENTS[currentAgentIndex];
+            const agent = availableAgents[currentAgentIndex];
             toggleAgent(agent);
           } else if (key.upArrow) {
             setCurrentAgentIndex((prev) =>
-              prev > 0 ? prev - 1 : AVAILABLE_AGENTS.length - 1,
+              prev > 0 ? prev - 1 : availableAgents.length - 1,
             );
           } else if (key.downArrow) {
             setCurrentAgentIndex((prev) =>
-              prev < AVAILABLE_AGENTS.length - 1 ? prev + 1 : 0,
+              prev < availableAgents.length - 1 ? prev + 1 : 0,
             );
           } else if (key.return) {
             setStep("base-branch");
@@ -154,7 +155,7 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
               </Text>
             </Box>
             <Box marginTop={1} flexDirection="column">
-              {AVAILABLE_AGENTS.map((agent, index) => (
+              {availableAgents.map((agent, index) => (
                 <Box key={agent}>
                   <Text
                     color={selectedAgents.includes(agent) ? "green" : "gray"}

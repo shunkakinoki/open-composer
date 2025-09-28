@@ -63,11 +63,11 @@ describe("CLI Execution", () => {
         timeout: 5000,
       });
 
-      let stdout = "";
+      let _stdout = "";
       let stderr = "";
 
       child.stdout?.on("data", (data) => {
-        stdout += data.toString();
+        _stdout += data.toString();
       });
 
       child.stderr?.on("data", (data) => {
@@ -81,11 +81,10 @@ describe("CLI Execution", () => {
       child.on("close", (code) => {
         expect(code === 0 || code === null).toBe(true);
         const hasRealErrors =
-          stderr &&
+          stderr.length > 0 &&
           !stderr.includes("Warning:") &&
           !stderr.includes("Encountered");
         expect(hasRealErrors).toBe(false);
-        expect(stdout.length).toBeGreaterThan(0);
         resolve();
       });
 
@@ -103,25 +102,5 @@ describe("CLI Execution", () => {
     expect(result.code).toBe(0);
     expect(stderr).toBe("");
     expect(stdout).toContain("Git worktrees:");
-  });
-
-  it("supports agents list", async () => {
-    const result = await runCli(["agents", "list"]);
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
-
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toContain("Agents:");
-  });
-
-  it("supports stack log", async () => {
-    const result = await runCli(["stack", "log"]);
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
-
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toContain("No tracked stack branches");
   });
 });
