@@ -1,8 +1,11 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { StackCli } from "../services/stack-cli.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { StackService } from "../services/stack-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 function buildLogCommand() {
   return Command.make("log").pipe(
@@ -12,7 +15,7 @@ function buildLogCommand() {
         yield* trackCommand("stack", "log");
         yield* trackFeatureUsage("stack_log");
 
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.log();
       }),
     ),
@@ -24,7 +27,7 @@ function buildStatusCommand() {
     Command.withDescription("Show stack status for the current branch"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.status();
       }),
     ),
@@ -49,7 +52,7 @@ function buildCreateCommand() {
           branch_length: config.branch.length,
         });
 
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.create(config.branch, Option.getOrUndefined(config.base));
       }),
     ),
@@ -67,7 +70,7 @@ function buildTrackCommand() {
     Command.withDescription("Track a branch on top of another"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.track(config.branch, config.parent);
       }),
     ),
@@ -82,7 +85,7 @@ function buildUntrackCommand() {
     Command.withDescription("Remove tracking information for a branch"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.untrack(config.branch);
       }),
     ),
@@ -100,7 +103,7 @@ function buildDeleteCommand() {
     Command.withDescription("Delete a tracked branch"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.remove(config.branch, config.force);
       }),
     ),
@@ -115,7 +118,7 @@ function buildCheckoutCommand() {
     Command.withDescription("Checkout a branch in the stack"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.checkout(config.branch);
       }),
     ),
@@ -127,7 +130,7 @@ function buildSyncCommand() {
     Command.withDescription("Sync the stack with the remote (informational)"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.sync();
       }),
     ),
@@ -139,7 +142,7 @@ function buildSubmitCommand() {
     Command.withDescription("Submit the stack for review (informational)"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.submit();
       }),
     ),
@@ -151,7 +154,7 @@ function buildRestackCommand() {
     Command.withDescription("Restack the current stack (informational)"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.restack();
       }),
     ),
@@ -166,7 +169,7 @@ function buildConfigCommand() {
     Command.withDescription("Configure stack defaults"),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        const cli = new StackCli();
+        const cli = new StackService();
         yield* cli.config(config.remote);
       }),
     ),

@@ -1,8 +1,11 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { AgentCli } from "../services/agent-cli.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { AgentService } from "../services/agent-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 export function buildAgentsCommand() {
   return Command.make("agents").pipe(
@@ -30,7 +33,7 @@ export function buildListCommand() {
           active_only: config.activeOnly,
         });
 
-        const cli = yield* AgentCli.make();
+        const cli = yield* AgentService.make();
         yield* cli.list({ activeOnly: config.activeOnly });
       }),
     ),
@@ -51,7 +54,7 @@ export function buildActivateCommand() {
           agent: config.agent,
         });
 
-        const cli = yield* AgentCli.make();
+        const cli = yield* AgentService.make();
         yield* cli.activate(config.agent);
       }),
     ),
@@ -72,7 +75,7 @@ export function buildDeactivateCommand() {
           agent: config.agent,
         });
 
-        const cli = yield* AgentCli.make();
+        const cli = yield* AgentService.make();
         yield* cli.deactivate(config.agent);
       }),
     ),
@@ -109,7 +112,7 @@ export function buildRouteCommand() {
           query_length: config.query.length,
         });
 
-        const cli = yield* AgentCli.make();
+        const cli = yield* AgentService.make();
         yield* cli.route({
           query: config.query,
           cliPath: Option.getOrUndefined(

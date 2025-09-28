@@ -5,8 +5,11 @@ import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import type { GitWorktreeCreateOptions } from "../components/GitWorktreeCreatePrompt.js";
-import { GitWorktreeCli } from "../services/git-worktree-cli.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { GitWorktreeService } from "../services/git-worktree-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -118,7 +121,7 @@ function buildListCommand() {
         yield* _(trackCommand("gw", "list"));
         yield* _(trackFeatureUsage("git_worktree_list"));
 
-        const cli = yield* _(GitWorktreeCli.make());
+        const cli = yield* _(GitWorktreeService.make());
         yield* _(cli.list());
 
         process.exit(0);
@@ -256,7 +259,7 @@ function buildCreateCommand() {
           );
 
           // Create the worktree using the selected options
-          const cli = yield* _(GitWorktreeCli.make());
+          const cli = yield* _(GitWorktreeService.make());
           yield* _(
             cli.create({
               path: options.path,
@@ -286,7 +289,7 @@ function buildCreateCommand() {
           }),
         );
 
-        const cli = yield* _(GitWorktreeCli.make());
+        const cli = yield* _(GitWorktreeService.make());
         yield* _(
           cli.create({
             path: Option.getOrElse(config.path, () => ""),
@@ -334,7 +337,7 @@ function buildEditCommand() {
           }),
         );
 
-        const cli = yield* _(GitWorktreeCli.make());
+        const cli = yield* _(GitWorktreeService.make());
         yield* _(
           cli.edit({
             from: config.from,
@@ -382,7 +385,7 @@ function buildPruneCommand() {
           }),
         );
 
-        const cli = yield* _(GitWorktreeCli.make());
+        const cli = yield* _(GitWorktreeService.make());
         yield* _(
           cli.prune({
             dryRun: config.dryRun,
@@ -411,7 +414,7 @@ function buildSwitchCommand() {
         yield* _(trackFeatureUsage("git_worktree_switch"));
 
         // Create CLI instance for both interactive and direct modes
-        const cli = yield* _(GitWorktreeCli.make());
+        const cli = yield* _(GitWorktreeService.make());
 
         // If path is not provided, show interactive prompt
         const pathValue = Option.getOrElse(config.path, () => "");

@@ -5,8 +5,11 @@ import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { initializeDatabase } from "@open-composer/db";
 import * as Effect from "effect/Effect";
 import { CliLive, cli } from "./lib/cli.js";
-import { ConfigLive, promptForTelemetryConsent } from "./services/config.js";
-import { TelemetryLive, trackException } from "./services/telemetry.js";
+import {
+  ConfigLive,
+  promptForTelemetryConsent,
+} from "./services/config-service.js";
+import { TelemetryLive, trackException } from "./services/telemetry-service.js";
 
 export * from "./components/ComposerApp.js";
 export * from "./lib/index.js";

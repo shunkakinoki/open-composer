@@ -32,15 +32,21 @@
       "dependsOn": ["^format"]
     },
     "//#__check__": {
-      "dependsOn": ["^check"]
+      "dependsOn": ["//#biome:check:check", "//#biome:format:check"]
     },
     "//#__fix__": {
-      "dependsOn": ["//#check:fix", "//#format:fix"]
+      "dependsOn": ["//#biome:check:fix", "//#biome:format:fix"]
     },
-    "//#check:fix": {
+    "//#biome:check:check": {
       "cache": false
     },
-    "//#format:fix": {
+    "//#biome:check:fix": {
+      "cache": false
+    },
+    "//#biome:format:check": {
+      "cache": false
+    },
+    "//#biome:format:fix": {
       "cache": false
     }
   },

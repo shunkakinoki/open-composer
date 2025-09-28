@@ -11,20 +11,26 @@ import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
-import { ConfigLive, type ConfigServiceInterface } from "../services/config.js";
+import {
+  ConfigLive,
+  type ConfigServiceInterface,
+} from "../services/config-service.js";
 import {
   SettingsLive,
   type SettingsServiceInterface as SettingsService,
-} from "../services/settings.js";
-import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
-import { buildAgentsCommand } from "./agents.js";
-import { buildGitWorktreeCommand } from "./git-worktree.js";
-import { buildPRCreateCommand } from "./pr-create.js";
-import { buildSessionsCommand } from "./sessions.js";
-import { buildSettingsCommand } from "./settings.js";
-import { buildStackCommand } from "./stack.js";
-import { buildTelemetryCommand } from "./telemetry.js";
-import { buildTUICommand } from "./tui.js";
+} from "../services/settings-service.js";
+import {
+  TelemetryLive,
+  type TelemetryService,
+} from "../services/telemetry-service.js";
+import { buildAgentsCommand } from "./agents-command.js";
+import { buildGitWorktreeCommand } from "./git-worktree-command.js";
+import { buildPRCreateCommand } from "./pr-create-command.js";
+import { buildSessionsCommand } from "./sessions-command.js";
+import { buildSettingsCommand } from "./settings-command.js";
+import { buildStackCommand } from "./stack-command.js";
+import { buildTelemetryCommand } from "./telemetry-command.js";
+import { buildTUICommand } from "./tui-command.js";
 
 export type ComposerCliServices =
   | SqliteDrizzle

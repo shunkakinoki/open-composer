@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildSessionsCommand } from "../../src/commands/sessions.js";
+import { buildSessionsCommand } from "../../src/commands/sessions-command.js";
 
 describe("sessions command", () => {
   describe("Command Structure", () => {

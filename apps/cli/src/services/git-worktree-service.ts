@@ -33,11 +33,11 @@ export interface PruneGitWorktreeOptions {
 
 export type GitWorktreeCliServices = GitService;
 
-export class GitWorktreeCli {
+export class GitWorktreeService {
   constructor(private readonly cwd: string) {}
 
-  static make(): Effect.Effect<GitWorktreeCli, never, GitService> {
-    return Effect.sync(() => new GitWorktreeCli(process.cwd()));
+  static make(): Effect.Effect<GitWorktreeService, never, GitService> {
+    return Effect.sync(() => new GitWorktreeService(process.cwd()));
   }
 
   list(): Effect.Effect<void, Error, GitService> {

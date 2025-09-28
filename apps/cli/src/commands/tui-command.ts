@@ -3,7 +3,10 @@ import * as Effect from "effect/Effect";
 import { render } from "ink";
 import React from "react";
 import { ComposerApp } from "../components/ComposerApp.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 export function buildTUICommand() {
   return Command.make("tui").pipe(

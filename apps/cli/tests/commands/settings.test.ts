@@ -5,7 +5,7 @@ import {
   buildListCommand,
   buildSetCommand,
   buildSettingsCommand,
-} from "../../src/commands/settings.js";
+} from "../../src/commands/settings-command.js";
 
 describe("settings command", () => {
   describe("buildSettingsCommand", () => {

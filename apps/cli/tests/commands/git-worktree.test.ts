@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildGitWorktreeCommand } from "../../src/commands/git-worktree.js";
+import { buildGitWorktreeCommand } from "../../src/commands/git-worktree-command.js";
 
 describe("git-worktree command", () => {
   it("should build git-worktree command successfully", () => {

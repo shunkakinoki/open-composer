@@ -1,7 +1,10 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
-import { SettingsService } from "../services/settings.js";
-import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
+import { SettingsService } from "../services/settings-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 
 export function buildSettingsCommand() {
   return Command.make("settings").pipe(

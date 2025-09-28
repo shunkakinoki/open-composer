@@ -2,14 +2,17 @@ import {
   buildRunner,
   type ComposerCliServices,
   layer,
-} from "../commands/composer.js";
+} from "../commands/composer-command.js";
 import {
-  GitWorktreeCli,
   type GitWorktreeCliServices,
-} from "../services/git-worktree-cli.js";
+  GitWorktreeService,
+} from "../services/git-worktree-service.js";
 
 // Export both old and new names for backward compatibility
-export { GitWorktreeCli, GitWorktreeCli as WorktreeCli };
+export {
+  GitWorktreeService as GitWorktreeCli,
+  GitWorktreeService as WorktreeCli,
+};
 export type {
   ComposerCliServices,
   GitWorktreeCliServices,

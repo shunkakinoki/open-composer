@@ -1,7 +1,7 @@
 import { Command } from "@effect/cli";
 import { Effect } from "effect";
-import { ConfigService } from "../services/config.js";
-import { trackCommand } from "../services/telemetry.js";
+import { ConfigService } from "../services/config-service.js";
+import { trackCommand } from "../services/telemetry-service.js";
 
 export function buildTelemetryCommand() {
   return Command.make("telemetry").pipe(
