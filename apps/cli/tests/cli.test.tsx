@@ -4,41 +4,45 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Mock agent router to return some test agents
-mock.module("@open-composer/agent-router", () => ({
-  getAgents: () =>
-    Promise.resolve([
-      {
-        name: "claude-code",
-        icon: "🤖",
-        role: "Code assistant powered by Claude",
-        active: true,
-      },
-      {
-        name: "codex",
-        icon: "📚",
-        role: "Code generation specialist",
-        active: false,
-      },
-    ]),
-  getActiveAgents: () =>
-    Promise.resolve([
-      {
-        name: "claude-code",
-        icon: "🤖",
-        role: "Code assistant powered by Claude",
-        active: true,
-      },
-    ]),
-  activateAgent: () => Promise.resolve(true),
-  deactivateAgent: () => Promise.resolve(true),
-  routeQuery: () =>
-    Promise.resolve({
-      agent: "claude-code",
-      content: "Mock response",
-      timestamp: new Date(),
-      success: true,
-    }),
-}));
+mock.module("@open-composer/agent-router", () => {
+  const { Effect } = require("effect");
+
+  return {
+    getAgents: () =>
+      Effect.succeed([
+        {
+          name: "claude-code",
+          icon: "🤖",
+          role: "Code assistant powered by Claude",
+          active: true,
+        },
+        {
+          name: "codex",
+          icon: "📚",
+          role: "Code generation specialist",
+          active: false,
+        },
+      ]),
+    getActiveAgents: () =>
+      Effect.succeed([
+        {
+          name: "claude-code",
+          icon: "🤖",
+          role: "Code assistant powered by Claude",
+          active: true,
+        },
+      ]),
+    activateAgent: () => Effect.succeed(true),
+    deactivateAgent: () => Effect.succeed(true),
+    routeQuery: () =>
+      Effect.succeed({
+        agent: "claude-code",
+        content: "Mock response",
+        timestamp: new Date(),
+        success: true,
+      }),
+  };
+});
 
 // Mock git-worktrees to return some test worktrees
 mock.module("@open-composer/git-worktrees", () => {
