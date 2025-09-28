@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@36c30e5cf16d45445c026abf8f71a437443cbd33
       - name: Detect if Changeset Release
