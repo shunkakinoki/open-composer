@@ -35,6 +35,8 @@
     "@effect/printer": "^0.45.0",
     "@effect/printer-ansi": "^0.45.0",
     "@open-composer/agent-router": "workspace:*",
+    "@open-composer/cache": "workspace:*",
+    "@open-composer/config": "workspace:*",
     "@open-composer/db": "workspace:*",
     "@open-composer/gh": "workspace:*",
     "@open-composer/gh-pr": "workspace:*",

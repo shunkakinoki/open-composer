@@ -7,6 +7,10 @@ import {
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AgentService } from "../../src/services/agent-service.js";
+import {
+  CacheService,
+  type CacheServiceInterface,
+} from "../../src/services/cache-service";
 
 // Mock agent router to return some test agents
 mock.module("@open-composer/agent-router", () => {
@@ -67,12 +71,17 @@ const mockConfigService: ConfigServiceInterface = {
   updateConfig: () => Effect.succeed(defaultConfig),
   setTelemetryConsent: () => Effect.succeed(defaultConfig),
   getTelemetryConsent: () => Effect.succeed(false),
+};
+
+// Mock CacheService for tests
+const mockCacheService: CacheServiceInterface = {
   getAgentCache: () => Effect.succeed(undefined),
-  updateAgentCache: () => Effect.succeed(defaultConfig),
-  clearAgentCache: () => Effect.succeed(defaultConfig),
+  updateAgentCache: () => Effect.succeed(undefined),
+  clearAgentCache: () => Effect.succeed(undefined),
 };
 
 const MockConfigLive = Layer.succeed(ConfigService, mockConfigService);
+const MockCacheLive = Layer.succeed(CacheService, mockCacheService);
 
 // Mock console.log to capture output
 const mockConsoleLog = spyOn(console, "log");
@@ -86,7 +95,7 @@ describe("AgentService", () => {
       const result = await Effect.runPromise(
         service
           .list({ activeOnly: false })
-          .pipe(Effect.provide(MockConfigLive)),
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -107,7 +116,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.list({ activeOnly: true }).pipe(Effect.provide(MockConfigLive)),
+        service
+          .list({ activeOnly: true })
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -132,7 +143,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.activate("claude-code").pipe(Effect.provide(MockConfigLive)),
+        service
+          .activate("claude-code")
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -148,7 +161,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.activate("nonexistent").pipe(Effect.provide(MockConfigLive)),
+        service
+          .activate("nonexistent")
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -166,7 +181,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.deactivate("claude-code").pipe(Effect.provide(MockConfigLive)),
+        service
+          .deactivate("claude-code")
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -182,7 +199,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.deactivate("nonexistent").pipe(Effect.provide(MockConfigLive)),
+        service
+          .deactivate("nonexistent")
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error
@@ -202,7 +221,7 @@ describe("AgentService", () => {
       const result = await Effect.runPromise(
         service
           .route({ query: "test query" })
-          .pipe(Effect.provide(MockConfigLive)),
+          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
       );
 
       // The effect should complete without error

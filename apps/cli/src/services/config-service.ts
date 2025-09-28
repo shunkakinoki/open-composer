@@ -2,7 +2,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
-  type AgentCache,
   ConfigService as ConfigServiceTag,
   defaultConfig,
   type UserConfig,
@@ -26,15 +25,6 @@ export interface ConfigServiceInterface {
     enabled: boolean,
   ) => Effect.Effect<UserConfig, never, never>;
   readonly getTelemetryConsent: () => Effect.Effect<boolean, never, never>;
-  readonly getAgentCache: () => Effect.Effect<
-    AgentCache | undefined,
-    never,
-    never
-  >;
-  readonly updateAgentCache: (
-    cache: AgentCache,
-  ) => Effect.Effect<UserConfig, never, never>;
-  readonly clearAgentCache: () => Effect.Effect<UserConfig, never, never>;
 }
 
 // Config service tag (using the shared one)
@@ -152,81 +142,6 @@ const createConfigService = (): ConfigServiceInterface => {
         } catch {
           return false;
         }
-      }),
-
-    getAgentCache: () =>
-      Effect.promise(async () => {
-        const configPath = getConfigPath();
-
-        try {
-          const content = await readFile(configPath, "utf-8");
-          const config = JSON.parse(content) as UserConfig;
-          return config.agentCache;
-        } catch {
-          return undefined;
-        }
-      }),
-
-    updateAgentCache: (cache: AgentCache) =>
-      Effect.promise(async () => {
-        const configPath = getConfigPath();
-
-        let currentConfig: UserConfig;
-        try {
-          const content = await readFile(configPath, "utf-8");
-          currentConfig = JSON.parse(content) as UserConfig;
-        } catch {
-          currentConfig = defaultConfig;
-        }
-
-        const updatedConfig: UserConfig = {
-          ...currentConfig,
-          agentCache: cache,
-          updatedAt: new Date().toISOString(),
-        };
-
-        // Ensure config directory exists
-        await mkdir(getConfigDir(), { recursive: true });
-
-        // Write config file
-        await writeFile(
-          getConfigPath(),
-          JSON.stringify(updatedConfig, null, 2),
-          "utf-8",
-        );
-
-        return updatedConfig;
-      }),
-
-    clearAgentCache: () =>
-      Effect.promise(async () => {
-        const configPath = getConfigPath();
-
-        let currentConfig: UserConfig;
-        try {
-          const content = await readFile(configPath, "utf-8");
-          currentConfig = JSON.parse(content) as UserConfig;
-        } catch {
-          currentConfig = defaultConfig;
-        }
-
-        const updatedConfig: UserConfig = {
-          ...currentConfig,
-          agentCache: undefined,
-          updatedAt: new Date().toISOString(),
-        };
-
-        // Ensure config directory exists
-        await mkdir(getConfigDir(), { recursive: true });
-
-        // Write config file
-        await writeFile(
-          getConfigPath(),
-          JSON.stringify(updatedConfig, null, 2),
-          "utf-8",
-        );
-
-        return updatedConfig;
       }),
   };
 };

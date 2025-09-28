@@ -1,5 +1,9 @@
+import type { AgentCache } from "@open-composer/cache";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+
+// Re-export AgentCache for backward compatibility
+export type { AgentCache };
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -10,16 +14,6 @@ export interface TelemetryConfig {
   readonly consentedAt?: string;
   readonly version?: string;
   readonly anonymousId?: string;
-}
-
-// Agent availability cache interface
-export interface AgentCache {
-  readonly agents: ReadonlyArray<{
-    readonly name: string;
-    readonly available: boolean;
-    readonly lastChecked: string;
-  }>;
-  readonly lastUpdated: string;
 }
 
 // Configuration interface
@@ -48,15 +42,6 @@ export interface ConfigServiceInterface {
     enabled: boolean,
   ) => Effect.Effect<UserConfig, never, never>;
   readonly getTelemetryConsent: () => Effect.Effect<boolean, never, never>;
-  readonly getAgentCache: () => Effect.Effect<
-    AgentCache | undefined,
-    never,
-    never
-  >;
-  readonly updateAgentCache: (
-    cache: AgentCache,
-  ) => Effect.Effect<UserConfig, never, never>;
-  readonly clearAgentCache: () => Effect.Effect<UserConfig, never, never>;
 }
 
 // Config service tag
@@ -72,14 +57,3 @@ export const setTelemetryConsent = (enabled: boolean) =>
   ConfigService.pipe(
     Effect.flatMap((config) => config.setTelemetryConsent(enabled)),
   );
-
-export const getAgentCache = () =>
-  ConfigService.pipe(Effect.flatMap((config) => config.getAgentCache()));
-
-export const updateAgentCache = (cache: AgentCache) =>
-  ConfigService.pipe(
-    Effect.flatMap((config) => config.updateAgentCache(cache)),
-  );
-
-export const clearAgentCache = () =>
-  ConfigService.pipe(Effect.flatMap((config) => config.clearAgentCache()));

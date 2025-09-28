@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Agent, AgentResponse } from "@open-composer/agent-types";
-import {
-  ConfigService,
-  type ConfigServiceInterface,
-  type UserConfig,
-} from "@open-composer/config";
+import { CacheService, type CacheServiceInterface } from "@open-composer/cache";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
 import * as Layer from "effect/Layer";
@@ -102,18 +98,14 @@ const createTestAgentState = (agentChecker: typeof mockClaudeCodeAgent) => {
   } satisfies Agent & { matcher: (input: RouteQueryInput) => boolean };
 };
 
-// Mock ConfigService for tests
-const mockConfigService: ConfigServiceInterface = {
-  getConfig: () => Effect.succeed({} as UserConfig),
-  updateConfig: () => Effect.succeed({} as UserConfig),
-  setTelemetryConsent: () => Effect.succeed({} as UserConfig),
-  getTelemetryConsent: () => Effect.succeed(false),
+// Mock CacheService for tests
+const mockCacheService: CacheServiceInterface = {
   getAgentCache: () => Effect.succeed(undefined),
-  updateAgentCache: () => Effect.succeed({} as UserConfig),
-  clearAgentCache: () => Effect.succeed({} as UserConfig),
+  updateAgentCache: () => Effect.succeed(undefined),
+  clearAgentCache: () => Effect.succeed(undefined),
 };
 
-const MockConfigLive = Layer.succeed(ConfigService, mockConfigService);
+const MockCacheLive = Layer.succeed(CacheService, mockCacheService);
 
 const TestAgentRouterLive = Layer.effect(
   AgentRouter,
@@ -261,10 +253,10 @@ const TestAgentRouterLive = Layer.effect(
 );
 
 const provideRouter = <A>(
-  effect: Effect.Effect<A, never, ConfigServiceInterface>,
+  effect: Effect.Effect<A, never, CacheServiceInterface>,
 ) =>
   effect.pipe(
-    Effect.provide(Layer.mergeAll(TestAgentRouterLive, MockConfigLive)),
+    Effect.provide(Layer.mergeAll(TestAgentRouterLive, MockCacheLive)),
   );
 
 describe("AgentRouter", () => {

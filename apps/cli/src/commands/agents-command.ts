@@ -1,6 +1,6 @@
 import { Args, Command, Options } from "@effect/cli";
 import { refreshAgentCache } from "@open-composer/agent-router";
-import { type AgentCache, updateAgentCache } from "@open-composer/config";
+import { type AgentCache, updateAgentCache } from "@open-composer/cache";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { AgentService } from "../services/agent-service.js";

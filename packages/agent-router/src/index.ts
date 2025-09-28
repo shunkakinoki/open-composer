@@ -9,10 +9,10 @@ import type {
 } from "@open-composer/agent-types";
 import {
   type AgentCache,
-  type ConfigServiceInterface,
+  type CacheServiceInterface,
   getAgentCache,
   updateAgentCache,
-} from "@open-composer/config";
+} from "@open-composer/cache";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
@@ -32,7 +32,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const getAvailableAgentsFromAgents = (): Effect.Effect<
   readonly AgentChecker[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > => {
   return pipe(
     getAgentCache(),
@@ -82,35 +82,35 @@ export interface AgentRouter {
   readonly getAgents: Effect.Effect<
     readonly Agent[],
     never,
-    ConfigServiceInterface
+    CacheServiceInterface
   >;
   readonly getActiveAgents: Effect.Effect<
     readonly Agent[],
     never,
-    ConfigServiceInterface
+    CacheServiceInterface
   >;
   readonly getAvailableAgents: Effect.Effect<
     readonly AgentChecker[],
     never,
-    ConfigServiceInterface
+    CacheServiceInterface
   >;
   readonly refreshAgentCache: Effect.Effect<
     readonly AgentChecker[],
     never,
-    ConfigServiceInterface
+    CacheServiceInterface
   >;
   readonly activateAgent: (
     agentName: string,
-  ) => Effect.Effect<boolean, never, ConfigServiceInterface>;
+  ) => Effect.Effect<boolean, never, CacheServiceInterface>;
   readonly deactivateAgent: (
     agentName: string,
-  ) => Effect.Effect<boolean, never, ConfigServiceInterface>;
+  ) => Effect.Effect<boolean, never, CacheServiceInterface>;
   readonly routeQuery: (
     input: RouteQueryInput,
-  ) => Effect.Effect<AgentResponse, never, ConfigServiceInterface>;
+  ) => Effect.Effect<AgentResponse, never, CacheServiceInterface>;
   readonly executeSquadMode: (
     input: SquadModeInput,
-  ) => Effect.Effect<readonly AgentResponse[], never, ConfigServiceInterface>;
+  ) => Effect.Effect<readonly AgentResponse[], never, CacheServiceInterface>;
 }
 
 export const AgentRouter = Context.GenericTag<AgentRouter>(
@@ -150,7 +150,7 @@ const createMatcher =
 const getAvailableAgentsEffect: Effect.Effect<
   readonly AgentChecker[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = pipe(
   getAvailableAgentsFromAgents(),
   Effect.flatMap((cachedAgents) => {
@@ -199,7 +199,7 @@ const getAvailableAgentsEffect: Effect.Effect<
 const refreshAgentCacheEffect: Effect.Effect<
   readonly AgentChecker[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = pipe(
   Effect.all(
     AVAILABLE_AGENTS.map((agentChecker) =>
@@ -237,7 +237,7 @@ const refreshAgentCacheEffect: Effect.Effect<
 const makeAgents = (): Effect.Effect<
   ReadonlyArray<AgentState>,
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > =>
   pipe(
     getAvailableAgentsEffect,
@@ -490,8 +490,8 @@ export const AgentRouterLive = Layer.effect(
 );
 
 const withRouter = <A>(
-  f: (router: AgentRouter) => Effect.Effect<A, never, ConfigServiceInterface>,
-): Effect.Effect<A, never, ConfigServiceInterface> =>
+  f: (router: AgentRouter) => Effect.Effect<A, never, CacheServiceInterface>,
+): Effect.Effect<A, never, CacheServiceInterface> =>
   Effect.flatMap(
     Effect.contextWith((context) => Context.unsafeGet(context, AgentRouter)),
     f,
@@ -500,38 +500,38 @@ const withRouter = <A>(
 export const getAgents: Effect.Effect<
   readonly Agent[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = withRouter((router) => router.getAgents);
 export const getActiveAgents: Effect.Effect<
   readonly Agent[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = withRouter((router) => router.getActiveAgents);
 export const getAvailableAgents: Effect.Effect<
   readonly AgentChecker[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = withRouter((router) => router.getAvailableAgents);
 export const refreshAgentCache = (): Effect.Effect<
   readonly AgentChecker[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > => refreshAgentCacheEffect;
 export const activateAgent = (
   agentName: string,
-): Effect.Effect<boolean, never, ConfigServiceInterface> =>
+): Effect.Effect<boolean, never, CacheServiceInterface> =>
   withRouter((router) => router.activateAgent(agentName));
 export const deactivateAgent = (
   agentName: string,
-): Effect.Effect<boolean, never, ConfigServiceInterface> =>
+): Effect.Effect<boolean, never, CacheServiceInterface> =>
   withRouter((router) => router.deactivateAgent(agentName));
 export const routeQuery = (
   input: RouteQueryInput,
-): Effect.Effect<AgentResponse, never, ConfigServiceInterface> =>
+): Effect.Effect<AgentResponse, never, CacheServiceInterface> =>
   withRouter((router) => router.routeQuery(input));
 export const executeSquadMode = (
   input: SquadModeInput,
-): Effect.Effect<readonly AgentResponse[], never, ConfigServiceInterface> =>
+): Effect.Effect<readonly AgentResponse[], never, CacheServiceInterface> =>
   withRouter((router) => router.executeSquadMode(input));
 
 // Re-export types for convenience

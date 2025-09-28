@@ -3,7 +3,7 @@ import {
   type AgentChecker,
   getAvailableAgents,
 } from "@open-composer/agent-router";
-import type { ConfigServiceInterface } from "@open-composer/config";
+import type { CacheServiceInterface } from "@open-composer/cache";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
 import * as Effect from "effect/Effect";
@@ -21,7 +21,7 @@ import {
 export const getAvailableAgentNames: Effect.Effect<
   readonly string[],
   never,
-  ConfigServiceInterface
+  CacheServiceInterface
 > = Effect.gen(function* () {
   const agents = yield* getAvailableAgents;
   return agents.map(
@@ -139,7 +139,7 @@ function executeSpawn(
 ): Effect.Effect<
   void,
   Error | TmuxCommandError | GitCommandError,
-  GitService | ConfigServiceInterface
+  GitService | CacheServiceInterface
 > {
   return Effect.gen(function* () {
     console.log(`\n🪄 Spawning session: ${config.sessionName}`);
@@ -323,7 +323,7 @@ function createPR(
 function showSpawnOutput(
   config: SpawnConfig,
   worktreeResults: WorktreeResult[],
-): Effect.Effect<void, never, ConfigServiceInterface> {
+): Effect.Effect<void, never, CacheServiceInterface> {
   return Effect.gen(function* () {
     // Status overview
     console.log("----------------------------");

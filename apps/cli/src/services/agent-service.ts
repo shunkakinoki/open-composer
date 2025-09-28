@@ -6,7 +6,7 @@ import {
   getAgents,
   routeQuery,
 } from "@open-composer/agent-router";
-import type { ConfigServiceInterface } from "@open-composer/config";
+import type { CacheServiceInterface } from "@open-composer/cache";
 import * as Effect from "effect/Effect";
 
 interface ListOptions {
@@ -40,7 +40,7 @@ export class AgentService {
 
   list(
     options: ListOptions = {},
-  ): Effect.Effect<void, never, ConfigServiceInterface> {
+  ): Effect.Effect<void, never, CacheServiceInterface> {
     const { activeOnly = false } = options;
 
     const source = activeOnly ? getActiveAgents : getAgents;
@@ -63,7 +63,7 @@ export class AgentService {
 
   activate(
     agentName: string,
-  ): Effect.Effect<void, never, ConfigServiceInterface> {
+  ): Effect.Effect<void, never, CacheServiceInterface> {
     return activateAgentEffect(agentName).pipe(
       Effect.flatMap((result) => {
         const message = result
@@ -76,7 +76,7 @@ export class AgentService {
 
   deactivate(
     agentName: string,
-  ): Effect.Effect<void, never, ConfigServiceInterface> {
+  ): Effect.Effect<void, never, CacheServiceInterface> {
     return deactivateAgentEffect(agentName).pipe(
       Effect.flatMap((result) => {
         const message = result
@@ -89,7 +89,7 @@ export class AgentService {
 
   route(
     options: RouteOptions,
-  ): Effect.Effect<void, never, ConfigServiceInterface> {
+  ): Effect.Effect<void, never, CacheServiceInterface> {
     const cliPath = options.cliPath ?? this.cliPath;
     return routeQuery({
       query: options.query,
