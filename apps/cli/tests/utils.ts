@@ -50,7 +50,7 @@ class Stdout extends TestWritableStream {
   }
 }
 
-class Stderr extends TestWritableStream {}
+class Stderr extends TestWritableStream { }
 
 class Stdin extends EventEmitter implements TestReadable {
   // eslint-disable-next-line @typescript-eslint/naming-convention
