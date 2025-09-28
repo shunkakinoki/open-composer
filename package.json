@@ -9,7 +9,7 @@
     "lint:fix": "turbo lint:fix",
     "test": "turbo test",
     "prepublishOnly": "turbo run prepublishOnly",
-    "publish": "turbo run prepublishOnly && changeset publish",
+    "publish": "turbo run prepublishOnly && changeset publish --tag ${TAG}",
     "version": "changeset version",
     "version:snapshot": "changeset version --snapshot",
     "changeset:status": "changeset status --verbose --since origin/main",
