@@ -98,7 +98,7 @@ type Instance = {
 
 const instances: InkInstance[] = [];
 
-export const render = async (tree: ReactElement): Promise<Instance> => {
+export const render = (tree: ReactElement): Instance => {
   const stdout = new Stdout();
   const stderr = new Stderr();
   const stdin = new Stdin();
@@ -113,13 +113,6 @@ export const render = async (tree: ReactElement): Promise<Instance> => {
   });
 
   instances.push(instance);
-
-  // Wait for Ink to render by checking if lastFrame has content
-  let attempts = 0;
-  while (!stdout.lastFrame() && attempts < 50) { // Max 50 attempts to prevent infinite loop
-    await new Promise(resolve => setTimeout(resolve, 1));
-    attempts++;
-  }
 
   return {
     rerender: instance.rerender,

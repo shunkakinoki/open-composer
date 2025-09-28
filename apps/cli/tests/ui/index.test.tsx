@@ -50,12 +50,12 @@ describe("Open Composer CLI", () => {
   });
 
   describe("Component Snapshots", () => {
-    test("ComposerApp renders correctly", async () => {
-      const { lastFrame } = await render(<ComposerApp />);
+    test("ComposerApp renders correctly", () => {
+      const { lastFrame } = render(<ComposerApp />);
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("ChatInterface renders correctly with messages", async () => {
+    test("ChatInterface renders correctly with messages", () => {
       const messages = [
         {
           id: "1",
@@ -72,13 +72,13 @@ describe("Open Composer CLI", () => {
         },
       ];
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <ChatInterface messages={messages} onSendMessage={() => {}} />,
       );
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("Sidebar renders correctly with worktrees", async () => {
+    test("Sidebar renders correctly with worktrees", () => {
       const worktrees = [
         {
           name: "main",
@@ -94,24 +94,24 @@ describe("Open Composer CLI", () => {
         },
       ];
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <Sidebar worktrees={worktrees} currentBranch="main" />,
       );
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("CodeEditor renders correctly with file", async () => {
-      const { lastFrame } = await render(<CodeEditor currentFile="src/index.ts" />);
+    test("CodeEditor renders correctly with file", () => {
+      const { lastFrame } = render(<CodeEditor currentFile="src/index.ts" />);
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("CodeEditor renders correctly without file", async () => {
-      const { lastFrame } = await render(<CodeEditor />);
+    test("CodeEditor renders correctly without file", () => {
+      const { lastFrame } = render(<CodeEditor />);
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("Layout renders correctly", async () => {
-      const { lastFrame } = await render(
+    test("Layout renders correctly", () => {
+      const { lastFrame } = render(
         <Layout>
           <Text>Test content</Text>
         </Layout>,
@@ -119,11 +119,11 @@ describe("Open Composer CLI", () => {
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("TelemetryConsentPrompt renders correctly", async () => {
+    test("TelemetryConsentPrompt renders correctly", () => {
       const mockOnConsent = mock(() => {});
       const mockOnCancel = mock(() => {});
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <TelemetryConsentPrompt
           onConsent={mockOnConsent}
           onCancel={mockOnCancel}
@@ -132,11 +132,11 @@ describe("Open Composer CLI", () => {
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("GitWorktreeCreatePrompt renders correctly", async () => {
+    test("GitWorktreeCreatePrompt renders correctly", () => {
       const mockOnSubmit = mock(() => {});
       const mockOnCancel = mock(() => {});
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <GitWorktreeCreatePrompt
           onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
@@ -145,7 +145,7 @@ describe("Open Composer CLI", () => {
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("GitWorktreeSwitchPrompt renders correctly with worktrees", async () => {
+    test("GitWorktreeSwitchPrompt renders correctly with worktrees", () => {
       const mockOnSubmit = mock(() => {});
       const mockOnCancel = mock(() => {});
 
@@ -171,7 +171,7 @@ describe("Open Composer CLI", () => {
         },
       ];
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <GitWorktreeSwitchPrompt
           worktrees={worktrees}
           onSubmit={mockOnSubmit}
@@ -181,11 +181,11 @@ describe("Open Composer CLI", () => {
       expect(lastFrame()).toMatchSnapshot();
     });
 
-    test("GitWorktreeSwitchPrompt renders correctly with no worktrees", async () => {
+    test("GitWorktreeSwitchPrompt renders correctly with no worktrees", () => {
       const mockOnSubmit = mock(() => {});
       const mockOnCancel = mock(() => {});
 
-      const { lastFrame } = await render(
+      const { lastFrame } = render(
         <GitWorktreeSwitchPrompt
           worktrees={[]}
           onSubmit={mockOnSubmit}
