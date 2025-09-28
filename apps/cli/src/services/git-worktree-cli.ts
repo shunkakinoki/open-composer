@@ -56,7 +56,9 @@ export class GitWorktreeCli {
     );
   }
 
-  create(options: CreateGitWorktreeOptions): Effect.Effect<void, Error, GitService> {
+  create(
+    options: CreateGitWorktreeOptions,
+  ): Effect.Effect<void, Error, GitService> {
     const {
       path: worktreePath,
       ref,
@@ -96,7 +98,9 @@ export class GitWorktreeCli {
     );
   }
 
-  edit(options: EditGitWorktreeOptions): Effect.Effect<void, Error, GitService> {
+  edit(
+    options: EditGitWorktreeOptions,
+  ): Effect.Effect<void, Error, GitService> {
     const { from, to, force } = options;
 
     return moveWorktree({
@@ -120,7 +124,9 @@ export class GitWorktreeCli {
     );
   }
 
-  prune(options: PruneGitWorktreeOptions = {}): Effect.Effect<void, Error, GitService> {
+  prune(
+    options: PruneGitWorktreeOptions = {},
+  ): Effect.Effect<void, Error, GitService> {
     const { dryRun, verbose, expire } = options;
 
     // If dry-run, list worktrees to show what would be pruned

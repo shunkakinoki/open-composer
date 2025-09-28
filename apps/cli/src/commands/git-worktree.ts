@@ -418,7 +418,7 @@ function buildSwitchCommand() {
           // Load worktrees directly using the git-worktrees package
           // The Git service context is provided at the CLI level
           const { list: listWorktreesFn } = yield* _(
-            Effect.promise(() => import("@open-composer/git-worktrees"))
+            Effect.promise(() => import("@open-composer/git-worktrees")),
           );
           const worktrees = yield* _(listWorktreesFn({ cwd: process.cwd() }));
 
