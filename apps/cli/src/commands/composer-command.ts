@@ -112,33 +112,33 @@ Run 'open-composer <command> --help' for more information on a specific command.
 
 export function buildRootCommand() {
   const commandBuilders = [
-    buildTUICommand,
-    buildGitWorktreeCommand,
     buildAgentsCommand,
     buildCacheCommand,
     buildGHPRCommand,
+    buildGitWorktreeCommand,
     buildSessionsCommand,
     buildSettingsCommand,
     buildSpawnCommand,
-    buildStatusCommand,
     buildStackCommand,
+    buildStatusCommand,
     buildTelemetryCommand,
+    buildTUICommand,
   ];
 
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
     Command.withSubcommands([
-      buildTUICommand(),
-      buildGitWorktreeCommand(),
       buildAgentsCommand(),
-      buildCacheCommand(),
+      // buildCacheCommand(), Disabled since internal
       buildGHPRCommand(),
+      buildGitWorktreeCommand(),
       buildSessionsCommand(),
       buildSettingsCommand(),
       buildSpawnCommand(),
-      buildStatusCommand(),
       buildStackCommand(),
+      buildStatusCommand(),
       buildTelemetryCommand(),
+      buildTUICommand(),
     ]),
     Command.withHandler(() => {
       console.log(generateHelpText(commandBuilders));
