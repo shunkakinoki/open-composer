@@ -199,7 +199,8 @@ export const validateDatabaseSchema = Effect.gen(function* () {
   `;
 
   const missingTables = requiredTables.filter(
-    (table) => !existingTables.some((row) => (row as { name: string }).name === table),
+    (table) =>
+      !existingTables.some((row) => (row as { name: string }).name === table),
   );
 
   if (missingTables.length > 0) {
@@ -216,7 +217,9 @@ export const validateDatabaseSchema = Effect.gen(function* () {
   `;
 
   const expectedColumns = ["key", "value", "updated_at"];
-  const actualColumns = settingsSchema.map((col) => (col as { name: string }).name);
+  const actualColumns = settingsSchema.map(
+    (col) => (col as { name: string }).name,
+  );
 
   const missingColumns = expectedColumns.filter(
     (col) => !actualColumns.includes(col),
