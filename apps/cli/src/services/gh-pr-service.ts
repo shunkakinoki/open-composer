@@ -1,8 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import path from "node:path";
 import { promisify } from "node:util";
-import type { SqliteDrizzle } from "@open-composer/db";
 import {
   createPR,
   getPRStatus,
@@ -21,6 +19,11 @@ const execFileAsync = promisify(execFile);
 export type { PRCreateOptions, PRCreateResult, PRStatus };
 
 export class GhPRService {
+  // Allow overriding execFileAsync for testing
+  execFileAsync: (
+    command: string,
+    args: string[],
+  ) => Promise<{ stdout: string; stderr: string }> = execFileAsync;
   /**
    * Check if GitHub CLI is available and authenticated
    */
@@ -37,7 +40,7 @@ export class GhPRService {
         // Check if gh CLI is available
         let cliAvailable = false;
         try {
-          await execFileAsync("which", ["gh"]);
+          await this.execFileAsync("which", ["gh"]);
           cliAvailable = true;
         } catch {
           // CLI not available
@@ -50,7 +53,7 @@ export class GhPRService {
         // Check authentication status
         let authenticated = false;
         try {
-          await execFileAsync("gh", ["auth", "status"]);
+          await this.execFileAsync("gh", ["auth", "status"]);
           authenticated = true;
         } catch {
           // Not authenticated
@@ -60,7 +63,7 @@ export class GhPRService {
         let repository: string | undefined;
         if (authenticated) {
           try {
-            const result = await execFileAsync("gh", [
+            const result = await this.execFileAsync("gh", [
               "repo",
               "view",
               "--json",
@@ -94,13 +97,12 @@ export class GhPRService {
       hasUncommittedChanges: boolean;
       isOnMainBranch: boolean;
     },
-    Error,
-    SqliteDrizzle
+    Error
   > {
     return Effect.tryPromise({
       try: async () => {
         // Get current branch
-        const branchResult = await execFileAsync("git", [
+        const branchResult = await this.execFileAsync("git", [
           "rev-parse",
           "--abbrev-ref",
           "HEAD",
@@ -108,7 +110,7 @@ export class GhPRService {
         const currentBranch = branchResult.stdout.trim();
 
         // Check for uncommitted changes
-        const statusResult = await execFileAsync("git", [
+        const statusResult = await this.execFileAsync("git", [
           "status",
           "--porcelain",
         ]);
@@ -118,7 +120,7 @@ export class GhPRService {
         const isOnMainBranch = ["main", "master"].includes(currentBranch);
 
         // Check if there are commits ahead of origin
-        const aheadResult = await execFileAsync("git", [
+        const aheadResult = await this.execFileAsync("git", [
           "rev-list",
           "--count",
           `${currentBranch}..origin/${currentBranch}`,
@@ -137,56 +139,9 @@ export class GhPRService {
   }
 
   /**
-   * Check if repository uses changesets
-   */
-  checkChangesetsSetup(): Effect.Effect<
-    {
-      hasChangesets: boolean;
-      configPath?: string;
-    },
-    Error,
-    SqliteDrizzle
-  > {
-    return Effect.gen(function* () {
-      // Check for changesets directory
-      const hasChangesetsDir = existsSync(".changeset");
-
-      // Check for changesets config
-      const configPaths = [".changeset/config.json", ".changeset/config.js"];
-      let configPath: string | undefined;
-      for (const config of configPaths) {
-        if (existsSync(config)) {
-          configPath = config;
-          break;
-        }
-      }
-
-      // Check package.json for changesets dependency
-      const hasChangesetsDep =
-        existsSync("package.json") &&
-        (() => {
-          try {
-            const pkg = require(path.join(process.cwd(), "package.json"));
-            return (
-              "@changesets/cli" in (pkg.dependencies || {}) ||
-              "@changesets/cli" in (pkg.devDependencies || {})
-            );
-          } catch {
-            return false;
-          }
-        })();
-
-      return {
-        hasChangesets: hasChangesetsDir || !!configPath || hasChangesetsDep,
-        configPath,
-      };
-    });
-  }
-
-  /**
    * Detect package manager
    */
-  detectPackageManager(): Effect.Effect<string, Error, SqliteDrizzle> {
+  detectPackageManager(): Effect.Effect<string, Error> {
     if (existsSync("bun.lockb") || existsSync("bun.lock")) {
       return Effect.succeed("bun");
     }
@@ -212,8 +167,7 @@ export class GhPRService {
       testsPassed: boolean;
       errors: string[];
     },
-    Error,
-    SqliteDrizzle
+    Error
   > {
     return Effect.tryPromise({
       try: async () => {
@@ -224,7 +178,7 @@ export class GhPRService {
 
         // Run linting
         try {
-          await execFileAsync(packageManager, ["run", "lint"]);
+          await this.execFileAsync(packageManager, ["run", "lint"]);
           lintPassed = true;
         } catch (error) {
           errors.push(`Linting failed: ${error}`);
@@ -232,12 +186,12 @@ export class GhPRService {
 
         // Run formatting check
         try {
-          await execFileAsync(packageManager, ["run", "format:check"]);
+          await this.execFileAsync(packageManager, ["run", "format:check"]);
           formatPassed = true;
         } catch (error) {
           // Try alternative format check commands
           try {
-            await execFileAsync(packageManager, ["run", "format-check"]);
+            await this.execFileAsync(packageManager, ["run", "format-check"]);
             formatPassed = true;
           } catch {
             errors.push(`Formatting check failed: ${error}`);
@@ -246,7 +200,7 @@ export class GhPRService {
 
         // Run tests
         try {
-          await execFileAsync(packageManager, ["run", "test"]);
+          await this.execFileAsync(packageManager, ["run", "test"]);
           testsPassed = true;
         } catch (error) {
           errors.push(`Tests failed: ${error}`);
@@ -260,47 +214,6 @@ export class GhPRService {
         };
       },
       catch: (error) => new Error(`Quality checks failed: ${error}`),
-    });
-  }
-
-  /**
-   * Generate changeset if changesets is configured
-   */
-  generateChangeset(hasChangesets: boolean): Effect.Effect<
-    {
-      changesetGenerated: boolean;
-      changesetPath?: string;
-    },
-    Error,
-    SqliteDrizzle
-  > {
-    return Effect.tryPromise({
-      try: async () => {
-        if (!hasChangesets) {
-          return { changesetGenerated: false };
-        }
-
-        // Get recent commit message for changeset content
-        const commitResult = await execFileAsync("git", [
-          "log",
-          "--format=%B",
-          "-n",
-          "1",
-        ]);
-        const commitMessage = commitResult.stdout.trim();
-        const title = commitMessage.split("\n")[0];
-
-        // Generate changeset
-        await execFileAsync("npx", [
-          "@changesets/cli",
-          "add",
-          "--message",
-          `${title}\n\n${commitMessage}`,
-        ]);
-
-        return { changesetGenerated: true };
-      },
-      catch: (error) => new Error(`Changeset generation failed: ${error}`),
     });
   }
 

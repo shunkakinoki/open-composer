@@ -25,6 +25,7 @@ import {
   type TelemetryService,
 } from "../services/telemetry-service.js";
 import { buildAgentsCommand } from "./agents-command.js";
+import { buildCacheCommand } from "./cache-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
@@ -71,6 +72,7 @@ export function buildRootCommand() {
       buildTUICommand(),
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
+      buildCacheCommand(),
       buildGHPRCommand(),
       buildSessionsCommand(),
       buildSettingsCommand(),

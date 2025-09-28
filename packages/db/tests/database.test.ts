@@ -22,7 +22,7 @@ afterAll(() => {
 
 describe("Database layer", () => {
   test("uses the configured sqlite file", () => {
-    expect(dbModule.databaseFile).toBe(tempFile);
+    expect(dbModule.databaseFile.value).toBe(tempFile);
   });
 
   test("runs migrations and supports drizzle queries", async () => {

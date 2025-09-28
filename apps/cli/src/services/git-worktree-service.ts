@@ -36,12 +36,18 @@ export type GitWorktreeCliServices = GitService;
 export class GitWorktreeService {
   constructor(private readonly cwd: string) {}
 
+  // Allow overriding functions for testing
+  addWorktree: typeof addWorktree = addWorktree;
+  listWorktrees: typeof listWorktrees = listWorktrees;
+  moveWorktree: typeof moveWorktree = moveWorktree;
+  pruneWorktrees: typeof pruneWorktrees = pruneWorktrees;
+
   static make(): Effect.Effect<GitWorktreeService, never, GitService> {
     return Effect.sync(() => new GitWorktreeService(process.cwd()));
   }
 
   list(): Effect.Effect<void, Error, GitService> {
-    return listWorktrees({ cwd: this.cwd }).pipe(
+    return this.listWorktrees({ cwd: this.cwd }).pipe(
       Effect.flatMap((worktrees) =>
         this.printGitWorktreeLines([
           "Git worktrees:",
@@ -69,7 +75,7 @@ export class GitWorktreeService {
       branchForce,
     } = options;
 
-    return addWorktree({
+    return this.addWorktree({
       cwd: this.cwd,
       path: worktreePath,
       ref,
@@ -103,7 +109,7 @@ export class GitWorktreeService {
   ): Effect.Effect<void, Error, GitService> {
     const { from, to, force } = options;
 
-    return moveWorktree({
+    return this.moveWorktree({
       cwd: this.cwd,
       from,
       to,
@@ -131,7 +137,7 @@ export class GitWorktreeService {
 
     // If dry-run, list worktrees to show what would be pruned
     if (dryRun) {
-      return listWorktrees({ cwd: this.cwd }).pipe(
+      return this.listWorktrees({ cwd: this.cwd }).pipe(
         Effect.flatMap((worktrees) => {
           const prunableWorktrees = worktrees.filter(
             (worktree) => worktree.prunable,
@@ -160,9 +166,9 @@ export class GitWorktreeService {
     }
 
     // For actual pruning, list worktrees before and after to show what was pruned
-    return listWorktrees({ cwd: this.cwd }).pipe(
+    return this.listWorktrees({ cwd: this.cwd }).pipe(
       Effect.flatMap((worktreesBefore) =>
-        pruneWorktrees({
+        this.pruneWorktrees({
           cwd: this.cwd,
           dryRun: false,
           verbose,
@@ -267,7 +273,7 @@ export class GitWorktreeService {
   }
 
   switch(worktreePath: string): Effect.Effect<void, Error, GitService> {
-    return listWorktrees({ cwd: this.cwd }).pipe(
+    return this.listWorktrees({ cwd: this.cwd }).pipe(
       Effect.flatMap((worktrees) => {
         const targetWorktree = worktrees.find((wt) => wt.path === worktreePath);
 
