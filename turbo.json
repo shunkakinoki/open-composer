@@ -10,7 +10,7 @@
       "dependsOn": ["//#__check__"]
     },
     "//#__fix__": {
-      "dependsOn": ["check:fix", "format:fix"]
+      "dependsOn": ["//#check:fix", "//#format:fix"]
     },
     "dev": {
       "cache": false,
