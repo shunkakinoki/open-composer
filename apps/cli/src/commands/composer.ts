@@ -12,9 +12,14 @@ import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
 import { ConfigLive, type ConfigServiceInterface } from "../services/config.js";
+import {
+  SettingsLive,
+  type SettingsServiceInterface as SettingsService,
+} from "../services/settings.js";
 import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
+import { buildSettingsCommand } from "./settings.js";
 import { buildStackCommand } from "./stack.js";
 import { buildTelemetryCommand } from "./telemetry.js";
 import { buildTUICommand } from "./tui.js";
@@ -27,6 +32,7 @@ export type ComposerCliServices =
   | CliConfigService
   | BunContextService
   | ConfigServiceInterface
+  | SettingsService
   | TelemetryService;
 
 // Create base layer without telemetry
@@ -38,6 +44,7 @@ const baseLayer = Layer.mergeAll(
   GitStackLive,
   AgentRouterLive,
   ConfigLive,
+  SettingsLive,
 );
 
 // Add telemetry layer that depends on config
@@ -52,6 +59,7 @@ export function buildRootCommand() {
       buildTUICommand(),
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
+      buildSettingsCommand(),
       buildStackCommand(),
       buildTelemetryCommand(),
     ]),
