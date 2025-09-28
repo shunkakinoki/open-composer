@@ -1,8 +1,44 @@
+import type { AgentChecker, AgentStatus } from "@open-composer/agent-types";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { pipe } from "effect/Function";
 import * as Layer from "effect/Layer";
 import * as Ref from "effect/Ref";
+
+// Dynamically load agents from built packages
+const loadAgent = async (agentPath: string): Promise<AgentChecker> => {
+  try {
+    const agentModule = await import(agentPath);
+    return agentModule.default || agentModule;
+  } catch (error) {
+    throw new Error(`Failed to load agent from ${agentPath}: ${error}`);
+  }
+};
+
+export const AVAILABLE_AGENTS: readonly AgentChecker[] = [
+  // These will be loaded dynamically by the agent router
+] as const;
+
+// Function to get all available agents (called by agent router)
+const getAvailableAgentsFromAgents = async (): Promise<
+  readonly AgentChecker[]
+> => {
+  const agentPaths = ["agents/codex", "agents/claude-code", "agents/opencode"];
+
+  const agents: AgentChecker[] = [];
+
+  for (const path of agentPaths) {
+    try {
+      const agent = await loadAgent(path);
+      agents.push(agent);
+    } catch (error) {
+      console.warn(`Failed to load agent from ${path}:`, error);
+      // Continue loading other agents even if one fails
+    }
+  }
+
+  return agents;
+};
 
 export interface Agent {
   readonly name: string;
@@ -31,6 +67,7 @@ export interface SquadModeInput extends RouteQueryInput {
 export interface AgentRouter {
   readonly getAgents: Effect.Effect<readonly Agent[]>;
   readonly getActiveAgents: Effect.Effect<readonly Agent[]>;
+  readonly getAvailableAgents: Effect.Effect<readonly AgentChecker[]>;
   readonly activateAgent: (agentName: string) => Effect.Effect<boolean>;
   readonly deactivateAgent: (agentName: string) => Effect.Effect<boolean>;
   readonly routeQuery: (input: RouteQueryInput) => Effect.Effect<AgentResponse>;
@@ -72,43 +109,53 @@ const createMatcher =
     });
   };
 
-const makeAgents = (): ReadonlyArray<AgentState> => [
-  {
-    name: "claude-code",
-    icon: "🤖",
-    role: "Code review & planning",
-    active: true,
-    matcher: createMatcher("claude", "review", "analyze"),
-  },
-  {
-    name: "codex-nation",
-    icon: "📝",
-    role: "Code generation",
-    active: false,
-    matcher: createMatcher("codex", "generate", "write"),
-  },
-  {
-    name: "cursor-agent",
-    icon: "🖱️",
-    role: "UI/UX implementation",
-    active: false,
-    matcher: createMatcher("cursor", "ui", "interface", "design"),
-  },
-  {
-    name: "open-code",
-    icon: "🌐",
-    role: "Open-source snippet sourcing",
-    active: false,
-    matcher: createMatcher("open-code", "open", "snippet"),
-  },
-  {
-    name: "kilo-code",
-    icon: "⚡",
-    role: "Performance optimization",
-    active: false,
-    matcher: createMatcher("kilo", "optimize", "performance"),
-  },
-];
+const makeAgents = (): Effect.Effect<ReadonlyArray<AgentState>, never> =>
+  pipe(
+    Effect.suspend(() =>
+      Effect.tryPromise(() => getAvailableAgentsFromAgents()).pipe(
+        Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
+      ),
+    ),
+    Effect.flatMap((availableAgents) =>
+      pipe(
+        Effect.forEach(availableAgents, (agentChecker) =>
+          pipe(
+            agentChecker.check(),
+            Effect.map((status: AgentStatus) => {
+              if (status.available) {
+                return {
+                  name: status.name,
+                  icon: agentChecker.definition.icon,
+                  role: agentChecker.definition.role,
+                  active: status.name === "claude-code", // Default claude-code to active
+                  matcher: createMatcher(...agentChecker.definition.keywords),
+                } satisfies AgentState;
+              } else {
+                // Include unavailable agents with inactive status for visibility
+                return {
+                  name: status.name,
+                  icon: agentChecker.definition.icon,
+                  role: `${agentChecker.definition.role} (Not Available)`,
+                  active: false,
+                  matcher: createMatcher(...agentChecker.definition.keywords),
+                } satisfies AgentState;
+              }
+            }),
+            Effect.catchAll(() =>
+              Effect.succeed({
+                name: agentChecker.definition.name,
+                icon: agentChecker.definition.icon,
+                role: `${agentChecker.definition.role} (Check Failed)`,
+                active: false,
+                matcher: createMatcher(...agentChecker.definition.keywords),
+              } satisfies AgentState),
+            ),
+          ),
+        ),
+        Effect.map((agents) => agents as ReadonlyArray<AgentState>),
+      ),
+    ),
+  );
 
 const stripMatcher = (agent: AgentState): Agent => ({
   name: agent.name,
@@ -160,16 +207,19 @@ const selectAgent = (
     return claude;
   }
 
-  return agents[0] ?? makeAgents()[0];
+  const firstAvailable = agents.find((agent) => agent.active);
+  if (firstAvailable) {
+    return firstAvailable;
+  }
+
+  return agents[0];
 };
 
 const sendToAgent = (agent: AgentState, query: string): AgentResponse => {
   const responses: Record<string, string> = {
     "claude-code": `I'll analyze your request: "${query}". Let me review the codebase...`,
-    "codex-nation": `Generating code for: "${query}". Here's what I'll implement...`,
-    "cursor-agent": `Creating UI for: "${query}". Designing the interface...`,
-    "open-code": `Searching open-source solutions for: "${query}"...`,
-    "kilo-code": `Optimizing performance for: "${query}". Analyzing bottlenecks...`,
+    codex: `Generating code for: "${query}". Here's what I'll implement...`,
+    opencode: `Searching open-source solutions for: "${query}"...`,
   };
 
   return {
@@ -183,7 +233,8 @@ const sendToAgent = (agent: AgentState, query: string): AgentResponse => {
 export const AgentRouterLive = Layer.effect(
   AgentRouter,
   Effect.gen(function* () {
-    const agentsRef = yield* Ref.make<ReadonlyArray<AgentState>>(makeAgents());
+    const initialAgents = yield* makeAgents();
+    const agentsRef = yield* Ref.make<ReadonlyArray<AgentState>>(initialAgents);
 
     const getAgents = pipe(
       Ref.get(agentsRef),
@@ -208,6 +259,11 @@ export const AgentRouterLive = Layer.effect(
         Effect.map((agents) => selectAgent(agents, input)),
         Effect.map((agent) => sendToAgent(agent, input.query)),
       );
+
+    const getAvailableAgentsEffect = pipe(
+      Effect.tryPromise(() => getAvailableAgentsFromAgents()),
+      Effect.catchAll(() => Effect.succeed([] as readonly AgentChecker[])),
+    );
 
     const executeSquadMode = ({ agents, ...rest }: SquadModeInput) =>
       Effect.forEach(
@@ -234,6 +290,7 @@ export const AgentRouterLive = Layer.effect(
     const service: AgentRouter = {
       getAgents,
       getActiveAgents,
+      getAvailableAgents: getAvailableAgentsEffect,
       activateAgent,
       deactivateAgent,
       routeQuery,
@@ -254,6 +311,9 @@ const withRouter = <A>(
 
 export const getAgents = withRouter((router) => router.getAgents);
 export const getActiveAgents = withRouter((router) => router.getActiveAgents);
+export const getAvailableAgents = withRouter(
+  (router) => router.getAvailableAgents,
+);
 export const activateAgent = (agentName: string) =>
   withRouter((router) => router.activateAgent(agentName));
 export const deactivateAgent = (agentName: string) =>
@@ -262,3 +322,10 @@ export const routeQuery = (input: RouteQueryInput) =>
   withRouter((router) => router.routeQuery(input));
 export const executeSquadMode = (input: SquadModeInput) =>
   withRouter((router) => router.executeSquadMode(input));
+
+// Re-export types for convenience
+export type {
+  AgentChecker,
+  AgentDefinition,
+  AgentStatus,
+} from "@open-composer/agent-types";

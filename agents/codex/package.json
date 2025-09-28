@@ -1,0 +1,29 @@
+{
+  "name": "@open-composer/agent-codex",
+  "version": "0.1.0",
+  "description": "Codex agent for GitHub Copilot CLI integration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
+  },
+  "keywords": [
+    "agent",
+    "codex",
+    "copilot",
+    "github"
+  ],
+  "author": "Open Composer",
+  "license": "MIT",
+  "dependencies": {
+    "@open-composer/agent-types": "workspace:*",
+    "effect": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

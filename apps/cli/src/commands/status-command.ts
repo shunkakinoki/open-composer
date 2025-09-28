@@ -1,4 +1,5 @@
 import { Command } from "@effect/cli";
+import { getAvailableAgents } from "@open-composer/agent-router";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
@@ -151,8 +152,10 @@ function getPRNumber(
   });
 }
 
-function displayStatus(worktreeStatuses: WorktreeStatus[]) {
-  return Effect.sync(() => {
+function displayStatus(
+  worktreeStatuses: WorktreeStatus[],
+): Effect.Effect<void, never, never> {
+  return Effect.gen(function* () {
     // Group by base branch (assuming all use same base for now)
     const baseBranch = worktreeStatuses[0]?.baseBranch || "main";
 
@@ -172,15 +175,19 @@ function displayStatus(worktreeStatuses: WorktreeStatus[]) {
       }
     });
 
-    // Show agents not running
-    const allAgents = ["codex", "claude-code", "opencode"];
+    // Get available agents and show agents not running
+    const availableAgents = yield* getAvailableAgents;
+    const availableAgentNames = availableAgents.map(
+      (agent: any) => agent.definition.name,
+    );
+
     const runningAgents = worktreeStatuses
       .filter((s) => s.tmuxPid)
-      .map((s) => s.agent);
-    const notRunningAgents = allAgents.filter(
-      (agent) => !runningAgents.includes(agent),
+      .map((s: any) => s.agent);
+    const notRunningAgents = availableAgentNames.filter(
+      (agent: string) => !runningAgents.includes(agent),
     );
-    notRunningAgents.forEach((agent) => {
+    notRunningAgents.forEach((agent: string) => {
       console.log(`- ${agent}: Not running`);
     });
     console.log();

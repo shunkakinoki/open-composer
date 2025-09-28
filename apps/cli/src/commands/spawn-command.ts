@@ -1,4 +1,8 @@
 import { Args, Command, Options } from "@effect/cli";
+import {
+  type AgentChecker,
+  getAvailableAgents,
+} from "@open-composer/agent-router";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
 import * as Effect from "effect/Effect";
@@ -12,8 +16,13 @@ import {
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
 
-// Available agents for spawning
-export const AVAILABLE_AGENTS = ["codex", "claude-code", "opencode"] as const;
+// Function to get available agents from agent router
+export const getAvailableAgentNames = Effect.gen(function* () {
+  const agents = yield* getAvailableAgents;
+  return agents.map(
+    (agent: AgentChecker) => agent.definition.name,
+  ) as readonly string[];
+});
 
 function buildSpawnCommandInternal() {
   const sessionNameArg = Args.text({ name: "session-name" }).pipe(
@@ -80,11 +89,13 @@ function buildSpawnCommandInternal() {
           yield* executeSpawn(spawnConfig);
         } else {
           // Interactive mode - use React component
+          const availableAgentNames = yield* getAvailableAgentNames;
           const spawnConfig = yield* Effect.tryPromise({
             try: async () => {
               return new Promise<SpawnConfig>((resolve, reject) => {
                 const { waitUntilExit } = render(
                   React.createElement(SpawnPrompt, {
+                    availableAgents: availableAgentNames,
                     onComplete: (config: SpawnConfig) => {
                       resolve(config);
                     },
@@ -131,7 +142,7 @@ function executeSpawn(
     const worktreeResults = yield* createWorktreesAndSpawnSessions(config);
 
     // Show the final status output
-    showSpawnOutput(config, worktreeResults);
+    yield* showSpawnOutput(config, worktreeResults);
   });
 }
 
@@ -303,63 +314,66 @@ function createPR(
 function showSpawnOutput(
   config: SpawnConfig,
   worktreeResults: WorktreeResult[],
-) {
-  // Status overview
-  console.log("----------------------------");
-  console.log("Open-Composer Status Overview");
-  console.log("----------------------------");
-  console.log();
-  console.log("Agents Running:");
-  worktreeResults.forEach((result) => {
-    console.log(
-      `- ${result.agent}: Running in ${result.worktreePath} (Tmux PID: ${result.tmuxPid})`,
+): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    // Status overview
+    console.log("----------------------------");
+    console.log("Open-Composer Status Overview");
+    console.log("----------------------------");
+    console.log();
+    console.log("Agents Running:");
+    worktreeResults.forEach((result) => {
+      console.log(
+        `- ${result.agent}: Running in ${result.worktreePath} (Tmux PID: ${result.tmuxPid})`,
+      );
+    });
+    // Show agents not running
+    const availableAgents = yield* getAvailableAgentNames;
+    const runningAgents = worktreeResults.map((r: WorktreeResult) => r.agent);
+    const notRunningAgents = availableAgents.filter(
+      (agent: string) => !runningAgents.includes(agent),
     );
-  });
-  // Show agents not running
-  const runningAgents = worktreeResults.map((r) => r.agent);
-  const notRunningAgents = AVAILABLE_AGENTS.filter(
-    (agent) => !runningAgents.includes(agent),
-  );
-  notRunningAgents.forEach((agent) => {
-    console.log(`- ${agent}: Not running`);
-  });
-  console.log();
+    notRunningAgents.forEach((agent: string) => {
+      console.log(`- ${agent}: Not running`);
+    });
+    console.log();
 
-  // Worktrees & PRs table
-  console.log("Worktrees & PRs:");
-  console.log(
-    "|----------------------------|-------------|-------------|------|--------|---------|------------|",
-  );
-  console.log(
-    "| Worktree                   | Agent       | Base Branch | PR # | Status | Tracked | Changes    |",
-  );
-  console.log(
-    "|----------------------------|-------------|-------------|------|--------|---------|------------|",
-  );
-
-  worktreeResults.forEach((result) => {
-    const prNumber = result.prNumber?.toString() ?? "None";
-    const prStatus = result.prNumber ? "open" : "n/a";
-    const changes = result.changes ?? "0+ 0-";
-
+    // Worktrees & PRs table
+    console.log("Worktrees & PRs:");
     console.log(
-      `| ${result.branchName.padEnd(26)} | ${result.agent.padEnd(11)} | ${config.baseBranch.padEnd(11)} | ${prNumber.padEnd(4)} | ${prStatus.padEnd(6)} | +       | ${changes.padEnd(10)} |`,
+      "|----------------------------|-------------|-------------|------|--------|---------|------------|",
     );
-  });
-  console.log();
-
-  // Stacked PR Graph
-  console.log("Stacked PR Graph:");
-  console.log(`* ${config.baseBranch}`);
-
-  worktreeResults.forEach((result) => {
-    const prNumber = result.prNumber ?? "None";
-    const prStatus = result.prNumber ? "open" : "n/a";
-    const changes = result.changes ?? "0+ 0-";
-
     console.log(
-      `  |- * ${result.worktreePath} (PR #${prNumber}: ${prStatus} +, Changes ${changes})`,
+      "| Worktree                   | Agent       | Base Branch | PR # | Status | Tracked | Changes    |",
     );
+    console.log(
+      "|----------------------------|-------------|-------------|------|--------|---------|------------|",
+    );
+
+    worktreeResults.forEach((result) => {
+      const prNumber = result.prNumber?.toString() ?? "None";
+      const prStatus = result.prNumber ? "open" : "n/a";
+      const changes = result.changes ?? "0+ 0-";
+
+      console.log(
+        `| ${result.branchName.padEnd(26)} | ${result.agent.padEnd(11)} | ${config.baseBranch.padEnd(11)} | ${prNumber.padEnd(4)} | ${prStatus.padEnd(6)} | +       | ${changes.padEnd(10)} |`,
+      );
+    });
+    console.log();
+
+    // Stacked PR Graph
+    console.log("Stacked PR Graph:");
+    console.log(`* ${config.baseBranch}`);
+
+    worktreeResults.forEach((result) => {
+      const prNumber = result.prNumber ?? "None";
+      const prStatus = result.prNumber ? "open" : "n/a";
+      const changes = result.changes ?? "0+ 0-";
+
+      console.log(
+        `  |- * ${result.worktreePath} (PR #${prNumber}: ${prStatus} +, Changes ${changes})`,
+      );
+    });
   });
 }
 
