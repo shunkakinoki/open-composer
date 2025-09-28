@@ -1,7 +1,44 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+// Mock agent router to return some test agents
+mock.module("@open-composer/agent-router", () => ({
+  getAgents: () =>
+    Promise.resolve([
+      {
+        name: "claude-code",
+        icon: "🤖",
+        role: "Code assistant powered by Claude",
+        active: true,
+      },
+      {
+        name: "codex",
+        icon: "📚",
+        role: "Code generation specialist",
+        active: false,
+      },
+    ]),
+  getActiveAgents: () =>
+    Promise.resolve([
+      {
+        name: "claude-code",
+        icon: "🤖",
+        role: "Code assistant powered by Claude",
+        active: true,
+      },
+    ]),
+  activateAgent: () => Promise.resolve(true),
+  deactivateAgent: () => Promise.resolve(true),
+  routeQuery: () =>
+    Promise.resolve({
+      agent: "claude-code",
+      content: "Mock response",
+      timestamp: new Date(),
+      success: true,
+    }),
+}));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
