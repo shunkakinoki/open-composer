@@ -29,7 +29,7 @@ const mockAddWorktree = (options: AddOptions) =>
     prunable: undefined,
   } as Worktree);
 
-const mockListWorktrees = (_options: ListOptions) =>
+const mockListWorktrees = (_options?: ListOptions) =>
   Effect.succeed([
     {
       path: "/path/to/repo",
@@ -67,7 +67,7 @@ const mockMoveWorktree = (options: MoveOptions) =>
     prunable: undefined,
   } as Worktree);
 
-const mockPruneWorktrees = (_options: PruneOptions) => Effect.void;
+const mockPruneWorktrees = (_options?: PruneOptions) => Effect.void;
 
 mock.module("@open-composer/git-worktrees", () => ({
   add: mockAddWorktree,

@@ -20,16 +20,12 @@ const printLines = (lines: ReadonlyArray<string>) =>
     discard: true,
   });
 
-const provideStack = <A, E>(
-  effectOrFn: Effect.Effect<A, E> | (() => Effect.Effect<A, E>),
-) => {
+const provideStack = <A, E>(effectFn: () => Effect.Effect<A, E>) => {
   // In test environment, run the effect and wrap the result in a new Effect
   if (process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test") {
-    const effect = typeof effectOrFn === "function" ? effectOrFn() : effectOrFn;
-    return Effect.sync(() => Effect.runSync(effect));
+    return Effect.sync(() => Effect.runSync(effectFn()));
   }
-  const effect = typeof effectOrFn === "function" ? effectOrFn() : effectOrFn;
-  return effect.pipe(Effect.provide(GitStackLive));
+  return effectFn().pipe(Effect.provide(GitStackLive));
 };
 
 const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
@@ -42,17 +38,73 @@ const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
 
 export class StackService {
   // Allow overriding functions for testing
-  logStack: typeof logStack = logStack;
-  statusStack: typeof statusStack = statusStack;
-  createStackBranch: typeof createStackBranch = createStackBranch;
-  trackStackBranch: typeof trackStackBranch = trackStackBranch;
-  untrackStackBranch: typeof untrackStackBranch = untrackStackBranch;
-  deleteStackBranch: typeof deleteStackBranch = deleteStackBranch;
-  checkoutStackBranch: typeof checkoutStackBranch = checkoutStackBranch;
-  syncStack: typeof syncStack = syncStack;
-  submitStack: typeof submitStack = submitStack;
-  restackStack: typeof restackStack = restackStack;
-  configureStack: typeof configureStack = configureStack;
+  logStack: () => Effect.Effect<ReadonlyArray<string>>;
+  statusStack: () => Effect.Effect<
+    { currentBranch: string; parent?: string; children: ReadonlyArray<string> },
+    GitCommandError
+  >;
+  createStackBranch: (input: {
+    readonly name: string;
+    readonly base?: string;
+  }) => Effect.Effect<{ branch: string; base: string }, GitCommandError>;
+  trackStackBranch: (branch: string, parent: string) => Effect.Effect<void>;
+  untrackStackBranch: (branch: string) => Effect.Effect<void>;
+  deleteStackBranch: (
+    branch: string,
+    force?: boolean,
+  ) => Effect.Effect<void, GitCommandError>;
+  checkoutStackBranch: (branch: string) => Effect.Effect<void, GitCommandError>;
+  syncStack: () => Effect.Effect<ReadonlyArray<string>>;
+  submitStack: () => Effect.Effect<ReadonlyArray<string>, GitCommandError>;
+  restackStack: () => Effect.Effect<ReadonlyArray<string>>;
+  configureStack: (input: { readonly remote: string }) => Effect.Effect<void>;
+
+  constructor(
+    logStackFn?: () => Effect.Effect<ReadonlyArray<string>>,
+    statusStackFn?: () => Effect.Effect<
+      {
+        currentBranch: string;
+        parent?: string;
+        children: ReadonlyArray<string>;
+      },
+      GitCommandError
+    >,
+    createStackBranchFn?: (input: {
+      readonly name: string;
+      readonly base?: string;
+    }) => Effect.Effect<{ branch: string; base: string }, GitCommandError>,
+    trackStackBranchFn?: (
+      branch: string,
+      parent: string,
+    ) => Effect.Effect<void>,
+    untrackStackBranchFn?: (branch: string) => Effect.Effect<void>,
+    deleteStackBranchFn?: (
+      branch: string,
+      force?: boolean,
+    ) => Effect.Effect<void, GitCommandError>,
+    checkoutStackBranchFn?: (
+      branch: string,
+    ) => Effect.Effect<void, GitCommandError>,
+    syncStackFn?: () => Effect.Effect<ReadonlyArray<string>>,
+    submitStackFn?: () => Effect.Effect<ReadonlyArray<string>, GitCommandError>,
+    restackStackFn?: () => Effect.Effect<ReadonlyArray<string>>,
+    configureStackFn?: (input: {
+      readonly remote: string;
+    }) => Effect.Effect<void>,
+  ) {
+    this.logStack = logStackFn ?? (() => logStack);
+    this.statusStack = statusStackFn ?? (() => statusStack);
+    this.createStackBranch = createStackBranchFn ?? createStackBranch;
+    this.trackStackBranch = trackStackBranchFn ?? trackStackBranch;
+    this.untrackStackBranch = untrackStackBranchFn ?? untrackStackBranch;
+    this.deleteStackBranch = deleteStackBranchFn ?? deleteStackBranch;
+    this.checkoutStackBranch = checkoutStackBranchFn ?? checkoutStackBranch;
+    this.syncStack = syncStackFn ?? (() => syncStack);
+    this.submitStack = submitStackFn ?? (() => submitStack);
+    this.restackStack = restackStackFn ?? (() => restackStack);
+    this.configureStack =
+      configureStackFn ?? ((input) => configureStack(input.remote));
+  }
 
   log(): Effect.Effect<void> {
     return provideStack(this.logStack).pipe(Effect.flatMap(printLines));
@@ -74,7 +126,7 @@ export class StackService {
   }
 
   create(name: string, base?: string): Effect.Effect<void> {
-    return provideStack(this.createStackBranch({ name, base })).pipe(
+    return provideStack(() => this.createStackBranch({ name, base })).pipe(
       Effect.flatMap((result) =>
         printLines([
           `Created branch ${result.branch} on top of ${result.base}.`,
@@ -85,7 +137,7 @@ export class StackService {
   }
 
   track(branch: string, parent: string): Effect.Effect<void> {
-    return provideStack(this.trackStackBranch(branch, parent)).pipe(
+    return provideStack(() => this.trackStackBranch(branch, parent)).pipe(
       Effect.flatMap(() =>
         printLines([`Tracking branch ${branch} on top of ${parent}.`]),
       ),
@@ -93,7 +145,7 @@ export class StackService {
   }
 
   untrack(branch: string): Effect.Effect<void> {
-    return provideStack(this.untrackStackBranch(branch)).pipe(
+    return provideStack(() => this.untrackStackBranch(branch)).pipe(
       Effect.flatMap(() =>
         printLines([`Removed tracking for branch ${branch}.`]),
       ),
@@ -101,7 +153,7 @@ export class StackService {
   }
 
   remove(branch: string, force: boolean): Effect.Effect<void> {
-    return provideStack(this.deleteStackBranch(branch, force)).pipe(
+    return provideStack(() => this.deleteStackBranch(branch, force)).pipe(
       Effect.flatMap(() =>
         printLines([`Deleted branch ${branch}${force ? " (force)" : ""}.`]),
       ),
@@ -110,29 +162,33 @@ export class StackService {
   }
 
   checkout(branch: string): Effect.Effect<void> {
-    return provideStack(this.checkoutStackBranch(branch)).pipe(
+    return provideStack(() => this.checkoutStackBranch(branch)).pipe(
       Effect.flatMap(() => printLines([`Checked out branch ${branch}.`])),
       Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
   sync(): Effect.Effect<void> {
-    return provideStack(this.syncStack).pipe(Effect.flatMap(printLines));
+    return provideStack(() => this.syncStack()).pipe(
+      Effect.flatMap(printLines),
+    );
   }
 
   submit(): Effect.Effect<void> {
-    return provideStack(this.submitStack).pipe(
+    return provideStack(() => this.submitStack()).pipe(
       Effect.flatMap(printLines),
       Effect.catchTag("GitCommandError", handleGitError),
     );
   }
 
   restack(): Effect.Effect<void> {
-    return provideStack(this.restackStack).pipe(Effect.flatMap(printLines));
+    return provideStack(() => this.restackStack()).pipe(
+      Effect.flatMap(printLines),
+    );
   }
 
   config(remote: string): Effect.Effect<void> {
-    return provideStack(this.configureStack(remote)).pipe(
+    return provideStack(() => this.configureStack({ remote })).pipe(
       Effect.flatMap(() =>
         printLines([`Set default stack remote to '${remote}'.`]),
       ),
