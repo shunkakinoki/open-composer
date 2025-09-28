@@ -22,10 +22,10 @@ import * as Effect from "effect/Effect";
 import { ChatInterface } from "../../src/components/ChatInterface.js";
 import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
+import { GitWorktreeCreatePrompt } from "../../src/components/GitWorktreeCreatePrompt.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
 import { TelemetryConsentPrompt } from "../../src/components/TelemetryConsentPrompt.js";
-import { GitWorktreeCreatePrompt } from "../../src/components/GitWorktreeCreatePrompt.js";
 import { GitWorktreeCli } from "../../src/lib/index.js";
 import { render } from "../utils.js";
 

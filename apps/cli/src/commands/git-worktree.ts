@@ -74,25 +74,29 @@ function buildCreateCommand() {
     Command.withHandler((config) =>
       Effect.gen(function* (_) {
         yield* _(trackCommand("gw", "create"));
-        yield* _(trackFeatureUsage("git_worktree_create", {
-          has_ref: Option.isSome(config.ref),
-          has_branch: Option.isSome(config.branch),
-          force: config.force,
-          detach: config.detach,
-          no_checkout: config.noCheckout,
-          branch_force: config.branchForce,
-        }));
+        yield* _(
+          trackFeatureUsage("git_worktree_create", {
+            has_ref: Option.isSome(config.ref),
+            has_branch: Option.isSome(config.branch),
+            force: config.force,
+            detach: config.detach,
+            no_checkout: config.noCheckout,
+            branch_force: config.branchForce,
+          }),
+        );
 
         const cli = yield* _(GitWorktreeCli.make());
-        yield* _(cli.create({
-          path: config.path,
-          ref: config.ref.pipe(Option.getOrUndefined),
-          branch: config.branch.pipe(Option.getOrUndefined),
-          force: config.force,
-          detach: config.detach,
-          checkout: config.noCheckout ? false : undefined,
-          branchForce: config.branchForce,
-        }));
+        yield* _(
+          cli.create({
+            path: config.path,
+            ref: config.ref.pipe(Option.getOrUndefined),
+            branch: config.branch.pipe(Option.getOrUndefined),
+            force: config.force,
+            detach: config.detach,
+            checkout: config.noCheckout ? false : undefined,
+            branchForce: config.branchForce,
+          }),
+        );
       }),
     ),
   );
@@ -120,16 +124,20 @@ function buildEditCommand() {
     Command.withHandler((config) =>
       Effect.gen(function* (_) {
         yield* _(trackCommand("gw", "edit"));
-        yield* _(trackFeatureUsage("git_worktree_edit", {
-          force: config.force,
-        }));
+        yield* _(
+          trackFeatureUsage("git_worktree_edit", {
+            force: config.force,
+          }),
+        );
 
         const cli = yield* _(GitWorktreeCli.make());
-        yield* _(cli.edit({
-          from: config.from,
-          to: config.to,
-          force: config.force,
-        }));
+        yield* _(
+          cli.edit({
+            from: config.from,
+            to: config.to,
+            force: config.force,
+          }),
+        );
       }),
     ),
   );

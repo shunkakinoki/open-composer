@@ -61,17 +61,20 @@ export const GitWorktreeCreatePrompt: React.FC<
   };
 
   const toggleOption = (
-    option: keyof Pick<GitWorktreeCreateOptions, "force" | "detach" | "noCheckout" | "branchForce">,
+    option: keyof Pick<
+      GitWorktreeCreateOptions,
+      "force" | "detach" | "noCheckout" | "branchForce"
+    >,
   ) => {
     updateOption(option, !options[option]);
   };
 
   useInput(
     (input, key) => {
-      if (key.tab) {
-        nextField();
-      } else if (key.shift && key.tab) {
+      if (key.shift && key.tab) {
         prevField();
+      } else if (key.tab) {
+        nextField();
       } else if (key.return) {
         if (currentField === "options") {
           handleSubmit();
@@ -109,10 +112,15 @@ export const GitWorktreeCreatePrompt: React.FC<
             "branchForce",
           ];
           const currentIndex = optionOrder.indexOf("force"); // Start with force
-          const nextIndex = key.upArrow
+          const _nextIndex = key.upArrow
             ? (currentIndex - 1 + optionOrder.length) % optionOrder.length
             : (currentIndex + 1) % optionOrder.length;
-          toggleOption(optionOrder[currentIndex] as keyof Pick<GitWorktreeCreateOptions, "force" | "detach" | "noCheckout" | "branchForce">);
+          toggleOption(
+            optionOrder[currentIndex] as keyof Pick<
+              GitWorktreeCreateOptions,
+              "force" | "detach" | "noCheckout" | "branchForce"
+            >,
+          );
         }
       }
     },
@@ -129,7 +137,9 @@ export const GitWorktreeCreatePrompt: React.FC<
       <Text color="cyan">{fieldName}:</Text>
       <Text
         color={
-          currentField === (fieldName.toLowerCase() as any) ? "green" : "gray"
+          currentField === fieldName.toLowerCase() as typeof currentField
+            ? "green"
+            : "gray"
         }
       >
         {value || placeholder}
