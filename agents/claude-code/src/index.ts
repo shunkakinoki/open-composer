@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type {
   AgentChecker,
   AgentDefinition,
@@ -14,12 +16,35 @@ const definition: AgentDefinition = {
   keywords: ["claude", "review", "analyze", "plan"],
 } as const;
 
+// Quick check if command might be available using 'which' or common paths
+const commandMightExist = (command: string): Effect.Effect<boolean, never> =>
+  Effect.sync(() => {
+    try {
+      execSync(`which ${command}`, {
+        encoding: "utf8",
+        timeout: 500, // Very short timeout for existence check
+        stdio: "pipe",
+      });
+      return true;
+    } catch {
+      // Check common installation paths as fallback
+      const commonPaths = [
+        "/usr/local/bin",
+        "/usr/bin",
+        "/opt/homebrew/bin", // macOS Homebrew
+        "/home/linuxbrew/.linuxbrew/bin", // Linux Homebrew
+        join(process.env.HOME || "", ".local/bin"),
+      ];
+      return commonPaths.some((path) => existsSync(join(path, command)));
+    }
+  });
+
 const execCommand = (command: string): Effect.Effect<string, Error> =>
   Effect.try({
     try: () =>
       execSync(command, {
         encoding: "utf8",
-        timeout: 5000,
+        timeout: 1000, // Reduced from 5000ms for faster agent checking
         stdio: "pipe", // Suppress output to console
       }),
     catch: (error) =>
@@ -30,12 +55,19 @@ const checkCommand = (
   command: string,
 ): Effect.Effect<{ version?: string; path: string }, Error> =>
   pipe(
-    execCommand(`${command} --version`),
-    Effect.map((result) => {
-      const versionMatch = result.match(/(\d+\.\d+\.\d+)/);
-      const version = versionMatch ? versionMatch[0] : undefined;
-      return { version, path: command };
-    }),
+    commandMightExist(command),
+    Effect.flatMap((exists) =>
+      exists
+        ? pipe(
+            execCommand(`${command} --version`),
+            Effect.map((result) => {
+              const versionMatch = result.match(/(\d+\.\d+\.\d+)/);
+              const version = versionMatch ? versionMatch[0] : undefined;
+              return { version, path: command };
+            }),
+          )
+        : Effect.fail(new Error(`Command not found: ${command}`)),
+    ),
   );
 
 const checkInstallation = (): Effect.Effect<AgentStatus> =>

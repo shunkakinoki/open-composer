@@ -24,7 +24,7 @@ describe("Claude Code Agent", () => {
   });
 
   test("check function returns AgentStatus effect", async () => {
-    // Mock execSync to avoid slow system calls during testing
+    // Mock execSync to avoid system calls during testing (optimized for speed)
     const execSyncMock = mock(() => "claude version 0.1.0");
 
     mock.module("node:child_process", () => ({

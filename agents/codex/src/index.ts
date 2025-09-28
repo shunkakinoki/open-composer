@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type {
   AgentChecker,
   AgentDefinition,
@@ -13,33 +15,80 @@ const definition: AgentDefinition = {
   keywords: ["codex", "generate", "write", "code"],
 } as const;
 
-const execCommand = (command: string): Effect.Effect<string, Error> =>
-  Effect.try({
-    try: () =>
-      execSync(command, {
+// Quick check if command might be available using 'which' or common paths
+const commandMightExist = (command: string): Effect.Effect<boolean, never> =>
+  Effect.sync(() => {
+    try {
+      execSync(`which ${command}`, {
         encoding: "utf8",
-        timeout: 5000,
-        stdio: "pipe", // Suppress output to console
-      }),
-    catch: (error) =>
-      new Error(`Command failed: ${command} - ${(error as Error).message}`),
+        timeout: 500, // Very short timeout for existence check
+        stdio: "pipe",
+      });
+      return true;
+    } catch {
+      // Check common installation paths as fallback
+      const commonPaths = [
+        "/usr/local/bin",
+        "/usr/bin",
+        "/opt/homebrew/bin", // macOS Homebrew
+        "/home/linuxbrew/.linuxbrew/bin", // Linux Homebrew
+        join(process.env.HOME || "", ".local/bin"),
+      ];
+      return commonPaths.some((path) => existsSync(join(path, command)));
+    }
   });
 
 const checkInstallation = (): Effect.Effect<AgentStatus> =>
   Effect.gen(function* () {
-    // Check if Codex is available
-    const result = yield* execCommand("codex --version");
+    // Check if both codex and gh commands exist
+    const [codexExists, ghExists] = yield* Effect.all(
+      [commandMightExist("codex"), commandMightExist("gh")],
+      { concurrency: "unbounded" },
+    );
 
-    const versionMatch = result.match(/version\s+([\d.]+)/i);
-    const version = versionMatch ? versionMatch[1] : undefined;
+    if (!codexExists) {
+      return {
+        name: "codex",
+        available: false,
+        error: "Codex CLI not found. Please install GitHub Copilot CLI.",
+      } satisfies AgentStatus;
+    }
 
-    // Check if copilot is properly authenticated
-    yield* execCommand("gh auth status");
+    if (!ghExists) {
+      return {
+        name: "codex",
+        available: false,
+        error: "GitHub CLI not found. Please install GitHub CLI.",
+      } satisfies AgentStatus;
+    }
+
+    // Run version and auth checks in parallel
+    const [versionResult] = yield* Effect.all(
+      [
+        Effect.try(() => {
+          const result = execSync("codex --version", {
+            encoding: "utf8",
+            timeout: 1000,
+            stdio: "pipe",
+          });
+          const versionMatch = result.match(/version\s+([\d.]+)/i);
+          return versionMatch ? versionMatch[1] : undefined;
+        }),
+        Effect.try(() =>
+          execSync("gh auth status", {
+            encoding: "utf8",
+            timeout: 1000,
+            stdio: "pipe",
+          }),
+        ),
+      ],
+      { concurrency: "unbounded" },
+    );
 
     return {
       name: "codex",
       available: true,
-      version,
+      version: versionResult,
       path: "gh copilot",
     } satisfies AgentStatus;
   }).pipe(
