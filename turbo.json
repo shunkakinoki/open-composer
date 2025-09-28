@@ -25,14 +25,28 @@
     "prepublishOnly": {
       "dependsOn": ["^build", "^prepublishOnly"]
     },
+    "__all__": {
+      "dependsOn": [
+        "build",
+        "type-check",
+        "test",
+        "//#__format__",
+        "//#__check__",
+        "//#__lint__"
+      ]
+    },
     "//#__lint__": {
       "dependsOn": ["//#__check__"]
     },
     "//#__format__": {
-      "dependsOn": ["^format"]
+      "dependsOn": ["//#__fix__"]
     },
     "//#__check__": {
-      "dependsOn": ["//#biome:check:check", "//#biome:format:check"]
+      "dependsOn": [
+        "^type-check",
+        "//#biome:check:check",
+        "//#biome:format:check"
+      ]
     },
     "//#__fix__": {
       "dependsOn": ["//#biome:check:fix", "//#biome:format:fix"]

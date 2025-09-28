@@ -1,9 +1,12 @@
 import { describe, expect, it, mock, spyOn } from "bun:test";
+import {
+  ConfigService,
+  type ConfigServiceInterface,
+  defaultConfig,
+} from "@open-composer/config";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 import { AgentService } from "../../src/services/agent-service.js";
-
-// Mock console.log to capture output
-const mockConsoleLog = spyOn(console, "log");
 
 // Mock agent router to return some test agents
 mock.module("@open-composer/agent-router", () => {
@@ -58,6 +61,22 @@ mock.module("@open-composer/agent-router", () => {
   };
 });
 
+// Mock ConfigService for tests
+const mockConfigService: ConfigServiceInterface = {
+  getConfig: () => Effect.succeed(defaultConfig),
+  updateConfig: () => Effect.succeed(defaultConfig),
+  setTelemetryConsent: () => Effect.succeed(defaultConfig),
+  getTelemetryConsent: () => Effect.succeed(false),
+  getAgentCache: () => Effect.succeed(undefined),
+  updateAgentCache: () => Effect.succeed(defaultConfig),
+  clearAgentCache: () => Effect.succeed(defaultConfig),
+};
+
+const MockConfigLive = Layer.succeed(ConfigService, mockConfigService);
+
+// Mock console.log to capture output
+const mockConsoleLog = spyOn(console, "log");
+
 describe("AgentService", () => {
   describe("list", () => {
     it("should list all agents when activeOnly is false", async () => {
@@ -65,7 +84,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.list({ activeOnly: false }),
+        service
+          .list({ activeOnly: false })
+          .pipe(Effect.provide(MockConfigLive)),
       );
 
       // The effect should complete without error
@@ -86,7 +107,7 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.list({ activeOnly: true }),
+        service.list({ activeOnly: true }).pipe(Effect.provide(MockConfigLive)),
       );
 
       // The effect should complete without error
@@ -110,7 +131,9 @@ describe("AgentService", () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(service.activate("claude-code"));
+      const result = await Effect.runPromise(
+        service.activate("claude-code").pipe(Effect.provide(MockConfigLive)),
+      );
 
       // The effect should complete without error
       expect(result).toBeUndefined();
@@ -124,7 +147,9 @@ describe("AgentService", () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(service.activate("nonexistent"));
+      const result = await Effect.runPromise(
+        service.activate("nonexistent").pipe(Effect.provide(MockConfigLive)),
+      );
 
       // The effect should complete without error
       expect(result).toBeUndefined();
@@ -140,7 +165,9 @@ describe("AgentService", () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(service.deactivate("claude-code"));
+      const result = await Effect.runPromise(
+        service.deactivate("claude-code").pipe(Effect.provide(MockConfigLive)),
+      );
 
       // The effect should complete without error
       expect(result).toBeUndefined();
@@ -154,7 +181,9 @@ describe("AgentService", () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(service.deactivate("nonexistent"));
+      const result = await Effect.runPromise(
+        service.deactivate("nonexistent").pipe(Effect.provide(MockConfigLive)),
+      );
 
       // The effect should complete without error
       expect(result).toBeUndefined();
@@ -171,7 +200,9 @@ describe("AgentService", () => {
       const service = new AgentService(["open-composer"]);
 
       const result = await Effect.runPromise(
-        service.route({ query: "test query" }),
+        service
+          .route({ query: "test query" })
+          .pipe(Effect.provide(MockConfigLive)),
       );
 
       // The effect should complete without error

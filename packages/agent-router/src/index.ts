@@ -391,7 +391,9 @@ export const AgentRouterLive = Layer.effect(
               pipe(
                 Ref.set(agentsRef, loadedAgents),
                 Effect.map(() =>
-                  loadedAgents.filter((agent) => agent.active).map(stripMatcher),
+                  loadedAgents
+                    .filter((agent) => agent.active)
+                    .map(stripMatcher),
                 ),
               ),
             ),
@@ -454,7 +456,9 @@ export const AgentRouterLive = Layer.effect(
           Effect.forEach(
             agents,
             (agentName) => {
-              const found = agentStates.find((agent) => agent.name === agentName);
+              const found = agentStates.find(
+                (agent) => agent.name === agentName,
+              );
               if (!found) {
                 return Effect.succeed({
                   agent: agentName,

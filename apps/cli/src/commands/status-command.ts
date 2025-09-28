@@ -3,6 +3,7 @@ import {
   type AgentChecker,
   getAvailableAgents,
 } from "@open-composer/agent-router";
+import type { ConfigServiceInterface } from "@open-composer/config";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
@@ -157,7 +158,7 @@ function getPRNumber(
 
 function displayStatus(
   worktreeStatuses: WorktreeStatus[],
-): Effect.Effect<void, never, never> {
+): Effect.Effect<void, never, ConfigServiceInterface> {
   return Effect.gen(function* () {
     // Group by base branch (assuming all use same base for now)
     const baseBranch = worktreeStatuses[0]?.baseBranch || "main";

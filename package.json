@@ -6,6 +6,7 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "dev": "turbo run dev",
     "dev:microfrontends": "microfrontends proxy --local-apps landing,docs",
+    "all": "turbo run __all__",
     "lint": "turbo run __lint__",
     "fix": "turbo run __fix__",
     "check": "turbo run __check__",
