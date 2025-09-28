@@ -6,6 +6,9 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
+    "//#__lint__": {
+      "dependsOn": ["//#__check__"]
+    },
     "//#__fix__": {
       "dependsOn": ["check:fix", "format:fix"]
     },
