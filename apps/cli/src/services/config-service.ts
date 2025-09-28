@@ -1,35 +1,22 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { Context, Effect, Layer } from "effect";
+import {
+  type AgentCache,
+  ConfigService as ConfigServiceTag,
+  defaultConfig,
+  type UserConfig,
+} from "@open-composer/config";
+import { Effect, Layer } from "effect";
 
-// Telemetry configuration interface
-export interface TelemetryConfig {
-  readonly enabled: boolean;
-  readonly apiKey?: string;
-  readonly host?: string;
-  readonly distinctId?: string;
-  readonly consentedAt?: string;
-  readonly version?: string;
-  readonly anonymousId?: string;
-}
+// Re-export types for backward compatibility
+export type {
+  AgentCache,
+  TelemetryConfig,
+  UserConfig,
+} from "@open-composer/config";
 
-// Configuration interface
-export interface UserConfig {
-  readonly telemetry?: TelemetryConfig;
-  readonly version: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-// Default configuration
-const defaultConfig: UserConfig = {
-  version: "1.0.0",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
-// Config service interface
+// Config service interface (extending the shared interface)
 export interface ConfigServiceInterface {
   readonly getConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly updateConfig: (
@@ -39,12 +26,19 @@ export interface ConfigServiceInterface {
     enabled: boolean,
   ) => Effect.Effect<UserConfig, never, never>;
   readonly getTelemetryConsent: () => Effect.Effect<boolean, never, never>;
+  readonly getAgentCache: () => Effect.Effect<
+    AgentCache | undefined,
+    never,
+    never
+  >;
+  readonly updateAgentCache: (
+    cache: AgentCache,
+  ) => Effect.Effect<UserConfig, never, never>;
+  readonly clearAgentCache: () => Effect.Effect<UserConfig, never, never>;
 }
 
-// Config service tag
-export const ConfigService = Context.GenericTag<ConfigServiceInterface>(
-  "@open-composer/config/ConfigService",
-);
+// Config service tag (using the shared one)
+export const ConfigService = ConfigServiceTag;
 
 // Get config directory path
 function getConfigDir(): string {
@@ -159,6 +153,81 @@ const createConfigService = (): ConfigServiceInterface => {
           return false;
         }
       }),
+
+    getAgentCache: () =>
+      Effect.promise(async () => {
+        const configPath = getConfigPath();
+
+        try {
+          const content = await readFile(configPath, "utf-8");
+          const config = JSON.parse(content) as UserConfig;
+          return config.agentCache;
+        } catch {
+          return undefined;
+        }
+      }),
+
+    updateAgentCache: (cache: AgentCache) =>
+      Effect.promise(async () => {
+        const configPath = getConfigPath();
+
+        let currentConfig: UserConfig;
+        try {
+          const content = await readFile(configPath, "utf-8");
+          currentConfig = JSON.parse(content) as UserConfig;
+        } catch {
+          currentConfig = defaultConfig;
+        }
+
+        const updatedConfig: UserConfig = {
+          ...currentConfig,
+          agentCache: cache,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Ensure config directory exists
+        await mkdir(getConfigDir(), { recursive: true });
+
+        // Write config file
+        await writeFile(
+          getConfigPath(),
+          JSON.stringify(updatedConfig, null, 2),
+          "utf-8",
+        );
+
+        return updatedConfig;
+      }),
+
+    clearAgentCache: () =>
+      Effect.promise(async () => {
+        const configPath = getConfigPath();
+
+        let currentConfig: UserConfig;
+        try {
+          const content = await readFile(configPath, "utf-8");
+          currentConfig = JSON.parse(content) as UserConfig;
+        } catch {
+          currentConfig = defaultConfig;
+        }
+
+        const updatedConfig: UserConfig = {
+          ...currentConfig,
+          agentCache: undefined,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Ensure config directory exists
+        await mkdir(getConfigDir(), { recursive: true });
+
+        // Write config file
+        await writeFile(
+          getConfigPath(),
+          JSON.stringify(updatedConfig, null, 2),
+          "utf-8",
+        );
+
+        return updatedConfig;
+      }),
   };
 };
 
@@ -167,15 +236,6 @@ export const ConfigLive = Layer.effect(
   ConfigService,
   Effect.succeed(createConfigService()),
 );
-
-// Helper functions for common operations
-export const getTelemetryConsent = () =>
-  ConfigService.pipe(Effect.flatMap((config) => config.getTelemetryConsent()));
-
-export const setTelemetryConsent = (enabled: boolean) =>
-  ConfigService.pipe(
-    Effect.flatMap((config) => config.setTelemetryConsent(enabled)),
-  );
 
 export const promptForTelemetryConsent = () =>
   Effect.gen(function* (_) {

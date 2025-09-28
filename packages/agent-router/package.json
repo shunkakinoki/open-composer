@@ -20,6 +20,7 @@
     "@open-composer/agent-codex": "workspace:*",
     "@open-composer/agent-opencode": "workspace:*",
     "@open-composer/agent-types": "workspace:*",
+    "@open-composer/config": "workspace:*",
     "effect": "^3.17.14"
   },
   "devDependencies": {

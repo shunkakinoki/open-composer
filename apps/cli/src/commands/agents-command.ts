@@ -1,4 +1,6 @@
 import { Args, Command, Options } from "@effect/cli";
+import { refreshAgentCache } from "@open-composer/agent-router";
+import { type AgentCache, updateAgentCache } from "@open-composer/config";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { AgentService } from "../services/agent-service.js";
@@ -14,6 +16,7 @@ export function buildAgentsCommand() {
       buildListCommand(),
       buildActivateCommand(),
       buildDeactivateCommand(),
+      buildRefreshCommand(),
       buildRouteCommand(),
     ]),
   );
@@ -77,6 +80,46 @@ export function buildDeactivateCommand() {
 
         const cli = yield* AgentService.make();
         yield* cli.deactivate(config.agent);
+      }),
+    ),
+  );
+}
+
+export function buildRefreshCommand() {
+  return Command.make("refresh").pipe(
+    Command.withDescription("Refresh agent availability cache"),
+    Command.withHandler(() =>
+      Effect.gen(function* () {
+        yield* trackCommand("agents", "refresh");
+        yield* trackFeatureUsage("agent_refresh", {});
+
+        yield* Effect.sync(() => {
+          console.log("Refreshing agent availability cache...");
+        });
+
+        const agents = yield* refreshAgentCache();
+
+        // Update cache with fresh results
+        const cacheData: AgentCache = {
+          agents: agents.map((agent) => ({
+            name: agent.definition.name,
+            available: true, // All returned agents are available
+            lastChecked: new Date().toISOString(),
+          })),
+          lastUpdated: new Date().toISOString(),
+        };
+
+        yield* updateAgentCache(cacheData);
+
+        yield* Effect.sync(() => {
+          console.log(`Found ${agents.length} available agents:`);
+          agents.forEach((agent) => {
+            console.log(
+              `  - ${agent.definition.name}: ${agent.definition.role}`,
+            );
+          });
+          console.log("Agent cache refreshed successfully.");
+        });
       }),
     ),
   );

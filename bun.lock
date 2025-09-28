@@ -137,6 +137,7 @@
         "@open-composer/agent-codex": "workspace:*",
         "@open-composer/agent-opencode": "workspace:*",
         "@open-composer/agent-types": "workspace:*",
+        "@open-composer/config": "workspace:*",
         "effect": "^3.17.14",
       },
       "devDependencies": {
@@ -144,6 +145,21 @@
         "@types/bun": "^1.2.22",
         "@types/node": "^24.5.2",
         "typescript": "^5.9.2",
+      },
+    },
+    "packages/config": {
+      "name": "@open-composer/config",
+      "version": "0.1.0",
+      "dependencies": {
+        "effect": "^3.0.0",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.0.0",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+      },
+      "peerDependencies": {
+        "effect": "^3.0.0",
       },
     },
     "packages/db": {
@@ -535,6 +551,8 @@
     "@open-composer/agent-router": ["@open-composer/agent-router@workspace:packages/agent-router"],
 
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
+
+    "@open-composer/config": ["@open-composer/config@workspace:packages/config"],
 
     "@open-composer/db": ["@open-composer/db@workspace:packages/db"],
 

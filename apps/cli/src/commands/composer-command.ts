@@ -52,8 +52,8 @@ const baseLayer = Layer.mergeAll(
   DatabaseLive,
   GitLive,
   GitStackLive,
-  AgentRouterLive,
   ConfigLive,
+  AgentRouterLive,
   SettingsLive,
 );
 
