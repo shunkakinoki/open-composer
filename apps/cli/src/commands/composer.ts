@@ -19,6 +19,8 @@ import {
 import { TelemetryLive, type TelemetryService } from "../services/telemetry.js";
 import { buildAgentsCommand } from "./agents.js";
 import { buildGitWorktreeCommand } from "./git-worktree.js";
+import { buildPRCreateCommand } from "./pr-create.js";
+import { buildSessionsCommand } from "./sessions.js";
 import { buildSettingsCommand } from "./settings.js";
 import { buildStackCommand } from "./stack.js";
 import { buildTelemetryCommand } from "./telemetry.js";
@@ -59,6 +61,8 @@ export function buildRootCommand() {
       buildTUICommand(),
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
+      buildPRCreateCommand(),
+      buildSessionsCommand(),
       buildSettingsCommand(),
       buildStackCommand(),
       buildTelemetryCommand(),
