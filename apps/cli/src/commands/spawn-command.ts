@@ -1,10 +1,5 @@
 import { Args, Command, Options } from "@effect/cli";
-import {
-  type GitCommandError,
-  GitLive,
-  type GitService,
-  run,
-} from "@open-composer/git";
+import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -16,6 +11,9 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+
+// Available agents for spawning
+export const AVAILABLE_AGENTS = ["codex", "claude-code", "opencode"] as const;
 
 function buildSpawnCommandInternal() {
   const sessionNameArg = Args.text({ name: "session-name" }).pipe(
@@ -82,30 +80,38 @@ function buildSpawnCommandInternal() {
           yield* executeSpawn(spawnConfig);
         } else {
           // Interactive mode - use React component
-          return yield* Effect.tryPromise({
+          const spawnConfig = yield* Effect.tryPromise({
             try: async () => {
-              const { waitUntilExit } = render(
-                React.createElement(SpawnPrompt, {
-                  onComplete: (spawnConfig: SpawnConfig) => {
-                    Effect.runPromise(
-                      executeSpawn(spawnConfig).pipe(Effect.provide(GitLive)),
-                    ).catch(console.error);
-                  },
-                  onCancel: () => {
-                    console.log("❌ Spawn cancelled");
-                    process.exit(0);
-                  },
-                }),
-              );
-              await waitUntilExit();
+              return new Promise<SpawnConfig>((resolve, reject) => {
+                const { waitUntilExit } = render(
+                  React.createElement(SpawnPrompt, {
+                    onComplete: (config: SpawnConfig) => {
+                      resolve(config);
+                    },
+                    onCancel: () => {
+                      reject(new Error("Spawn cancelled by user"));
+                    },
+                  }),
+                );
+                waitUntilExit().catch(reject);
+              });
             },
-            catch: (error) =>
-              new Error(
+            catch: (error) => {
+              if (
+                error instanceof Error &&
+                error.message === "Spawn cancelled by user"
+              ) {
+                return error;
+              }
+              return new Error(
                 `Failed to start interactive spawn: ${
                   error instanceof Error ? error.message : String(error)
                 }`,
-              ),
+              );
+            },
           });
+
+          yield* executeSpawn(spawnConfig);
         }
       }),
     ),
@@ -138,6 +144,62 @@ interface WorktreeResult {
   changes?: string;
 }
 
+function createWorktreeAndSpawnSession(
+  agent: string,
+  config: SpawnConfig,
+): Effect.Effect<
+  WorktreeResult,
+  Error | TmuxCommandError | GitCommandError,
+  GitService
+> {
+  return Effect.gen(function* () {
+    const branchName = `${agent}-branch`;
+    const worktreePath = `./worktrees/${config.sessionName}/${branchName}`;
+
+    // Create worktree
+    const gitWorktreeService = yield* GitWorktreeService.make();
+    yield* gitWorktreeService.create({
+      path: worktreePath,
+      ref: config.baseBranch,
+      branch: branchName,
+      force: false,
+      detach: false,
+      checkout: true,
+      branchForce: false,
+    });
+
+    console.log(`Created worktree at ${worktreePath}`);
+    console.log(`Created branch '${branchName}' from ${config.baseBranch}`);
+
+    // Spawn tmux session
+    const tmuxPid = yield* spawnTmuxSession(agent, worktreePath, branchName);
+    console.log(
+      `Spawned tmux session open-composer-${branchName} with ${agent}`,
+    );
+
+    // Calculate change stats
+    const changes = yield* calculateChangeStats(
+      worktreePath,
+      config.baseBranch,
+    );
+
+    // Create PR if requested
+    let prNumber: number | undefined;
+    if (config.createPR) {
+      prNumber = yield* createPR(branchName, config.baseBranch);
+    }
+
+    return {
+      agent,
+      branchName,
+      worktreePath,
+      tmuxPid,
+      prNumber,
+      changes,
+    };
+  });
+}
+
 function createWorktreesAndSpawnSessions(
   config: SpawnConfig,
 ): Effect.Effect<
@@ -145,67 +207,23 @@ function createWorktreesAndSpawnSessions(
   Error | TmuxCommandError | GitCommandError,
   GitService
 > {
-  return Effect.gen(function* () {
-    const results: WorktreeResult[] = [];
-
-    for (const agent of config.agents) {
-      const branchName = `${agent}-branch`;
-      const worktreePath = `./worktrees/${config.sessionName}/${branchName}`;
-
-      try {
-        // Create worktree
-        const gitWorktreeService = yield* GitWorktreeService.make();
-        yield* gitWorktreeService.create({
-          path: worktreePath,
-          ref: config.baseBranch,
-          branch: branchName,
-          force: false,
-          detach: false,
-          checkout: true,
-          branchForce: false,
-        });
-
-        console.log(`Created worktree at ${worktreePath}`);
-        console.log(`Created branch '${branchName}' from ${config.baseBranch}`);
-
-        // Spawn tmux session (simulated for now)
-        const tmuxPid = yield* spawnTmuxSession(
-          agent,
-          worktreePath,
-          branchName,
-        );
-        console.log(
-          `Spawned tmux session open-composer-${branchName} with ${agent}`,
-        );
-
-        // Calculate change stats
-        const changes = yield* calculateChangeStats(
-          worktreePath,
-          config.baseBranch,
-        );
-
-        // Create PR if requested
-        let prNumber: number | undefined;
-        if (config.createPR) {
-          prNumber = yield* createPR(branchName, config.baseBranch);
-        }
-
-        results.push({
-          agent,
-          branchName,
-          worktreePath,
-          tmuxPid,
-          prNumber,
-          changes,
-        });
-      } catch (error) {
-        console.error(`Failed to create worktree for ${agent}:`, error);
-        // Continue with other agents
-      }
-    }
-
-    return results;
-  });
+  return Effect.forEach(
+    config.agents,
+    (agent) =>
+      createWorktreeAndSpawnSession(agent, config).pipe(
+        Effect.catchAll((error) => {
+          console.error(`Failed to create worktree for ${agent}:`, error);
+          // Return an empty result for failed agents to continue with others
+          return Effect.succeed({
+            agent,
+            branchName: `${agent}-branch`,
+            worktreePath: `./worktrees/${config.sessionName}/${agent}-branch`,
+            changes: "0+ 0-",
+          });
+        }),
+      ),
+    { concurrency: 1 }, // Process agents sequentially
+  );
 }
 
 function spawnTmuxSession(
@@ -243,14 +261,11 @@ function spawnTmuxSession(
 function calculateChangeStats(
   worktreePath: string,
   baseBranch: string,
-): Effect.Effect<string, Error | GitCommandError> {
-  return Effect.gen(function* () {
-    try {
-      // Run git diff --stat to get change statistics
-      const result = yield* run(["diff", "--stat", `${baseBranch}..HEAD`], {
-        cwd: worktreePath,
-      });
-
+): Effect.Effect<string, never> {
+  return run(["diff", "--stat", `${baseBranch}..HEAD`], {
+    cwd: worktreePath,
+  }).pipe(
+    Effect.map((result) => {
       // Parse the output to extract added and removed lines
       const lines = result.stdout.split("\n");
       const statLine = lines[lines.length - 1]; // Last line contains the summary
@@ -267,11 +282,9 @@ function calculateChangeStats(
       const deletions = deletionsMatch ? parseInt(deletionsMatch[1], 10) : 0;
 
       return `${insertions}+ ${deletions}-`;
-    } catch (_error) {
-      // If git diff fails (e.g., no changes), return 0+ 0-
-      return "0+ 0-";
-    }
-  });
+    }),
+    Effect.catchAll(() => Effect.succeed("0+ 0-")),
+  );
 }
 
 function createPR(
@@ -303,9 +316,8 @@ function showSpawnOutput(
     );
   });
   // Show agents not running
-  const allAgents = ["codex", "claude-code", "opencode"];
   const runningAgents = worktreeResults.map((r) => r.agent);
-  const notRunningAgents = allAgents.filter(
+  const notRunningAgents = AVAILABLE_AGENTS.filter(
     (agent) => !runningAgents.includes(agent),
   );
   notRunningAgents.forEach((agent) => {

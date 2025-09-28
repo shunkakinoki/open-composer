@@ -1,5 +1,4 @@
-import * as Effect from "effect/Effect";
-import { TmuxService } from "./core.js";
+import type { TmuxService } from "./core.js";
 
 // Core tmux functionality
 export {
@@ -10,24 +9,20 @@ export {
   type TmuxSessionInfo,
 } from "./core.js";
 
-export const newSession = (
-  sessionName: string,
-  command?: string,
-  options?: Parameters<TmuxService["newSession"]>[2],
-) =>
-  TmuxService.make().pipe(
-    Effect.flatMap((service) =>
-      service.newSession(sessionName, command, options),
-    ),
-  );
+export const newSession =
+  (
+    sessionName: string,
+    command?: string,
+    options?: Parameters<TmuxService["newSession"]>[2],
+  ) =>
+  (service: TmuxService) =>
+    service.newSession(sessionName, command, options);
 
-export const listSessions = () =>
-  TmuxService.make().pipe(Effect.flatMap((service) => service.listSessions()));
+export const listSessions = () => (service: TmuxService) =>
+  service.listSessions();
 
-export const killSession = (sessionName: string) =>
-  TmuxService.make().pipe(
-    Effect.flatMap((service) => service.killSession(sessionName)),
-  );
+export const killSession = (sessionName: string) => (service: TmuxService) =>
+  service.killSession(sessionName);
 
-export const isTmuxAvailable = () =>
-  TmuxService.make().pipe(Effect.flatMap((service) => service.isAvailable()));
+export const isTmuxAvailable = () => (service: TmuxService) =>
+  service.isAvailable();

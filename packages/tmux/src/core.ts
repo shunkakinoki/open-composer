@@ -200,15 +200,9 @@ export class TmuxService {
    * Check if tmux is available
    */
   isAvailable(): Effect.Effect<boolean, never> {
-    return Effect.suspend(() => {
-      try {
-        return this.run(["-V"]).pipe(
-          Effect.map(() => true),
-          Effect.catchAll(() => Effect.succeed(false)),
-        );
-      } catch {
-        return Effect.succeed(false);
-      }
-    });
+    return this.run(["-V"]).pipe(
+      Effect.map(() => true),
+      Effect.catchAll(() => Effect.succeed(false)),
+    );
   }
 }

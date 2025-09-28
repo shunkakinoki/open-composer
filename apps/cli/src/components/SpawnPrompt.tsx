@@ -1,6 +1,7 @@
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
+import { AVAILABLE_AGENTS } from "../commands/spawn-command.js";
 
 type Step = "session-name" | "agents" | "base-branch" | "create-pr" | "confirm";
 
@@ -15,8 +16,6 @@ export interface SpawnConfig {
   baseBranch: string;
   createPR: boolean;
 }
-
-const AVAILABLE_AGENTS = ["codex", "claude-code", "opencode"];
 
 export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
   onComplete,
@@ -37,12 +36,10 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
   };
 
   const handleComplete = () => {
-    if (sessionName.trim() === "") {
-      setSessionName(`spawn-${Date.now()}`);
-    }
+    const finalSessionName = sessionName.trim() || `spawn-${Date.now()}`;
 
     const config: SpawnConfig = {
-      sessionName: sessionName.trim() || `spawn-${Date.now()}`,
+      sessionName: finalSessionName,
       agents: selectedAgents.length > 0 ? selectedAgents : ["codex"], // default to codex if none selected
       baseBranch: baseBranch.trim() || "main",
       createPR,
@@ -63,9 +60,7 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
       switch (step) {
         case "session-name":
           if (key.return) {
-            if (sessionName.trim() || sessionName === "") {
-              setStep("agents");
-            }
+            setStep("agents");
           } else if (key.backspace || key.delete) {
             setSessionName(sessionName.slice(0, -1));
           } else if (input && !key.ctrl && !key.meta) {
