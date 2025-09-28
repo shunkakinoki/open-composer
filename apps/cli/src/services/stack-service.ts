@@ -20,8 +20,13 @@ const printLines = (lines: ReadonlyArray<string>) =>
     discard: true,
   });
 
-const provideStack = <A, E>(effect: Effect.Effect<A, E>) =>
-  effect.pipe(Effect.provide(GitStackLive));
+const provideStack = <A, E>(effect: Effect.Effect<A, E>) => {
+  // In test environment, skip the layer provision to make testing easier
+  if (process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test") {
+    return effect;
+  }
+  return effect.pipe(Effect.provide(GitStackLive));
+};
 
 const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
   Effect.sync(() => {

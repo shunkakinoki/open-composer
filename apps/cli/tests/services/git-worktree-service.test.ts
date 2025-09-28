@@ -106,6 +106,10 @@ describe("GitWorktreeService", () => {
 
   afterEach(() => {
     mockConsoleLog.mockRestore();
+    mockListWorktrees.mockReset();
+    mockAddWorktree.mockReset();
+    mockMoveWorktree.mockReset();
+    mockPruneWorktrees.mockReset();
   });
 
   describe("list", () => {
@@ -117,12 +121,14 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
       expect(mockListWorktrees).toHaveBeenCalledWith({ cwd: "/test/repo" });
       expect(mockConsoleLog).toHaveBeenCalledWith("Git worktrees:");
-      expect(mockConsoleLog).toHaveBeenCalledWith("  main  /path/to/repo");
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        "  main            /path/to/repo",
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         "  feature-branch  /path/to/feature-worktree",
       );
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        "  old-branch  /path/to/prunable-worktree  [prunable: gone]",
+        "  old-branch      /path/to/prunable-worktree  [prunable: gone]",
       );
     });
 

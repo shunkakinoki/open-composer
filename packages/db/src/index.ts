@@ -9,13 +9,23 @@ import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-bun";
 import { Effect, Layer } from "effect";
 import * as schema from "./schema.js";
 
-const defaultDatabaseFile = path.join(homedir(), ".open-composer", "app.db");
-const resolvedDatabaseFile = path.resolve(
-  process.env.OPEN_COMPOSER_DB_FILE ?? defaultDatabaseFile,
-);
+const getDatabaseFile = () => {
+  const defaultDatabaseFile = path.join(homedir(), ".open-composer", "app.db");
+  return path.resolve(process.env.OPEN_COMPOSER_DB_FILE ?? defaultDatabaseFile);
+};
 
-export const databaseDirectory = path.dirname(resolvedDatabaseFile);
-export const databaseFile = resolvedDatabaseFile;
+// Export as getters so they're evaluated at access time
+export const databaseFile = {
+  get value() {
+    return getDatabaseFile();
+  },
+};
+
+export const databaseDirectory = {
+  get value() {
+    return path.dirname(getDatabaseFile());
+  },
+};
 export const migrationsDirectory = fileURLToPath(
   new URL("../migrations", import.meta.url),
 );
@@ -23,10 +33,10 @@ export const migrationsDirectory = fileURLToPath(
 const SqliteClientLive = Layer.unwrapEffect(
   Effect.gen(function* () {
     yield* Effect.tryPromise(() =>
-      mkdir(databaseDirectory, { recursive: true }),
+      mkdir(databaseDirectory.value, { recursive: true }),
     );
     return SqliteClient.layer({
-      filename: databaseFile,
+      filename: databaseFile.value,
     });
   }),
 );

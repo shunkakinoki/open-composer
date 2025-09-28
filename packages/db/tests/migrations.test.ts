@@ -94,7 +94,7 @@ describe("Migration Functionality", () => {
         const fs = yield* Effect.promise(() => import("node:fs/promises"));
         const dbExists = yield* Effect.promise(() =>
           fs
-            .access(dbModule.databaseFile)
+            .access(dbModule.databaseFile.value)
             .then(() => true)
             .catch(() => false),
         );

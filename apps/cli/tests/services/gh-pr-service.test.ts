@@ -1,4 +1,12 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import * as Effect from "effect/Effect";
@@ -111,10 +119,6 @@ mock.module("node:util", () => ({
 // Now import the service after mocks are set up
 import { GhPRService } from "../../src/services/gh-pr-service.js";
 
-// Override the execFileAsync in the service module
-// @ts-expect-error - accessing internal module variable
-GhPRService.prototype.execFileAsync = mockExecFileAsync;
-
 // Mock require for package.json reading
 const mockRequire = mock((path: string) => {
   if (path.endsWith("package.json")) {
@@ -134,6 +138,8 @@ describe("GhPRService", () => {
 
   beforeEach(() => {
     service = new GhPRService();
+    // Override execFileAsync for this service instance
+    service.execFileAsync = mockExecFileAsync as any;
     mockExecFileAsync.mockClear();
     // Reset to default implementation
     mockExecFileAsync.mockImplementation(
@@ -173,7 +179,7 @@ describe("GhPRService", () => {
         if (
           cmd === "bun" &&
           args.includes("run") &&
-          args.includes("format-check")
+          (args.includes("format-check") || args.includes("format:check"))
         ) {
           return { stdout: "✓ Formatting passed", stderr: "" };
         }
@@ -192,6 +198,10 @@ describe("GhPRService", () => {
     );
   });
 
+  afterEach(() => {
+    mockExecFileAsync.mockReset();
+  });
+
   describe("checkGitHubCliSetup", () => {
     it("should return success when CLI is available and authenticated", async () => {
       const result = await Effect.runPromise(service.checkGitHubCliSetup());
@@ -202,7 +212,7 @@ describe("GhPRService", () => {
     });
 
     it("should return CLI not available when which fails", async () => {
-      mockExecFile.mockImplementationOnce(
+      mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (cmd === "which" && args[0] === "gh") {
             throw new Error("Command not found");
@@ -220,13 +230,22 @@ describe("GhPRService", () => {
     });
 
     it("should return not authenticated when auth status fails", async () => {
-      mockExecFile.mockImplementationOnce(
+      // First call (which gh) should succeed
+      mockExecFileAsync.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "which" && args[0] === "gh") {
+            return { stdout: "/usr/local/bin/gh", stderr: "" };
+          }
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+        },
+      );
+      // Second call (gh auth status) should fail
+      mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
             throw new Error("Not authenticated");
           }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
         },
       );
 
@@ -249,7 +268,21 @@ describe("GhPRService", () => {
     });
 
     it("should handle uncommitted changes", async () => {
-      mockExecFile.mockImplementationOnce(
+      // First call (git rev-parse) should succeed
+      mockExecFileAsync.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (
+            cmd === "git" &&
+            args.includes("rev-parse") &&
+            args.includes("HEAD")
+          ) {
+            return { stdout: "main", stderr: "" };
+          }
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+        },
+      );
+      // Second call (git status) should return changes
+      mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (
             cmd === "git" &&
@@ -258,8 +291,7 @@ describe("GhPRService", () => {
           ) {
             return { stdout: "M file.txt\nA new-file.txt", stderr: "" };
           }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
         },
       );
 
@@ -269,13 +301,39 @@ describe("GhPRService", () => {
     });
 
     it("should handle commits ahead of origin", async () => {
-      mockExecFile.mockImplementationOnce(
+      // First call (git rev-parse) should succeed
+      mockExecFileAsync.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (
+            cmd === "git" &&
+            args.includes("rev-parse") &&
+            args.includes("HEAD")
+          ) {
+            return { stdout: "main", stderr: "" };
+          }
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+        },
+      );
+      // Second call (git status) should return no changes
+      mockExecFileAsync.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (
+            cmd === "git" &&
+            args.includes("status") &&
+            args.includes("--porcelain")
+          ) {
+            return { stdout: "", stderr: "" };
+          }
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+        },
+      );
+      // Third call (git rev-list) should return commits ahead
+      mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (cmd === "git" && args.includes("rev-list")) {
             return { stdout: "2", stderr: "" };
           }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
         },
       );
 
@@ -346,7 +404,7 @@ describe("GhPRService", () => {
     });
 
     it("should handle linting failure", async () => {
-      mockExecFile.mockImplementationOnce(
+      mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (cmd === "bun" && args.includes("lint")) {
             throw new Error("Linting failed");
@@ -361,17 +419,25 @@ describe("GhPRService", () => {
       expect(result.lintPassed).toBe(false);
       expect(result.formatPassed).toBe(true);
       expect(result.testsPassed).toBe(true);
-      expect(result.errors).toContain("Linting failed: Linting failed");
+      expect(result.errors).toContain("Linting failed: Error: Linting failed");
     });
 
     it("should handle test failure", async () => {
-      mockExecFile.mockImplementationOnce(
+      mockExecFileAsync.mockImplementation(
         async (cmd: string, args: string[]) => {
+          if (cmd === "bun" && args.includes("lint")) {
+            return { stdout: "✓ Linting passed", stderr: "" };
+          }
+          if (
+            cmd === "bun" &&
+            (args.includes("format-check") || args.includes("format:check"))
+          ) {
+            return { stdout: "✓ Formatting passed", stderr: "" };
+          }
           if (cmd === "bun" && args.includes("test")) {
             throw new Error("Tests failed");
           }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
+          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
         },
       );
 
@@ -380,7 +446,7 @@ describe("GhPRService", () => {
       expect(result.lintPassed).toBe(true);
       expect(result.formatPassed).toBe(true);
       expect(result.testsPassed).toBe(false);
-      expect(result.errors).toContain("Tests failed: Tests failed");
+      expect(result.errors).toContain("Tests failed: Error: Tests failed");
     });
   });
 

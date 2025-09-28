@@ -54,19 +54,43 @@ const mockConfigureStack = mock(() => Effect.void);
 
 // TODO: Add MockGitCommandError when implementing error testing
 
+// Mock the git-stack module functions to return Effects for testing
 mock.module("@open-composer/git-stack", () => ({
-  logStack: mockLogStack,
-  statusStack: mockStatusStack,
-  createStackBranch: mockCreateStackBranch,
-  trackStackBranch: mockTrackStackBranch,
-  untrackStackBranch: mockUntrackStackBranch,
-  deleteStackBranch: mockDeleteStackBranch,
-  checkoutStackBranch: mockCheckoutStackBranch,
-  syncStack: mockSyncStack,
-  submitStack: mockSubmitStack,
-  restackStack: mockRestackStack,
-  configureStack: mockConfigureStack,
-  GitStackLive: {},
+  logStack: mock(() =>
+    Effect.succeed([
+      "branch-1: Commit message 1",
+      "branch-2: Commit message 2",
+    ]),
+  ),
+  statusStack: mock(() =>
+    Effect.succeed({
+      currentBranch: "feature-branch",
+      parent: "main",
+      children: ["child-branch"],
+    }),
+  ),
+  createStackBranch: mock((options: any) =>
+    Effect.succeed({
+      branch: options.name,
+      base: options.base || "main",
+    }),
+  ),
+  trackStackBranch: mock(() => Effect.succeed(undefined)),
+  untrackStackBranch: mock(() => Effect.succeed(undefined)),
+  deleteStackBranch: mock(() => Effect.succeed(undefined)),
+  checkoutStackBranch: mock(() => Effect.succeed(undefined)),
+  syncStack: mock(() =>
+    Effect.succeed(["Syncing branch feature-branch", "Pushing to origin"]),
+  ),
+  submitStack: mock(() =>
+    Effect.succeed(["Submitting stack to GitHub", "Created PR #123"]),
+  ),
+  restackStack: mock(() =>
+    Effect.succeed(["Restacking branches", "Updated branch feature-branch"]),
+  ),
+  configureStack: mock(() => Effect.succeed(undefined)),
+  GitStackLive: (effect: any) => effect, // Layer that just returns the effect unchanged
+  runWithGitStack: (effect: any) => effect,
 }));
 
 // Mock console methods

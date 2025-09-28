@@ -19,6 +19,11 @@ const execFileAsync = promisify(execFile);
 export type { PRCreateOptions, PRCreateResult, PRStatus };
 
 export class GhPRService {
+  // Allow overriding execFileAsync for testing
+  execFileAsync: (
+    command: string,
+    args: string[],
+  ) => Promise<{ stdout: string; stderr: string }> = execFileAsync;
   /**
    * Check if GitHub CLI is available and authenticated
    */
@@ -35,7 +40,7 @@ export class GhPRService {
         // Check if gh CLI is available
         let cliAvailable = false;
         try {
-          await execFileAsync("which", ["gh"]);
+          await this.execFileAsync("which", ["gh"]);
           cliAvailable = true;
         } catch {
           // CLI not available
@@ -48,7 +53,7 @@ export class GhPRService {
         // Check authentication status
         let authenticated = false;
         try {
-          await execFileAsync("gh", ["auth", "status"]);
+          await this.execFileAsync("gh", ["auth", "status"]);
           authenticated = true;
         } catch {
           // Not authenticated
@@ -58,7 +63,7 @@ export class GhPRService {
         let repository: string | undefined;
         if (authenticated) {
           try {
-            const result = await execFileAsync("gh", [
+            const result = await this.execFileAsync("gh", [
               "repo",
               "view",
               "--json",
@@ -97,7 +102,7 @@ export class GhPRService {
     return Effect.tryPromise({
       try: async () => {
         // Get current branch
-        const branchResult = await execFileAsync("git", [
+        const branchResult = await this.execFileAsync("git", [
           "rev-parse",
           "--abbrev-ref",
           "HEAD",
@@ -105,7 +110,7 @@ export class GhPRService {
         const currentBranch = branchResult.stdout.trim();
 
         // Check for uncommitted changes
-        const statusResult = await execFileAsync("git", [
+        const statusResult = await this.execFileAsync("git", [
           "status",
           "--porcelain",
         ]);
@@ -115,7 +120,7 @@ export class GhPRService {
         const isOnMainBranch = ["main", "master"].includes(currentBranch);
 
         // Check if there are commits ahead of origin
-        const aheadResult = await execFileAsync("git", [
+        const aheadResult = await this.execFileAsync("git", [
           "rev-list",
           "--count",
           `${currentBranch}..origin/${currentBranch}`,
@@ -173,7 +178,7 @@ export class GhPRService {
 
         // Run linting
         try {
-          await execFileAsync(packageManager, ["run", "lint"]);
+          await this.execFileAsync(packageManager, ["run", "lint"]);
           lintPassed = true;
         } catch (error) {
           errors.push(`Linting failed: ${error}`);
@@ -181,12 +186,12 @@ export class GhPRService {
 
         // Run formatting check
         try {
-          await execFileAsync(packageManager, ["run", "format:check"]);
+          await this.execFileAsync(packageManager, ["run", "format:check"]);
           formatPassed = true;
         } catch (error) {
           // Try alternative format check commands
           try {
-            await execFileAsync(packageManager, ["run", "format-check"]);
+            await this.execFileAsync(packageManager, ["run", "format-check"]);
             formatPassed = true;
           } catch {
             errors.push(`Formatting check failed: ${error}`);
@@ -195,7 +200,7 @@ export class GhPRService {
 
         // Run tests
         try {
-          await execFileAsync(packageManager, ["run", "test"]);
+          await this.execFileAsync(packageManager, ["run", "test"]);
           testsPassed = true;
         } catch (error) {
           errors.push(`Tests failed: ${error}`);
