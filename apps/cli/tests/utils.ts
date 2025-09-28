@@ -34,7 +34,11 @@ class TestWritableStream extends EventEmitter implements TestWritable {
     // Do nothing for testing
   }
 
-  lastFrame = () => this._lastFrame;
+  lastFrame = () => {
+    if (!this._lastFrame) return undefined;
+    // Strip ANSI escape codes to prevent them from appearing in snapshots
+    return this._lastFrame.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
+  };
 }
 
 class Stdout extends TestWritableStream {
@@ -43,7 +47,7 @@ class Stdout extends TestWritableStream {
   }
 }
 
-class Stderr extends TestWritableStream {}
+class Stderr extends TestWritableStream { }
 
 class Stdin extends EventEmitter implements TestReadable {
   // eslint-disable-next-line @typescript-eslint/naming-convention
