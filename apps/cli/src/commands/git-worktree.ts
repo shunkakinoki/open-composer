@@ -12,12 +12,25 @@ const execFileAsync = promisify(execFile);
 
 const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
   Effect.gen(function* (_) {
+    // Get the git repository root directory
+    const repoRootResult = yield* _(
+      Effect.tryPromise({
+        try: () =>
+          execFileAsync("git", ["rev-parse", "--show-toplevel"], {
+            cwd: process.cwd(),
+          }),
+        catch: (_) => Promise.reject(new Error("Not in a git repository")),
+      }),
+    );
+
+    const repoRoot = repoRootResult.stdout.trim();
+
     // Check if we're inside a git repository
     const isInsideWorkTreeResult = yield* _(
       Effect.tryPromise({
         try: () =>
           execFileAsync("git", ["rev-parse", "--is-inside-work-tree"], {
-            cwd: process.cwd(),
+            cwd: repoRoot,
           }),
         catch: (_) => Promise.reject(new Error("Not in a git repository")),
       }),
@@ -32,7 +45,7 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
       Effect.tryPromise({
         try: () =>
           execFileAsync("git", ["rev-parse", "--git-dir"], {
-            cwd: process.cwd(),
+            cwd: repoRoot,
           }),
         catch: (error) =>
           Promise.reject(new Error(`Failed to get git directory: ${error}`)),
@@ -49,7 +62,7 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
             const remoteUrl = await execFileAsync(
               "git",
               ["config", "--get", "remote.origin.url"],
-              { cwd: process.cwd() },
+              { cwd: repoRoot },
             );
             const url = remoteUrl.stdout.trim();
             // Extract repo name from URL (e.g., "github.com/user/repo.git" -> "repo")
@@ -61,7 +74,7 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
             // If no remote, use directory name
           }
           // Fallback to directory name
-          return path.basename(path.resolve(process.cwd(), ".."));
+          return path.basename(repoRoot);
         },
         catch: (error) =>
           Promise.reject(new Error(`Failed to get repository name: ${error}`)),
@@ -77,7 +90,7 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
       return "";
     } else {
       // If we're in the main repo, use <repo>.worktree/<name> format
-      return `${repoName}.worktree/`;
+      return path.join(repoRoot, `${repoName}.worktree/`);
     }
   }).pipe(
     Effect.catchAll(() => Effect.succeed("")), // If anything fails, return empty string (no default)
