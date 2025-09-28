@@ -9,9 +9,7 @@ const mockRender = mock(() => ({
 }));
 
 // Mock React
-const mockReact = {
-  createElement: mock(() => ({})),
-};
+const mockCreateElement = mock(() => ({}));
 
 // Create a mock TelemetryService that does nothing
 const mockTelemetryService = {
@@ -32,7 +30,12 @@ mock.module("ink", () => ({
   render: mockRender,
 }));
 
-mock.module("react", () => mockReact);
+mock.module("react", () => ({
+  default: {
+    createElement: mockCreateElement,
+  },
+  createElement: mockCreateElement,
+}));
 
 // Mock the ComposerApp component
 mock.module("../../src/components/ComposerApp.js", () => ({
@@ -47,7 +50,7 @@ mock.module("../../src/services/telemetry.js", () => ({
 beforeEach(() => {
   // Reset all mocks
   mockRender.mockClear();
-  mockReact.createElement.mockClear();
+  mockCreateElement.mockClear();
   mockTrackCommand.mockClear();
   mockTrackFeatureUsage.mockClear();
 });
@@ -90,7 +93,7 @@ describe("tui command", () => {
       );
 
       expect(result).toBeUndefined();
-      expect(mockReact.createElement).toHaveBeenCalled();
+      expect(mockCreateElement).toHaveBeenCalled();
       expect(mockRender).toHaveBeenCalled();
     });
 
