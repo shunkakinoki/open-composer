@@ -10,6 +10,67 @@ const printLines = (lines: ReadonlyArray<string>) =>
 
 export class SessionsCli {
   /**
+   * Create a new session with provided parameters (for React component integration)
+   */
+  createInteractive(
+    sessionName: string,
+    workspaceChoice: "existing" | "create" | "none",
+    workspacePath?: string,
+  ): Effect.Effect<number, Error, SqliteDrizzle> {
+    return Effect.gen(function* () {
+      const db = yield* SqliteDrizzle;
+
+      let finalWorkspacePath: string | undefined;
+
+      if (workspaceChoice === "existing" || workspaceChoice === "create") {
+        if (!workspacePath) {
+          throw new Error(
+            "Workspace path is required for existing or create options",
+          );
+        }
+        finalWorkspacePath = workspacePath;
+
+        // For existing workspace, validate it exists and is a git repo
+        if (workspaceChoice === "existing") {
+          yield* Effect.tryPromise({
+            try: async () => {
+              const fs = await import("node:fs/promises");
+              const path = await import("node:path");
+
+              await fs.access(finalWorkspacePath as string);
+              const gitPath = path.join(finalWorkspacePath as string, ".git");
+              await fs.access(gitPath);
+            },
+            catch: () => {
+              throw new Error(
+                `"${finalWorkspacePath}" is not a valid git repository`,
+              );
+            },
+          });
+        }
+      }
+
+      // Create the session in database
+      const [newSession] = yield* db
+        .insert(sessions)
+        .values({
+          name: sessionName,
+          workspacePath: finalWorkspacePath,
+          description: `Session created on ${new Date().toLocaleDateString()}`,
+          status: "active",
+        })
+        .returning();
+
+      // Automatically create a stack branch for this session if we have a workspace
+      if (finalWorkspacePath) {
+        yield* SessionsCli.createStackForSession(newSession);
+      }
+
+      return newSession.id;
+    });
+  }
+
+  /**
    * Create a new session with interactive prompts
    */
   create(name?: string): Effect.Effect<void, Error, SqliteDrizzle> {
