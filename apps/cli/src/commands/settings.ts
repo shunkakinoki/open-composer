@@ -110,7 +110,7 @@ function buildListCommand() {
           );
 
           console.log(
-            `Key${" ".repeat(maxKeyLength - 3)} | Value${" ".repeat(maxValueLength - 5)} | Updated`,
+            `Key${" ".repeat(Math.max(0, maxKeyLength - 3))} | Value${" ".repeat(Math.max(0, maxValueLength - 5))} | Updated`,
           );
           console.log(
             `${"─".repeat(maxKeyLength)}-+-${"─".repeat(maxValueLength)}-+-${"─".repeat(19)}`,
