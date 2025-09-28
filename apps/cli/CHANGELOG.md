@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.7.1
+
+### Patch Changes
+
+- df9e73f: Add session create interactive
+
 ## 0.7.0
 
 ### Minor Changes
