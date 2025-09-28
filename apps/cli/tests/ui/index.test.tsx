@@ -33,12 +33,16 @@ import { render } from "../utils.js";
 describe("Open Composer CLI", () => {
   describe("GitWorktreeCli", () => {
     test("should initialize with current directory", async () => {
-      const cli = await Effect.runPromise(GitWorktreeCli.make().pipe(Effect.provide(GitLive)));
+      const cli = await Effect.runPromise(
+        GitWorktreeCli.make().pipe(Effect.provide(GitLive)),
+      );
       expect(cli).toBeInstanceOf(GitWorktreeCli);
     });
 
     test("should list worktrees", async () => {
-      const cli = await Effect.runPromise(GitWorktreeCli.make().pipe(Effect.provide(GitLive)));
+      const cli = await Effect.runPromise(
+        GitWorktreeCli.make().pipe(Effect.provide(GitLive)),
+      );
       await expect(
         Effect.runPromise(cli.list().pipe(Effect.provide(GitLive))),
       ).resolves.toBeUndefined();

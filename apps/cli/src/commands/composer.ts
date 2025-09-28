@@ -6,7 +6,7 @@ import type { BunContext as BunContextService } from "@effect/platform-bun/BunCo
 import * as BunContext from "@effect/platform-bun/BunContext";
 import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
 import type { GitService } from "@open-composer/git";
-import { Git, GitLive } from "@open-composer/git";
+import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
