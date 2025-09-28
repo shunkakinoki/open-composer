@@ -144,16 +144,16 @@ for (const [os, arch] of targets) {
   // Add the package to the binaries object
   // ---------------------------------------------------------------------------
 
-  binaries[packageName] = VERSION;
+  binaries[packageName] = version;
 }
 
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
 
 // -----------------------------------------------------------------------------
-// Create zip file for the package if `RELEASE_ZIP_FILES` is set
+// Create zip file for the package if `RELEASE_OPENCOMPOSER_ZIPS` is set
 // -----------------------------------------------------------------------------
 
-if (process.env.RELEASE_ZIP_FILES) {
+if (process.env.RELEASE_OPENCOMPOSER_ZIPS) {
   for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
@@ -220,15 +220,6 @@ if (isRelease) {
   }
 
   console.log("Binaries published:", binaries);
-
-  // ---------------------------------------------------------------------------
-  // Clean the package if `isChangesetRelease` is set
-  // ---------------------------------------------------------------------------
-
-  if (isChangesetRelease) {
-    // Remove the `CHANGELOG.md` file
-    await $`rm CHANGELOG.md`;
-  }
 }
 
 export { binaries };

@@ -1,6 +1,7 @@
-import { Box, Text, useInput } from "ink";
+// biome-ignore assist/source/organizeImports: False positive
 import type React from "react";
 import { useState } from "react";
+import { Box, Text, useInput } from "ink";
 
 interface ChatMessage {
   id: string;

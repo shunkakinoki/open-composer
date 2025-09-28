@@ -1,6 +1,6 @@
 {
   "name": "open-composer",
-  "version": "0.6.1",
+  "version": "0.4.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -35,7 +35,6 @@
     "@effect/printer": "^0.45.0",
     "@effect/printer-ansi": "^0.45.0",
     "@open-composer/agent-router": "workspace:*",
-    "@open-composer/db": "workspace:*",
     "@open-composer/git": "workspace:*",
     "@open-composer/git-stack": "workspace:*",
     "@open-composer/git-worktrees": "workspace:*",

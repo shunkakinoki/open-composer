@@ -89,9 +89,8 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
       // If we're already in a worktree, create relatively
       return "";
     } else {
-      // If we're in the main repo, use <repo>.worktree/<name> format at parent level
-      const parentDir = path.dirname(repoRoot);
-      return path.join(parentDir, `${repoName}.worktree/`);
+      // If we're in the main repo, use <repo>.worktree/<name> format
+      return path.join(repoRoot, `${repoName}.worktree/`);
     }
   }).pipe(
     Effect.catchAll(() => Effect.succeed("")), // If anything fails, return empty string (no default)

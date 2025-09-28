@@ -4,12 +4,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
-    "test": {
-      "dependsOn": ["^build"],
-      "inputs": ["tests/**"]
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "lint:fix": {
+      "dependsOn": ["^lint:fix"]
     },
     "dev": {
       "cache": false,
@@ -19,29 +20,21 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "check": {
+      "dependsOn": ["^check"]
+    },
+    "format": {
+      "dependsOn": ["^format"]
+    },
     "clean": {
       "cache": false
     },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "prepublishOnly": {
       "dependsOn": ["^build", "^prepublishOnly"]
-    },
-    "//#__lint__": {
-      "dependsOn": ["//#__check__"]
-    },
-    "//#__format__": {
-      "dependsOn": ["^format"]
-    },
-    "//#__check__": {
-      "dependsOn": ["^check"]
-    },
-    "//#__fix__": {
-      "dependsOn": ["//#check:fix", "//#format:fix"]
-    },
-    "//#check:fix": {
-      "cache": false
-    },
-    "//#format:fix": {
-      "cache": false
     }
   },
   "globalEnv": [
