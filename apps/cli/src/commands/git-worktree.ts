@@ -1,6 +1,7 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import type { GitWorktreeCreateOptions } from "../components/GitWorktreeCreatePrompt.js";
 import { GitWorktreeCli } from "../services/git-worktree-cli.js";
 import { trackCommand, trackFeatureUsage } from "../services/telemetry.js";
 
@@ -101,58 +102,32 @@ function buildCreateCommand() {
                   "../components/GitWorktreeCreatePrompt.js"
                 );
 
-                return new Promise<void>((resolve, reject) => {
-                  try {
-                    const { waitUntilExit } = render(
-                      React.createElement(GitWorktreeCreatePrompt, {
-                        onSubmit: async (options) => {
-                          try {
-                            // Track the interactive creation
-                            await Effect.runPromise(trackCommand("gw", "create"));
-                            await Effect.runPromise(trackFeatureUsage(
-                              "git_worktree_create_interactive",
-                              {
-                                has_ref: !!options.ref,
-                                has_branch: !!options.branch,
-                                force: options.force,
-                                detach: options.detach,
-                                no_checkout: options.noCheckout,
-                                branch_force: options.branchForce,
-                              },
-                            ));
+                return new Promise<GitWorktreeCreateOptions>(
+                  (resolve, reject) => {
+                    try {
+                      const { waitUntilExit } = render(
+                        React.createElement(GitWorktreeCreatePrompt, {
+                          onSubmit: (options) => {
+                            resolve(options);
+                          },
+                          onCancel: () => {
+                            reject(
+                              new Error("User cancelled worktree creation"),
+                            );
+                          },
+                        }),
+                      );
 
-                            // Create the worktree using the GitWorktreeCli service
-                            const cli = await Effect.runPromise(GitWorktreeCli.make());
-                            await Effect.runPromise(cli.create({
-                              path: options.path,
-                              ref: options.ref || undefined,
-                              branch: options.branch || undefined,
-                              force: options.force,
-                              detach: options.detach,
-                              checkout: options.noCheckout ? false : undefined,
-                              branchForce: options.branchForce,
-                            }));
-
-                            resolve();
-                          } catch (error) {
-                            reject(error);
-                          }
-                        },
-                        onCancel: () => {
-                          resolve();
-                        },
-                      }),
-                    );
-
-                    waitUntilExit()
-                      .then(() => {
-                        resolve();
-                      })
-                      .catch(reject);
-                  } catch (error) {
-                    reject(error);
-                  }
-                });
+                      waitUntilExit()
+                        .then(() => {
+                          reject(new Error("Prompt exited without selection"));
+                        })
+                        .catch(reject);
+                    } catch (error) {
+                      reject(error);
+                    }
+                  },
+                );
               },
               catch: (error) => {
                 return Effect.fail(
