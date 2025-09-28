@@ -106,12 +106,37 @@ function buildCreateCommand() {
                     const { waitUntilExit } = render(
                       React.createElement(GitWorktreeCreatePrompt, {
                         onSubmit: async (options) => {
-                          // For now, just log the options - we can implement actual worktree creation later
-                          console.log(
-                            "Interactive worktree creation with options:",
-                            options,
-                          );
-                          resolve();
+                          try {
+                            // Track the interactive creation
+                            await Effect.runPromise(trackCommand("gw", "create"));
+                            await Effect.runPromise(trackFeatureUsage(
+                              "git_worktree_create_interactive",
+                              {
+                                has_ref: !!options.ref,
+                                has_branch: !!options.branch,
+                                force: options.force,
+                                detach: options.detach,
+                                no_checkout: options.noCheckout,
+                                branch_force: options.branchForce,
+                              },
+                            ));
+
+                            // Create the worktree using the GitWorktreeCli service
+                            const cli = await Effect.runPromise(GitWorktreeCli.make());
+                            await Effect.runPromise(cli.create({
+                              path: options.path,
+                              ref: options.ref || undefined,
+                              branch: options.branch || undefined,
+                              force: options.force,
+                              detach: options.detach,
+                              checkout: options.noCheckout ? false : undefined,
+                              branchForce: options.branchForce,
+                            }));
+
+                            resolve();
+                          } catch (error) {
+                            reject(error);
+                          }
                         },
                         onCancel: () => {
                           resolve();
