@@ -98,7 +98,7 @@ type Instance = {
 
 const instances: InkInstance[] = [];
 
-export const render = (tree: ReactElement): Instance => {
+export const render = async (tree: ReactElement): Promise<Instance> => {
   const stdout = new Stdout();
   const stderr = new Stderr();
   const stdin = new Stdin();
@@ -113,6 +113,9 @@ export const render = (tree: ReactElement): Instance => {
   });
 
   instances.push(instance);
+
+  // Wait for the next tick to allow Ink to render
+  await new Promise(resolve => setTimeout(resolve, 0));
 
   return {
     rerender: instance.rerender,
