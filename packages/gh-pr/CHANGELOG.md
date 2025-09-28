@@ -1,5 +1,16 @@
 # @open-composer/gh-pr
 
+## 0.2.0
+
+### Minor Changes
+
+- 201cb49: Add PR creation and sessions commands to the CLI with database integration
+
+### Patch Changes
+
+- Updated dependencies [201cb49]
+  - @open-composer/gh@0.2.0
+
 ## 0.1.0
 
 ### Features

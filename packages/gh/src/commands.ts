@@ -1,16 +1,18 @@
 import type * as Effect from "effect/Effect";
-import { type GitHubCommandError, type GitHubCommandResult, run } from "./core.js";
+import {
+  type GitHubCommandError,
+  type GitHubCommandResult,
+  run,
+} from "./core.js";
 
 // Authentication and setup commands
-export const authStatus: Effect.Effect<GitHubCommandResult, GitHubCommandError> = run([
-  "auth",
-  "status",
-]);
+export const authStatus: Effect.Effect<
+  GitHubCommandResult,
+  GitHubCommandError
+> = run(["auth", "status"]);
 
-export const authLogin: Effect.Effect<GitHubCommandResult, GitHubCommandError> = run([
-  "auth",
-  "login",
-]);
+export const authLogin: Effect.Effect<GitHubCommandResult, GitHubCommandError> =
+  run(["auth", "login"]);
 
 // Repository commands
 export const repoView = (options?: {
