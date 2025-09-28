@@ -126,7 +126,9 @@ const createConfigService = (): ConfigServiceInterface => {
           ...currentConfig,
           telemetry: {
             enabled,
-            consentedAt: new Date().toISOString(),
+            consentedAt: enabled
+              ? new Date().toISOString()
+              : currentConfig.telemetry?.consentedAt,
             version: "1.0.0",
           },
           updatedAt: new Date().toISOString(),
@@ -180,43 +182,101 @@ export const promptForTelemetryConsent = () =>
     const configService = yield* _(ConfigService);
     const config = yield* _(configService.getConfig());
 
-    // If telemetry is already configured, no need to prompt
-    if (config.telemetry && typeof config.telemetry.enabled === "boolean") {
+    // If telemetry consent has already been given, no need to prompt
+    if (config.telemetry?.consentedAt) {
       return config.telemetry.enabled;
     }
 
-    // Check if readline is available (for CLI interaction)
-    const hasReadline = process?.stdin;
+    // Check if we're in a CI environment
+    const isCI =
+      process.env.CI ||
+      process.env.CONTINUOUS_INTEGRATION ||
+      process.env.GITHUB_ACTIONS;
 
-    if (!hasReadline) {
+    if (isCI) {
       // Non-interactive environment, default to false
       yield* _(configService.setTelemetryConsent(false));
       return false;
     }
 
-    // This is a first run, show privacy notice
-    console.log("\n🔒 Welcome to Open Composer!");
-    console.log(
-      "Open Composer respects your privacy and is committed to protecting your data.",
-    );
-    console.log("");
-    console.log("📊 Telemetry Collection (Optional)");
-    console.log(
-      "   We can collect anonymous usage statistics to help improve Open Composer.",
-    );
-    console.log(
-      "   This includes command usage, error reports, and performance metrics.",
-    );
-    console.log(
-      "   All data is anonymized and cannot be used to identify you.",
-    );
-    console.log("");
-    console.log("   To enable telemetry:   open-composer telemetry enable");
-    console.log("   To disable telemetry: open-composer telemetry disable");
-    console.log("   To view status:       open-composer telemetry status");
-    console.log("");
+    return yield* _(
+      Effect.tryPromise({
+        try: async () => {
+          const { render } = await import("ink");
+          const React = await import("react");
+          const { TelemetryConsentPrompt } = await import(
+            "../components/TelemetryConsentPrompt.js"
+          );
 
-    // Set default consent to false (privacy-first)
-    yield* _(configService.setTelemetryConsent(false));
-    return false;
+          return new Promise<boolean>((resolve, reject) => {
+            try {
+              const { waitUntilExit } = render(
+                React.createElement(TelemetryConsentPrompt, {
+                  onConsent: (consent: boolean) => {
+                    // Ensure consent is recorded before resolving
+                    configService
+                      .setTelemetryConsent(consent)
+                      .pipe(Effect.runPromise)
+                      .then(() => {
+                        resolve(consent);
+                      })
+                      .catch((error) => {
+                        console.error("Failed to save consent:", error);
+                        resolve(false);
+                      });
+                  },
+                  onCancel: () => {
+                    // Ensure consent is recorded as false when cancelled
+                    configService
+                      .setTelemetryConsent(false)
+                      .pipe(Effect.runPromise)
+                      .then(() => {
+                        resolve(false);
+                      })
+                      .catch((error) => {
+                        console.error("Failed to save consent:", error);
+                        resolve(false);
+                      });
+                  },
+                }),
+              );
+
+              waitUntilExit()
+                .then(() => {
+                  // If we reach here without resolving, ensure consent is recorded as false
+                  configService
+                    .setTelemetryConsent(false)
+                    .pipe(Effect.runPromise)
+                    .then(() => {
+                      resolve(false);
+                    })
+                    .catch(() => {
+                      resolve(false);
+                    });
+                })
+                .catch((error) => {
+                  console.error("waitUntilExit error:", error);
+                  configService
+                    .setTelemetryConsent(false)
+                    .pipe(Effect.runPromise)
+                    .then(() => {
+                      resolve(false);
+                    })
+                    .catch(() => {
+                      resolve(false);
+                    });
+                });
+            } catch (error) {
+              reject(error);
+            }
+          });
+        },
+        catch: (_) => {
+          // If Ink fails for any reason, fall back to setting consent to false
+          return configService
+            .setTelemetryConsent(false)
+            .pipe(Effect.map(() => false));
+        },
+      }),
+    );
   });
