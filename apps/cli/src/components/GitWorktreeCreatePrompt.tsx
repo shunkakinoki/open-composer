@@ -137,7 +137,7 @@ export const GitWorktreeCreatePrompt: React.FC<
       <Text color="cyan">{fieldName}:</Text>
       <Text
         color={
-          currentField === fieldName.toLowerCase() as typeof currentField
+          currentField === (fieldName.toLowerCase() as typeof currentField)
             ? "green"
             : "gray"
         }
