@@ -1,7 +1,7 @@
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { PRCreateService } from "../services/pr-create-service.js";
+import { GhPRService } from "../services/gh-pr-service.js";
 import {
   trackCommand,
   trackFeatureUsage,
@@ -60,7 +60,7 @@ function buildRegularCreateCommand() {
     ),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("pr-create", "create");
+        yield* trackCommand("pr", "create");
         yield* trackFeatureUsage("pr_create", {
           has_body: !!config.body,
           has_base: !!config.base,
@@ -70,7 +70,7 @@ function buildRegularCreateCommand() {
           skip_changeset: config.skipChangeset,
         });
 
-        const cli = new PRCreateService();
+        const cli = new GhPRService();
 
         // Step 1: Check GitHub CLI setup
         console.log("🔍 Checking GitHub CLI setup...");
@@ -296,7 +296,7 @@ function buildAutoCreateCommand() {
     ),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("pr-create", "auto");
+        yield* trackCommand("pr", "auto");
         yield* trackFeatureUsage("pr_create_auto", {
           has_body: !!config.body,
           has_base: !!config.base,
@@ -305,7 +305,7 @@ function buildAutoCreateCommand() {
           skip_changeset: config.skipChangeset,
         });
 
-        const cli = new PRCreateService();
+        const cli = new GhPRService();
 
         // Run the same validation and setup as regular create
         console.log("🔍 Checking GitHub CLI setup...");
@@ -475,13 +475,243 @@ ${commitMessage
   );
 }
 
-export const buildPRCreateCommand = () =>
-  Command.make("pr-create").pipe(
+function buildViewCommand() {
+  const prNumberArg = Args.integer({ name: "number" }).pipe(
+    Args.withDescription("PR number to view"),
+  );
+
+  const jsonOption = Options.text("json").pipe(
+    Options.optional,
+    Options.withDescription("JSON fields to include (comma-separated)"),
+  );
+
+  const webOption = Options.boolean("web").pipe(
+    Options.withDescription("Open PR in web browser"),
+  );
+
+  return Command.make("view", {
+    number: prNumberArg,
+    json: jsonOption,
+    web: webOption,
+  }).pipe(
+    Command.withDescription("View details of a GitHub Pull Request"),
+    Command.withHandler((config) =>
+      Effect.gen(function* () {
+        yield* trackCommand("pr", "view");
+        yield* trackFeatureUsage("gh_pr_view", {
+          json: !!config.json,
+          web: config.web,
+        });
+
+        const service = new GhPRService();
+
+        // Check GitHub CLI setup
+        console.log("🔍 Checking GitHub CLI setup...");
+        const setup = yield* service.checkGitHubCliSetup();
+
+        if (!setup.cliAvailable || !setup.authenticated) {
+          yield* printLines([
+            "❌ GitHub CLI setup incomplete.",
+            "   Please ensure GitHub CLI is installed and authenticated:",
+            "   https://cli.github.com/",
+          ]);
+          yield* Effect.die("GitHub CLI setup incomplete");
+        }
+
+        console.log(
+          `✅ GitHub CLI authenticated${setup.repository ? ` for ${setup.repository}` : ""}`,
+        );
+
+        // View PR
+        console.log(`\n👁️  Viewing Pull Request #${config.number}...`);
+        const options = {
+          json: Option.getOrUndefined(config.json),
+          web: config.web,
+        };
+
+        const result = yield* service.viewPR(config.number, options);
+        console.log(result);
+      }),
+    ),
+  );
+}
+
+function buildMergeCommand() {
+  const prNumberArg = Args.integer({ name: "number" }).pipe(
+    Args.withDescription("PR number to merge"),
+  );
+
+  const methodOption = Options.text("method").pipe(
+    Options.optional,
+    Options.withDescription(
+      "Merge method: merge, squash, or rebase (default: merge)",
+    ),
+  );
+
+  const autoOption = Options.boolean("auto").pipe(
+    Options.withDescription("Enable auto-merge if available"),
+  );
+
+  const deleteBranchOption = Options.boolean("delete-branch").pipe(
+    Options.withDescription("Delete the branch after merging"),
+  );
+
+  return Command.make("merge", {
+    number: prNumberArg,
+    method: methodOption,
+    auto: autoOption,
+    deleteBranch: deleteBranchOption,
+  }).pipe(
+    Command.withDescription("Merge a GitHub Pull Request"),
+    Command.withHandler((config) =>
+      Effect.gen(function* () {
+        yield* trackCommand("pr", "merge");
+        yield* trackFeatureUsage("gh_pr_merge", {
+          method: !!config.method,
+          auto: config.auto,
+          delete_branch: config.deleteBranch,
+        });
+
+        const service = new GhPRService();
+
+        // Check GitHub CLI setup
+        console.log("🔍 Checking GitHub CLI setup...");
+        const setup = yield* service.checkGitHubCliSetup();
+
+        if (!setup.cliAvailable || !setup.authenticated) {
+          yield* printLines([
+            "❌ GitHub CLI setup incomplete.",
+            "   Please ensure GitHub CLI is installed and authenticated:",
+            "   https://cli.github.com/",
+          ]);
+          yield* Effect.die("GitHub CLI setup incomplete");
+        }
+
+        console.log(
+          `✅ GitHub CLI authenticated${setup.repository ? ` for ${setup.repository}` : ""}`,
+        );
+
+        // Merge PR
+        console.log(`\n🔀 Merging Pull Request #${config.number}...`);
+        const options = {
+          method: Option.getOrUndefined(config.method) as
+            | "merge"
+            | "squash"
+            | "rebase",
+          auto: config.auto,
+          deleteBranch: config.deleteBranch,
+        };
+
+        const result = yield* service.mergePR(config.number, options);
+        console.log("✅ Pull Request merged successfully!");
+        console.log(result);
+      }),
+    ),
+  );
+}
+
+function buildListCommand() {
+  const stateOption = Options.text("state").pipe(
+    Options.optional,
+    Options.withDescription(
+      "PR state: open, closed, merged, or all (default: open)",
+    ),
+  );
+
+  const authorOption = Options.text("author").pipe(
+    Options.optional,
+    Options.withDescription("Filter by PR author"),
+  );
+
+  const assigneeOption = Options.text("assignee").pipe(
+    Options.optional,
+    Options.withDescription("Filter by PR assignee"),
+  );
+
+  const limitOption = Options.integer("limit").pipe(
+    Options.optional,
+    Options.withDescription("Maximum number of PRs to list (default: 10)"),
+  );
+
+  const jsonOption = Options.boolean("json").pipe(
+    Options.withDescription("Output in JSON format"),
+  );
+
+  return Command.make("list", {
+    state: stateOption,
+    author: authorOption,
+    assignee: assigneeOption,
+    limit: limitOption,
+    json: jsonOption,
+  }).pipe(
+    Command.withDescription("List GitHub Pull Requests"),
+    Command.withHandler((config) =>
+      Effect.gen(function* () {
+        yield* trackCommand("pr", "list");
+        yield* trackFeatureUsage("gh_pr_list", {
+          has_state: !!config.state,
+          has_author: !!config.author,
+          has_assignee: !!config.assignee,
+          has_limit: !!config.limit,
+          json: config.json,
+        });
+
+        const service = new GhPRService();
+
+        // Check GitHub CLI setup
+        console.log("🔍 Checking GitHub CLI setup...");
+        const setup = yield* service.checkGitHubCliSetup();
+
+        if (!setup.cliAvailable || !setup.authenticated) {
+          yield* printLines([
+            "❌ GitHub CLI setup incomplete.",
+            "   Please ensure GitHub CLI is installed and authenticated:",
+            "   https://cli.github.com/",
+          ]);
+          yield* Effect.die("GitHub CLI setup incomplete");
+        }
+
+        console.log(
+          `✅ GitHub CLI authenticated${setup.repository ? ` for ${setup.repository}` : ""}`,
+        );
+
+        // List PRs
+        console.log("\n📋 Listing Pull Requests...");
+        const options = {
+          state: Option.getOrElse(config.state, () => "open") as
+            | "open"
+            | "closed"
+            | "merged"
+            | "all",
+          author: Option.getOrUndefined(config.author),
+          assignee: Option.getOrUndefined(config.assignee),
+          limit: Option.getOrElse(config.limit, () => 10),
+          json: config.json,
+        };
+
+        const result = yield* service.listPRs(options);
+
+        if (config.json) {
+          console.log(result);
+        } else {
+          // Format the output nicely
+          console.log(result || "No pull requests found.");
+        }
+      }),
+    ),
+  );
+}
+
+export const buildGHPRCommand = () =>
+  Command.make("pr").pipe(
     Command.withDescription(
-      "Create GitHub Pull Requests with comprehensive workflow",
+      "Manage GitHub Pull Requests with comprehensive workflow",
     ),
     Command.withSubcommands([
       buildRegularCreateCommand(),
       buildAutoCreateCommand(),
+      buildListCommand(),
+      buildViewCommand(),
+      buildMergeCommand(),
     ]),
   );
