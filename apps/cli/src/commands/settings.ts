@@ -15,7 +15,7 @@ export function buildSettingsCommand() {
   );
 }
 
-function buildGetCommand() {
+export function buildGetCommand() {
   const keyArg = Args.text({ name: "key" }).pipe(
     Args.withDescription("Setting key to retrieve"),
   );
@@ -44,7 +44,7 @@ function buildGetCommand() {
   );
 }
 
-function buildSetCommand() {
+export function buildSetCommand() {
   const keyArg = Args.text({ name: "key" }).pipe(
     Args.withDescription("Setting key to set"),
   );
@@ -72,7 +72,7 @@ function buildSetCommand() {
   );
 }
 
-function buildListCommand() {
+export function buildListCommand() {
   const jsonOption = Options.boolean("json").pipe(
     Options.withDescription("Output in JSON format"),
   );
@@ -132,7 +132,7 @@ function buildListCommand() {
   );
 }
 
-function buildDeleteCommand() {
+export function buildDeleteCommand() {
   const keyArg = Args.text({ name: "key" }).pipe(
     Args.withDescription("Setting key to delete"),
   );
