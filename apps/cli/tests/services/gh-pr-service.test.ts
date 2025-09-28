@@ -1,0 +1,470 @@
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import * as Effect from "effect/Effect";
+
+// Mock external dependencies before importing the service
+mock.module("node:fs", () => ({
+  existsSync: mock(() => false),
+}));
+
+mock.module("node:path", () => ({
+  join: path.join,
+}));
+
+mock.module("@open-composer/gh-pr", () => ({
+  createPR: mock((options: unknown) =>
+    Effect.succeed({
+      number: 123,
+      url: "https://github.com/test/repo/pull/123",
+      autoMergeEnabled: (options as { auto?: boolean }).auto || false,
+    }),
+  ),
+  getPRStatus: mock((_prNumber: number) =>
+    Effect.succeed({
+      isInMergeQueue: false,
+      mergeable: true,
+      mergeStateStatus: "clean",
+      autoMergeEnabled: false,
+    }),
+  ),
+  listPRs: mock((_options?: unknown) =>
+    Effect.succeed({
+      stdout: JSON.stringify([
+        { number: 123, title: "Test PR", state: "open" },
+        { number: 124, title: "Another PR", state: "closed" },
+      ]),
+    }),
+  ),
+  viewPR: mock((prNumber: number, _options?: unknown) =>
+    Effect.succeed({
+      stdout: `PR #${prNumber}: Test PR\nState: open\nURL: https://github.com/test/repo/pull/${prNumber}`,
+    }),
+  ),
+  mergePR: mock((prNumber: number, _options?: unknown) =>
+    Effect.succeed({
+      stdout: `Successfully merged PR #${prNumber}`,
+    }),
+  ),
+}));
+
+// Mock execFileAsync that will be used by the service
+const mockExecFileAsync = mock(async (cmd: string, args: string[]) => {
+  if (cmd === "which" && args[0] === "gh") {
+    return { stdout: "/usr/local/bin/gh", stderr: "" };
+  }
+  if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
+    return { stdout: "✓ Logged in to github.com", stderr: "" };
+  }
+  if (cmd === "gh" && args.includes("repo") && args.includes("view")) {
+    return { stdout: "test/repo", stderr: "" };
+  }
+  if (cmd === "git" && args.includes("rev-parse") && args.includes("HEAD")) {
+    return { stdout: "main", stderr: "" };
+  }
+  if (
+    cmd === "git" &&
+    args.includes("status") &&
+    args.includes("--porcelain")
+  ) {
+    return { stdout: "", stderr: "" };
+  }
+  if (cmd === "git" && args.includes("rev-list")) {
+    return { stdout: "0", stderr: "" };
+  }
+  if (cmd === "which" && args[0] === "bun") {
+    return { stdout: "/usr/local/bin/bun", stderr: "" };
+  }
+  if (cmd === "bun" && args.includes("run") && args.includes("lint")) {
+    return { stdout: "✓ Linting passed", stderr: "" };
+  }
+  if (cmd === "bun" && args.includes("run") && args.includes("format-check")) {
+    return { stdout: "✓ Formatting passed", stderr: "" };
+  }
+  if (cmd === "bun" && args.includes("run") && args.includes("test")) {
+    return { stdout: "✓ Tests passed", stderr: "" };
+  }
+  if (cmd === "git" && args.includes("log")) {
+    return {
+      stdout: "feat: add new feature\n\nThis adds a new feature",
+      stderr: "",
+    };
+  }
+
+  throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+});
+
+// Mock child_process to return our mocked execFile
+const mockExecFile = mock(async (cmd: string, args: string[]) =>
+  mockExecFileAsync(cmd, args),
+);
+
+mock.module("node:child_process", () => ({
+  execFile: mockExecFile,
+}));
+
+// Mock util.promisify to return our mocked function
+mock.module("node:util", () => ({
+  promisify: mock((_fn: any) => mockExecFileAsync),
+}));
+
+// Now import the service after mocks are set up
+import { GhPRService } from "../../src/services/gh-pr-service.js";
+
+// Override the execFileAsync in the service module
+// @ts-expect-error - accessing internal module variable
+GhPRService.prototype.execFileAsync = mockExecFileAsync;
+
+// Mock require for package.json reading
+const mockRequire = mock((path: string) => {
+  if (path.endsWith("package.json")) {
+    return {
+      dependencies: {},
+      devDependencies: {},
+    };
+  }
+  return {};
+});
+
+// @ts-expect-error - mocking global require
+spyOn(global, "require").mockImplementation(mockRequire);
+
+describe("GhPRService", () => {
+  let service: GhPRService;
+
+  beforeEach(() => {
+    service = new GhPRService();
+    mockExecFileAsync.mockClear();
+    // Reset to default implementation
+    mockExecFileAsync.mockImplementation(
+      async (cmd: string, args: string[]) => {
+        if (cmd === "which" && args[0] === "gh") {
+          return { stdout: "/usr/local/bin/gh", stderr: "" };
+        }
+        if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
+          return { stdout: "✓ Logged in to github.com", stderr: "" };
+        }
+        if (cmd === "gh" && args.includes("repo") && args.includes("view")) {
+          return { stdout: "test/repo", stderr: "" };
+        }
+        if (
+          cmd === "git" &&
+          args.includes("rev-parse") &&
+          args.includes("HEAD")
+        ) {
+          return { stdout: "main", stderr: "" };
+        }
+        if (
+          cmd === "git" &&
+          args.includes("status") &&
+          args.includes("--porcelain")
+        ) {
+          return { stdout: "", stderr: "" };
+        }
+        if (cmd === "git" && args.includes("rev-list")) {
+          return { stdout: "0", stderr: "" };
+        }
+        if (cmd === "which" && args[0] === "bun") {
+          return { stdout: "/usr/local/bin/bun", stderr: "" };
+        }
+        if (cmd === "bun" && args.includes("run") && args.includes("lint")) {
+          return { stdout: "✓ Linting passed", stderr: "" };
+        }
+        if (
+          cmd === "bun" &&
+          args.includes("run") &&
+          args.includes("format-check")
+        ) {
+          return { stdout: "✓ Formatting passed", stderr: "" };
+        }
+        if (cmd === "bun" && args.includes("run") && args.includes("test")) {
+          return { stdout: "✓ Tests passed", stderr: "" };
+        }
+        if (cmd === "git" && args.includes("log")) {
+          return {
+            stdout: "feat: add new feature\n\nThis adds a new feature",
+            stderr: "",
+          };
+        }
+
+        throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+      },
+    );
+  });
+
+  describe("checkGitHubCliSetup", () => {
+    it("should return success when CLI is available and authenticated", async () => {
+      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+
+      expect(result.cliAvailable).toBe(true);
+      expect(result.authenticated).toBe(true);
+      expect(result.repository).toBe("test/repo");
+    });
+
+    it("should return CLI not available when which fails", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "which" && args[0] === "gh") {
+            throw new Error("Command not found");
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+
+      expect(result.cliAvailable).toBe(false);
+      expect(result.authenticated).toBe(false);
+      expect(result.repository).toBeUndefined();
+    });
+
+    it("should return not authenticated when auth status fails", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
+            throw new Error("Not authenticated");
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+
+      expect(result.cliAvailable).toBe(true);
+      expect(result.authenticated).toBe(false);
+      expect(result.repository).toBeUndefined();
+    });
+  });
+
+  describe("validateGitState", () => {
+    it("should validate git state successfully", async () => {
+      const result = await Effect.runPromise(service.validateGitState());
+
+      expect(result.currentBranch).toBe("main");
+      expect(result.hasChanges).toBe(false);
+      expect(result.hasUncommittedChanges).toBe(false);
+      expect(result.isOnMainBranch).toBe(true);
+    });
+
+    it("should handle uncommitted changes", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (
+            cmd === "git" &&
+            args.includes("status") &&
+            args.includes("--porcelain")
+          ) {
+            return { stdout: "M file.txt\nA new-file.txt", stderr: "" };
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.validateGitState());
+
+      expect(result.hasUncommittedChanges).toBe(true);
+    });
+
+    it("should handle commits ahead of origin", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "git" && args.includes("rev-list")) {
+            return { stdout: "2", stderr: "" };
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.validateGitState());
+
+      expect(result.hasChanges).toBe(true);
+    });
+  });
+
+  describe("detectPackageManager", () => {
+    it("should detect bun when bun.lockb exists", async () => {
+      (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
+        (path: string) => path.includes("bun.lockb"),
+      );
+
+      const result = await Effect.runPromise(service.detectPackageManager());
+
+      expect(result).toBe("bun");
+    });
+
+    it("should detect pnpm when pnpm-lock.yaml exists", async () => {
+      (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
+        (path: string) => path.includes("pnpm-lock.yaml"),
+      );
+
+      const result = await Effect.runPromise(service.detectPackageManager());
+
+      expect(result).toBe("pnpm");
+    });
+
+    it("should detect yarn when yarn.lock exists", async () => {
+      (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
+        (path: string) => path.includes("yarn.lock"),
+      );
+
+      const result = await Effect.runPromise(service.detectPackageManager());
+
+      expect(result).toBe("yarn");
+    });
+
+    it("should detect npm when package-lock.json exists", async () => {
+      (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
+        (path: string) => path.includes("package-lock.json"),
+      );
+
+      const result = await Effect.runPromise(service.detectPackageManager());
+
+      expect(result).toBe("npm");
+    });
+
+    it("should default to npm", async () => {
+      (existsSync as unknown as ReturnType<typeof mock>).mockReturnValue(false);
+
+      const result = await Effect.runPromise(service.detectPackageManager());
+
+      expect(result).toBe("npm");
+    });
+  });
+
+  describe("runQualityChecks", () => {
+    it("should run all quality checks successfully", async () => {
+      const result = await Effect.runPromise(service.runQualityChecks("bun"));
+
+      expect(result.lintPassed).toBe(true);
+      expect(result.formatPassed).toBe(true);
+      expect(result.testsPassed).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it("should handle linting failure", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "bun" && args.includes("lint")) {
+            throw new Error("Linting failed");
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.runQualityChecks("bun"));
+
+      expect(result.lintPassed).toBe(false);
+      expect(result.formatPassed).toBe(true);
+      expect(result.testsPassed).toBe(true);
+      expect(result.errors).toContain("Linting failed: Linting failed");
+    });
+
+    it("should handle test failure", async () => {
+      mockExecFile.mockImplementationOnce(
+        async (cmd: string, args: string[]) => {
+          if (cmd === "bun" && args.includes("test")) {
+            throw new Error("Tests failed");
+          }
+          // Call the original mock implementation for other commands
+          return mockExecFileAsync(cmd, args);
+        },
+      );
+
+      const result = await Effect.runPromise(service.runQualityChecks("bun"));
+
+      expect(result.lintPassed).toBe(true);
+      expect(result.formatPassed).toBe(true);
+      expect(result.testsPassed).toBe(false);
+      expect(result.errors).toContain("Tests failed: Tests failed");
+    });
+  });
+
+  describe("createPullRequest", () => {
+    it("should create a pull request", async () => {
+      const options = {
+        title: "Test PR",
+        body: "Test body",
+        base: "main",
+        head: "feature-branch",
+      };
+
+      const result = await Effect.runPromise(
+        service.createPullRequest(options),
+      );
+
+      expect(result.number).toBe(123);
+      expect(result.url).toBe("https://github.com/test/repo/pull/123");
+      expect(result.autoMergeEnabled).toBe(false);
+    });
+  });
+
+  describe("getPRStatus", () => {
+    it("should get PR status", async () => {
+      const result = await Effect.runPromise(service.getPRStatus(123));
+
+      expect(result.isInMergeQueue).toBe(false);
+      expect(result.mergeable).toBe(true);
+      expect(result.mergeStateStatus).toBe("clean");
+      expect(result.autoMergeEnabled).toBe(false);
+    });
+  });
+
+  describe("listPRs", () => {
+    it("should list pull requests", async () => {
+      const result = await Effect.runPromise(service.listPRs());
+
+      expect(result).toContain("123");
+      expect(result).toContain("124");
+      expect(result).toContain("Test PR");
+      expect(result).toContain("Another PR");
+    });
+
+    it("should list PRs with options", async () => {
+      const options = { state: "open" as const, author: "testuser" };
+
+      const result = await Effect.runPromise(service.listPRs(options));
+
+      expect(result).toContain("123");
+      expect(result).toContain("Test PR");
+    });
+  });
+
+  describe("viewPR", () => {
+    it("should view PR details", async () => {
+      const result = await Effect.runPromise(service.viewPR(123));
+
+      expect(result).toContain("PR #123");
+      expect(result).toContain("Test PR");
+      expect(result).toContain("State: open");
+    });
+
+    it("should view PR with options", async () => {
+      const options = { json: "true" };
+
+      const result = await Effect.runPromise(service.viewPR("123", options));
+
+      expect(result).toContain("PR #123");
+    });
+  });
+
+  describe("mergePR", () => {
+    it("should merge a pull request", async () => {
+      const result = await Effect.runPromise(service.mergePR(123));
+
+      expect(result).toContain("Successfully merged PR #123");
+    });
+
+    it("should merge PR with options", async () => {
+      const options = { method: "squash" as const, deleteBranch: true };
+
+      const result = await Effect.runPromise(service.mergePR(123, options));
+
+      expect(result).toContain("Successfully merged PR #123");
+    });
+  });
+});

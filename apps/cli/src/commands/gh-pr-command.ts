@@ -42,10 +42,6 @@ function buildRegularCreateCommand() {
     Options.withDescription("Skip quality assurance checks"),
   );
 
-  const skipChangesetOption = Options.boolean("skip-changeset").pipe(
-    Options.withDescription("Skip changeset generation"),
-  );
-
   return Command.make("create", {
     title: titleArg,
     body: bodyOption,
@@ -53,7 +49,6 @@ function buildRegularCreateCommand() {
     head: headOption,
     draft: draftOption,
     skipChecks: skipChecksOption,
-    skipChangeset: skipChangesetOption,
   }).pipe(
     Command.withDescription(
       "Create a GitHub Pull Request with comprehensive workflow",
@@ -67,7 +62,6 @@ function buildRegularCreateCommand() {
           has_head: !!config.head,
           draft: config.draft,
           skip_checks: config.skipChecks,
-          skip_changeset: config.skipChangeset,
         });
 
         const cli = new GhPRService();
@@ -133,28 +127,7 @@ function buildRegularCreateCommand() {
           `✅ On branch '${gitState.currentBranch}' with ${gitState.hasChanges ? "unpushed " : ""}changes`,
         );
 
-        // Step 3: Check for changesets (unless skipped)
-        let changesetGenerated = false;
-        if (!config.skipChangeset) {
-          console.log("\n🔍 Checking for changesets setup...");
-          const changesets = yield* cli.checkChangesetsSetup();
-
-          if (changesets.hasChangesets) {
-            console.log("📝 Generating changeset...");
-            try {
-              const result = yield* cli.generateChangeset(true);
-              changesetGenerated = result.changesetGenerated;
-              console.log("✅ Changeset generated successfully");
-            } catch (error) {
-              console.log(`⚠️  Changeset generation failed: ${error}`);
-              console.log("   Continuing without changeset...");
-            }
-          } else {
-            console.log("ℹ️  No changesets setup detected - skipping");
-          }
-        }
-
-        // Step 4: Run quality checks (unless skipped)
+        // Step 3: Run quality checks (unless skipped)
         if (!config.skipChecks) {
           console.log("\n🔍 Running quality assurance checks...");
           const packageManager = yield* cli.detectPackageManager();
@@ -236,10 +209,6 @@ ${commitMessage
         console.log(`📋 PR #${pr.number}: ${config.title}`);
         console.log(`🔗 ${pr.url}`);
 
-        if (changesetGenerated) {
-          console.log(`📝 Changeset was included in this PR`);
-        }
-
         yield* printLines([
           "",
           "Next steps:",
@@ -279,17 +248,12 @@ function buildAutoCreateCommand() {
     Options.withDescription("Skip quality assurance checks"),
   );
 
-  const skipChangesetOption = Options.boolean("skip-changeset").pipe(
-    Options.withDescription("Skip changeset generation"),
-  );
-
   return Command.make("auto", {
     title: titleArg,
     body: bodyOption,
     base: baseOption,
     head: headOption,
     skipChecks: skipChecksOption,
-    skipChangeset: skipChangesetOption,
   }).pipe(
     Command.withDescription(
       "Create a GitHub Pull Request with auto-merge enabled",
@@ -302,7 +266,6 @@ function buildAutoCreateCommand() {
           has_base: !!config.base,
           has_head: !!config.head,
           skip_checks: config.skipChecks,
-          skip_changeset: config.skipChangeset,
         });
 
         const cli = new GhPRService();
@@ -346,22 +309,6 @@ function buildAutoCreateCommand() {
         console.log(
           `✅ On branch '${gitState.currentBranch}' with changes ready for PR`,
         );
-
-        // Handle changesets
-        let changesetGenerated = false;
-        if (!config.skipChangeset) {
-          const changesets = yield* cli.checkChangesetsSetup();
-          if (changesets.hasChangesets) {
-            console.log("\n📝 Generating changeset...");
-            try {
-              const result = yield* cli.generateChangeset(true);
-              changesetGenerated = result.changesetGenerated;
-              console.log("✅ Changeset generated successfully");
-            } catch (error) {
-              console.log(`⚠️  Changeset generation failed: ${error}`);
-            }
-          }
-        }
 
         // Run quality checks
         if (!config.skipChecks) {
@@ -445,10 +392,6 @@ ${commitMessage
         console.log(
           `🤖 Auto-merge: ${pr.autoMergeEnabled ? "ENABLED" : "FAILED TO ENABLE"}`,
         );
-
-        if (changesetGenerated) {
-          console.log(`📝 Changeset was included in this PR`);
-        }
 
         if (pr.autoMergeEnabled) {
           yield* printLines([

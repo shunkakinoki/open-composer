@@ -1,8 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import path from "node:path";
 import { promisify } from "node:util";
-import type { SqliteDrizzle } from "@open-composer/db";
 import {
   createPR,
   getPRStatus,
@@ -94,8 +92,7 @@ export class GhPRService {
       hasUncommittedChanges: boolean;
       isOnMainBranch: boolean;
     },
-    Error,
-    SqliteDrizzle
+    Error
   > {
     return Effect.tryPromise({
       try: async () => {
@@ -137,56 +134,9 @@ export class GhPRService {
   }
 
   /**
-   * Check if repository uses changesets
-   */
-  checkChangesetsSetup(): Effect.Effect<
-    {
-      hasChangesets: boolean;
-      configPath?: string;
-    },
-    Error,
-    SqliteDrizzle
-  > {
-    return Effect.gen(function* () {
-      // Check for changesets directory
-      const hasChangesetsDir = existsSync(".changeset");
-
-      // Check for changesets config
-      const configPaths = [".changeset/config.json", ".changeset/config.js"];
-      let configPath: string | undefined;
-      for (const config of configPaths) {
-        if (existsSync(config)) {
-          configPath = config;
-          break;
-        }
-      }
-
-      // Check package.json for changesets dependency
-      const hasChangesetsDep =
-        existsSync("package.json") &&
-        (() => {
-          try {
-            const pkg = require(path.join(process.cwd(), "package.json"));
-            return (
-              "@changesets/cli" in (pkg.dependencies || {}) ||
-              "@changesets/cli" in (pkg.devDependencies || {})
-            );
-          } catch {
-            return false;
-          }
-        })();
-
-      return {
-        hasChangesets: hasChangesetsDir || !!configPath || hasChangesetsDep,
-        configPath,
-      };
-    });
-  }
-
-  /**
    * Detect package manager
    */
-  detectPackageManager(): Effect.Effect<string, Error, SqliteDrizzle> {
+  detectPackageManager(): Effect.Effect<string, Error> {
     if (existsSync("bun.lockb") || existsSync("bun.lock")) {
       return Effect.succeed("bun");
     }
@@ -212,8 +162,7 @@ export class GhPRService {
       testsPassed: boolean;
       errors: string[];
     },
-    Error,
-    SqliteDrizzle
+    Error
   > {
     return Effect.tryPromise({
       try: async () => {
@@ -260,47 +209,6 @@ export class GhPRService {
         };
       },
       catch: (error) => new Error(`Quality checks failed: ${error}`),
-    });
-  }
-
-  /**
-   * Generate changeset if changesets is configured
-   */
-  generateChangeset(hasChangesets: boolean): Effect.Effect<
-    {
-      changesetGenerated: boolean;
-      changesetPath?: string;
-    },
-    Error,
-    SqliteDrizzle
-  > {
-    return Effect.tryPromise({
-      try: async () => {
-        if (!hasChangesets) {
-          return { changesetGenerated: false };
-        }
-
-        // Get recent commit message for changeset content
-        const commitResult = await execFileAsync("git", [
-          "log",
-          "--format=%B",
-          "-n",
-          "1",
-        ]);
-        const commitMessage = commitResult.stdout.trim();
-        const title = commitMessage.split("\n")[0];
-
-        // Generate changeset
-        await execFileAsync("npx", [
-          "@changesets/cli",
-          "add",
-          "--message",
-          `${title}\n\n${commitMessage}`,
-        ]);
-
-        return { changesetGenerated: true };
-      },
-      catch: (error) => new Error(`Changeset generation failed: ${error}`),
     });
   }
 
