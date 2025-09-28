@@ -1,11 +1,10 @@
-// biome-ignore assist/source/organizeImports: False positive
+import { Box } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { Box } from "ink";
-import { Layout } from "./Layout.js";
 import { ChatInterface } from "./ChatInterface.js";
-import { Sidebar } from "./Sidebar.js";
 import { CodeEditor } from "./CodeEditor.js";
+import { Layout } from "./Layout.js";
+import { Sidebar } from "./Sidebar.js";
 
 // Utility function for creating timestamps - can be mocked in tests
 export const createTimestamp = () => new Date();
