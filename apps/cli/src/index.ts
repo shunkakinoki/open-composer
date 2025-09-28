@@ -2,6 +2,7 @@
 
 import type { ValidationError } from "@effect/cli/ValidationError";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
+import { initializeDatabase } from "@open-composer/db";
 import * as Effect from "effect/Effect";
 import { CliLive, cli } from "./lib/cli.js";
 import { ConfigLive, promptForTelemetryConsent } from "./services/config.js";
@@ -44,24 +45,28 @@ if (import.meta.main) {
   });
 
   const program = Effect.provide(
-    cli(process.argv).pipe(
-      // Prompt for telemetry consent on first run
-      Effect.tap(() => promptForTelemetryConsent()),
-      Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
-      // Add global error handling
-      Effect.catchAll((error) => {
-        // Track only actual Error instances, not ValidationError
-        const trackEffect =
-          error instanceof Error
-            ? trackException(error, "cli_execution_error")
-            : Effect.void;
+    initializeDatabase.pipe(
+      Effect.flatMap(() =>
+        cli(process.argv).pipe(
+          // Prompt for telemetry consent on first run
+          Effect.tap(() => promptForTelemetryConsent()),
+          Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
+          // Add global error handling
+          Effect.catchAll((error) => {
+            // Track only actual Error instances, not ValidationError
+            const trackEffect =
+              error instanceof Error
+                ? trackException(error, "cli_execution_error")
+                : Effect.void;
 
-        return trackEffect.pipe(
-          Effect.provide(TelemetryLive),
-          Effect.provide(ConfigLive),
-          Effect.flatMap(() => Effect.fail(error)),
-        );
-      }),
+            return trackEffect.pipe(
+              Effect.provide(TelemetryLive),
+              Effect.provide(ConfigLive),
+              Effect.flatMap(() => Effect.fail(error)),
+            );
+          }),
+        ),
+      ),
     ),
     CliLive,
   );
