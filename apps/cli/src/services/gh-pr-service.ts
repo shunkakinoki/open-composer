@@ -6,9 +6,12 @@ import type { SqliteDrizzle } from "@open-composer/db";
 import {
   createPR,
   getPRStatus,
+  listPRs,
+  mergePR,
   type PRCreateOptions,
   type PRCreateResult,
   type PRStatus,
+  viewPR,
 } from "@open-composer/gh-pr";
 import * as Effect from "effect/Effect";
 
@@ -17,7 +20,7 @@ const execFileAsync = promisify(execFile);
 // Re-export types for backward compatibility
 export type { PRCreateOptions, PRCreateResult, PRStatus };
 
-export class PRCreateService {
+export class GhPRService {
   /**
    * Check if GitHub CLI is available and authenticated
    */
@@ -319,5 +322,54 @@ export class PRCreateService {
         (error) => new Error(`Could not get PR status: ${error}`),
       ),
     ) as Effect.Effect<PRStatus, Error>;
+  }
+
+  /**
+   * List pull requests
+   */
+  listPRs(options?: {
+    readonly state?: "open" | "closed" | "merged" | "all";
+    readonly author?: string;
+    readonly assignee?: string;
+    readonly limit?: number;
+    readonly json?: boolean;
+  }): Effect.Effect<string, Error> {
+    return listPRs(options).pipe(
+      Effect.map((result) => result.stdout),
+      Effect.mapError((error) => new Error(`Could not list PRs: ${error}`)),
+    );
+  }
+
+  /**
+   * View pull request details
+   */
+  viewPR(
+    prNumber: number | string,
+    options?: {
+      readonly json?: string;
+      readonly web?: boolean;
+    },
+  ): Effect.Effect<string, Error> {
+    return viewPR(prNumber, options).pipe(
+      Effect.map((result) => result.stdout),
+      Effect.mapError((error) => new Error(`Could not view PR: ${error}`)),
+    );
+  }
+
+  /**
+   * Merge a pull request
+   */
+  mergePR(
+    prNumber: number,
+    options?: {
+      readonly method?: "merge" | "squash" | "rebase";
+      readonly auto?: boolean;
+      readonly deleteBranch?: boolean;
+    },
+  ): Effect.Effect<string, Error> {
+    return mergePR(prNumber, options).pipe(
+      Effect.map((result) => result.stdout),
+      Effect.mapError((error) => new Error(`Could not merge PR: ${error}`)),
+    );
   }
 }
