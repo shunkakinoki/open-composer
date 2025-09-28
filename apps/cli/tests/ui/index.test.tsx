@@ -22,6 +22,8 @@ import * as Effect from "effect/Effect";
 import { ChatInterface } from "../../src/components/ChatInterface.js";
 import { CodeEditor } from "../../src/components/CodeEditor.js";
 import { ComposerApp } from "../../src/components/ComposerApp.js";
+import { GitWorktreeCreatePrompt } from "../../src/components/GitWorktreeCreatePrompt.js";
+import { GitWorktreeSwitchPrompt } from "../../src/components/GitWorktreeSwitchPrompt.js";
 import { Layout } from "../../src/components/Layout.js";
 import { Sidebar } from "../../src/components/Sidebar.js";
 import { TelemetryConsentPrompt } from "../../src/components/TelemetryConsentPrompt.js";
@@ -31,12 +33,16 @@ import { render } from "../utils.js";
 describe("Open Composer CLI", () => {
   describe("GitWorktreeCli", () => {
     test("should initialize with current directory", async () => {
-      const cli = await Effect.runPromise(GitWorktreeCli.make());
+      const cli = await Effect.runPromise(
+        GitWorktreeCli.make().pipe(Effect.provide(GitLive)),
+      );
       expect(cli).toBeInstanceOf(GitWorktreeCli);
     });
 
     test("should list worktrees", async () => {
-      const cli = await Effect.runPromise(GitWorktreeCli.make());
+      const cli = await Effect.runPromise(
+        GitWorktreeCli.make().pipe(Effect.provide(GitLive)),
+      );
       await expect(
         Effect.runPromise(cli.list().pipe(Effect.provide(GitLive))),
       ).resolves.toBeUndefined();
@@ -120,6 +126,69 @@ describe("Open Composer CLI", () => {
       const { lastFrame } = render(
         <TelemetryConsentPrompt
           onConsent={mockOnConsent}
+          onCancel={mockOnCancel}
+        />,
+      );
+      expect(lastFrame()).toMatchSnapshot();
+    });
+
+    test("GitWorktreeCreatePrompt renders correctly", () => {
+      const mockOnSubmit = mock(() => {});
+      const mockOnCancel = mock(() => {});
+
+      const { lastFrame } = render(
+        <GitWorktreeCreatePrompt
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+        />,
+      );
+      expect(lastFrame()).toMatchSnapshot();
+    });
+
+    test("GitWorktreeSwitchPrompt renders correctly with worktrees", () => {
+      const mockOnSubmit = mock(() => {});
+      const mockOnCancel = mock(() => {});
+
+      const worktrees = [
+        {
+          path: "/path/to/main",
+          branch: "main",
+          bare: false,
+          detached: false,
+        },
+        {
+          path: "/path/to/feature-1",
+          branch: "feature-1",
+          bare: false,
+          detached: false,
+        },
+        {
+          path: "/path/to/feature-2",
+          branch: "feature-2",
+          bare: false,
+          detached: false,
+          locked: { reason: "in use" },
+        },
+      ];
+
+      const { lastFrame } = render(
+        <GitWorktreeSwitchPrompt
+          worktrees={worktrees}
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+        />,
+      );
+      expect(lastFrame()).toMatchSnapshot();
+    });
+
+    test("GitWorktreeSwitchPrompt renders correctly with no worktrees", () => {
+      const mockOnSubmit = mock(() => {});
+      const mockOnCancel = mock(() => {});
+
+      const { lastFrame } = render(
+        <GitWorktreeSwitchPrompt
+          worktrees={[]}
+          onSubmit={mockOnSubmit}
           onCancel={mockOnCancel}
         />,
       );
