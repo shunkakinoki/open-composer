@@ -56,13 +56,23 @@ export const runMigration = <R, E>(migration: Effect.Effect<unknown, E, R>) =>
 /**
  * Initializes the database by running migrations
  */
-export const initializeDatabase = SqliteMigrator.run({
-  loader: SqliteMigrator.fromFileSystem(migrationsDirectory),
-  schemaDirectory: migrationsDirectory,
-}).pipe(
-  Effect.provide(BunContext.layer),
-  Effect.provide(SqliteClientLive)
-);
+export const initializeDatabase = Effect.gen(function* () {
+  // Read all migration files from the migrations directory
+  const migrationFiles = yield* Effect.promise(async () => {
+    const fs = await import("node:fs/promises");
+    const entries = await fs.readdir(migrationsDirectory);
+    return entries
+      .filter((file) => file.endsWith(".ts") || file.endsWith(".js"))
+      .sort(); // Sort by filename (should be numbered)
+  });
+
+  // Import and run each migration in order
+  for (const file of migrationFiles) {
+    const migrationPath = `../migrations/${file.replace(".ts", "").replace(".js", "")}`;
+    const migration = yield* Effect.promise(() => import(migrationPath));
+    yield* migration.default;
+  }
+});
 
 export { SqliteClientLive, DrizzleLive, MigrationsLive };
 export { SqliteDrizzle } from "@effect/sql-drizzle/Sqlite";
