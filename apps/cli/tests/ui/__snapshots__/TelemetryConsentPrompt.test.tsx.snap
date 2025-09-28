@@ -1,0 +1,35 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`TelemetryConsentPrompt renders correctly 1`] = `
+"
+
+  🔒 Open Composer - Privacy Notice
+
+  Open Composer respects your privacy and is committed to protecting your data.
+
+
+  📊 Telemetry Collection (Optional)
+
+
+  We can collect anonymous usage statistics to help improve Open Composer.
+
+
+  This includes command usage, error reports, and performance metrics.
+
+
+  All data is anonymized and cannot be used to identify you.
+
+
+  You can change this setting anytime with: open-composer telemetry disable
+
+
+
+  Enable telemetry collection?
+
+  Use arrow keys to select, Enter to confirm, Esc to skip
+
+
+  ● Yes, enable telemetry  ○ No, keep disabled
+
+"
+`;
