@@ -144,7 +144,7 @@ for (const [os, arch] of targets) {
   // Add the package to the binaries object
   // ---------------------------------------------------------------------------
 
-  binaries[packageName] = version;
+  binaries[packageName] = VERSION;
 }
 
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
@@ -220,6 +220,16 @@ if (isRelease) {
   }
 
   console.log("Binaries published:", binaries);
+
+  // ---------------------------------------------------------------------------
+  // Clean the package if `isChangesetRelease` is set
+  // ---------------------------------------------------------------------------
+
+  if (isChangesetRelease) {
+    // Git reset the `CHANGELOG.md` file
+    await $`git reset HEAD CHANGELOG.md`;
+  }
+    
 }
 
 export { binaries };
