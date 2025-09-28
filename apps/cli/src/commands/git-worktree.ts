@@ -340,6 +340,8 @@ function buildEditCommand() {
             force: config.force,
           }),
         );
+
+        process.exit(0);
       }),
     ),
   );
@@ -386,6 +388,8 @@ function buildPruneCommand() {
             expire: config.expire.pipe(Option.getOrUndefined),
           }),
         );
+
+        process.exit(0);
       }),
     ),
   );
