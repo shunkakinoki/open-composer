@@ -1,4 +1,4 @@
-import { spawn as childSpawn } from "node:child_process";
+import { type ChildProcess, spawn as childSpawn } from "node:child_process";
 import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
@@ -10,6 +10,7 @@ import {
   ProcessRunnerError as ProcessRunnerErrorValue,
   type ProcessRunnerOptions,
   type ProcessSessionInfo,
+  type PtyProcess,
   type SessionResources,
 } from "./types.js";
 import { validateCommand, validateSessionName, withTimeout } from "./utils.js";
@@ -313,7 +314,6 @@ export class ProcessRunnerService {
                   );
 
                   // Import both PTY and regular child_process
-                  const { spawn: ptySpawn } = await import("bun-pty");
                   const { spawn: childSpawn } = await import(
                     "node:child_process"
                   );
@@ -338,7 +338,7 @@ export class ProcessRunnerService {
 
                   // For simple commands without shell features, try direct execution
                   // This avoids shell initialization issues in PTY environment
-                  let term;
+                  let term: PtyProcess;
                   const shouldUseDirect =
                     directExecutionCommands.includes(mainCmd) &&
                     !validCommand.includes("|") &&
@@ -348,7 +348,7 @@ export class ProcessRunnerService {
                     !validCommand.includes("<");
 
                   // Use detached child_process for initial spawn to ensure true background execution
-                  let childProcess;
+                  let childProcess: ChildProcess;
                   try {
                     const _logStream = createLogWriter(logFile, () =>
                       rotateLogFile(logFile),
@@ -377,12 +377,14 @@ export class ProcessRunnerService {
 
                     // Create a PTY-compatible interface for compatibility
                     const compatTerm = {
-                      pid: childProcess.pid!,
+                      pid: childProcess.pid || 0,
                       onData: (_callback: (data: string | Buffer) => void) => {
                         // For detached processes, we'll stream data through log file watching
                         // This is handled during attachment
                       },
-                      onExit: (callback: (exitInfo?: any) => void) => {
+                      onExit: (
+                        callback: (event: { exitCode?: number }) => void,
+                      ) => {
                         childProcess.on("exit", callback);
                       },
                       write: (_data: string) => {
