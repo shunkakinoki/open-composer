@@ -355,7 +355,7 @@ export class ProcessRunnerService {
                     term.onExit(() => {
                       try {
                         fsSync.unlinkSync(tempScriptPath);
-                      } catch (error) {
+                      } catch (_error) {
                         // Ignore cleanup errors
                       }
                       this.cleanupSession(validSessionName);
@@ -717,7 +717,7 @@ export class ProcessRunnerService {
     const cleanup = () => {
       if (detached) {
         return;
-      }; // Prevent multiple cleanup calls
+      } // Prevent multiple cleanup calls
 
       // Restore terminal settings first
       if (process.stdin.isTTY) {

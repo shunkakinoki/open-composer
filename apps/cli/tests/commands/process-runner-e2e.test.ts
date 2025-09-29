@@ -32,6 +32,8 @@ const runCli = (
         TMPDIR: testWorkDir,
         // Set session directory to the test working directory
         OPEN_COMPOSER_SESSION_DIR: testWorkDir,
+        // Set test mode to avoid interactive prompts
+        BUN_TEST: "1",
       },
     });
 
@@ -207,7 +209,7 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(spawnResult.stderr)).not.toContain("command not found");
 
       // Clean up
-      await runCli(["kill", "test-lightweight"]);
+      await runCli(["session", "kill", "test-lightweight"]);
     });
 
     it("should handle process lifecycle without external process managers", async () => {
@@ -270,7 +272,7 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(result.stdout)).toContain("Spawned session: test-args");
 
       // Clean up
-      await runCli(["kill", "test-args"]);
+      await runCli(["session", "kill", "test-args"]);
     });
 
     it("should provide helpful error messages for invalid commands", async () => {
@@ -368,7 +370,7 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["kill", sessionName]);
+      await runCli(["session", "kill", sessionName]);
     });
 
     it("should support log filtering with search patterns", async () => {
@@ -397,7 +399,7 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["kill", sessionName]);
+      await runCli(["session", "kill", sessionName]);
     });
 
     it("should clean up dead processes from session list", async () => {
@@ -436,7 +438,7 @@ describe("Process Runner E2E Tests", () => {
       );
 
       // Clean up
-      await runCli(["kill", "test-platform"]);
+      await runCli(["session", "kill", "test-platform"]);
     });
 
     it("should handle platform-specific path separators", async () => {
@@ -455,7 +457,7 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Clean up
-      await runCli(["kill", "test-paths"]);
+      await runCli(["session", "kill", "test-paths"]);
     });
   });
 
@@ -471,7 +473,12 @@ describe("Process Runner E2E Tests", () => {
       const sessionName = "test-concurrent";
 
       const spawnResult = await runCli(
-        ["session", "spawn", sessionName, "sleep 10"],
+        [
+          "session",
+          "spawn",
+          sessionName,
+          "echo 'test concurrent' && sleep 0.5",
+        ],
         { timeout: 15000 },
       );
       expect(spawnResult.code).toBe(0);
