@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { UserConfig } from "../../src/services/config-service.js";
+import type { UserConfig } from "@open-composer/config";
 
 // Mock file system operations for testing
 const mockConfigDir = join(homedir(), ".config", "open-composer-test");

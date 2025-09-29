@@ -1,11 +1,9 @@
 import { randomUUID } from "node:crypto";
+import type { TelemetryConfig } from "@open-composer/config";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
-import type {
-  ConfigServiceInterface,
-  TelemetryConfig,
-} from "./config-service.js";
+import type { ConfigServiceInterface } from "./config-service.js";
 import { ConfigService } from "./config-service.js";
 
 // Get or create a persistent anonymous user ID using the config system

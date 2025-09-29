@@ -1,9 +1,5 @@
-import type { AgentCache } from "@open-composer/cache";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
-
-// Re-export AgentCache for backward compatibility
-export type { AgentCache };
 
 // Telemetry configuration interface
 export interface TelemetryConfig {
@@ -19,7 +15,6 @@ export interface TelemetryConfig {
 // Configuration interface
 export interface UserConfig {
   readonly telemetry?: TelemetryConfig;
-  readonly agentCache?: AgentCache;
   readonly version: string;
   readonly createdAt: string;
   readonly updatedAt: string;
