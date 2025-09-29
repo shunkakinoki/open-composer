@@ -78,6 +78,8 @@ export const ROOT_LAYER = BASE_LAYER.pipe(
 
 const ALL_COMMAND_BUILDERS = [
   buildAgentsCommand,
+  buildCacheCommand,
+  buildConfigCommand,
   buildGHPRCommand,
   buildGitWorktreeCommand,
   buildSessionsCommand,
@@ -89,11 +91,13 @@ const ALL_COMMAND_BUILDERS = [
   buildTUICommand,
 ];
 
-const EXCLUDED_HELP_TEXT_BUILDERS = [buildCacheCommand, buildConfigCommand];
+const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];
 
-const EXCLUDED_HELP_TEXT_BUILDERS_SET = new Set(EXCLUDED_HELP_TEXT_BUILDERS);
 const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter(
-  (cb) => !EXCLUDED_HELP_TEXT_BUILDERS_SET.has(cb),
+  (cb) => {
+    const built = cb();
+    return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
+  },
 );
 
 // -----------------------------------------------------------------------------
