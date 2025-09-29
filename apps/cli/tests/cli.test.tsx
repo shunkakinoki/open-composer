@@ -56,6 +56,16 @@ describe("CLI Execution", () => {
     expect(stdout).toContain("Manage AI agents");
   });
 
+  it("prints help text that matches snapshot", async () => {
+    const result = await runCli();
+    const stdout = stripAnsi(result.stdout);
+    const stderr = stripAnsi(result.stderr);
+
+    expect(result.code).toBe(0);
+    expect(stderr).toBe("");
+    expect(stdout).toMatchSnapshot();
+  });
+
   it("launches the TUI when requested", async () => {
     await new Promise<void>((resolve, reject) => {
       const child = spawn("bun", ["run", cliPath, "tui"], {

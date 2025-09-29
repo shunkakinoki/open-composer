@@ -1,0 +1,23 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`CLI Execution prints help text that matches snapshot 1`] = `
+"Open Composer CLI
+
+USAGE
+  $ open-composer <command>
+
+COMMANDS
+  agents            Manage AI agents
+  pr                Manage GitHub Pull Requests with comprehensive workflow
+  gw                Manage git worktrees
+  sessions          Manage development sessions
+  settings          Manage application settings
+  spawn             Spawn multiple AI agents in separate worktrees with tmux sessions
+  stack             Manage stacked pull requests
+  status            Show current status of agents, worktrees, and PRs
+  telemetry         Manage telemetry and privacy settings
+  tui               Launch the interactive TUI
+
+Run 'open-composer <command> --help' for more information on a specific command.
+"
+`;
