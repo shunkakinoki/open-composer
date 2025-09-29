@@ -42,12 +42,6 @@
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echo-1759166190582.log"
   },
   {
-    "sessionName": "echoe",
-    "pid": 87318,
-    "command": "sleep 300",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759168841059.log"
-  },
-  {
     "sessionName": "sleep-test",
     "pid": 88436,
     "command": "sleep 300",
@@ -210,9 +204,51 @@
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-attach-logs-1759173271351.log"
   },
   {
+    "sessionName": "test-noninteractive",
+    "pid": 71146,
+    "command": "for i in {1..5}; do echo \"Test $i\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-noninteractive-1759173838445.log"
+  },
+  {
+    "sessionName": "test-interactive",
+    "pid": 71365,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-interactive-1759173843692.log"
+  },
+  {
+    "sessionName": "test-bash",
+    "pid": 73404,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-bash-1759173896509.log"
+  },
+  {
+    "sessionName": "test-interactive2",
+    "pid": 74144,
+    "command": "bash -c 'echo \"Interactive bash ready - type exit to end\"; bash'",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-interactive2-1759173915191.log"
+  },
+  {
+    "sessionName": "demo-interactive",
+    "pid": 75071,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/demo-interactive-1759173938844.log"
+  },
+  {
+    "sessionName": "persistent-shell",
+    "pid": 11403,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/persistent-shell-1759174942321.log"
+  },
+  {
+    "sessionName": "echoe",
+    "pid": 17147,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759175091742.log"
+  },
+  {
     "sessionName": "attach3-fixed",
-    "pid": 52559,
+    "pid": 17890,
     "command": "for i in {1..300}; do echo \"e\"; sleep 1; done",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759173395367.log"
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759175108253.log"
   }
 ]

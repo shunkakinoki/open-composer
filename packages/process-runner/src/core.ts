@@ -4,6 +4,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as Effect from "effect/Effect";
 import { DEFAULT_TIMEOUTS } from "./constants.js";
+import { createLogWriter, rotateLogFile } from "./log-manager.js";
 import {
   type ProcessRunnerError,
   ProcessRunnerError as ProcessRunnerErrorValue,
@@ -319,89 +320,106 @@ export class ProcessRunnerService {
                   const mainCmd = cmdParts[0];
                   const cmdArgs = cmdParts.slice(1);
 
-                  // List of commands that work better with direct execution in PTY
-                  const directExecutionCommands = [
-                    "sleep",
-                    "ping",
-                    "curl",
-                    "wget",
-                    "tail",
-                    "head",
-                    "cat",
-                    "ls",
-                    "find",
+                  // Classify commands as interactive vs non-interactive
+                  const interactiveCommands = [
+                    "bash", "sh", "zsh", "fish", "csh", "tcsh",
+                    "python", "python3", "node", "bun", "deno",
+                    "irb", "pry", "rails", "django-admin",
+                    "mysql", "psql", "redis-cli", "mongo",
+                    "vim", "nvim", "emacs", "nano", "micro",
+                    "htop", "top", "less", "more",
                   ];
 
-                  // For simple commands without shell features, try direct execution
-                  // This avoids shell initialization issues in PTY environment
+                  const isInteractiveCommand = interactiveCommands.includes(mainCmd) ||
+                    validCommand.includes("$") || // Variables suggest shell interaction
+                    validCommand.includes("read ") || // Read command is interactive
+                    (!validCommand.includes("&&") && !validCommand.includes("||") &&
+                     !validCommand.includes("|") && !validCommand.includes(">") &&
+                     !validCommand.includes("for ") && !validCommand.includes("while ") &&
+                     mainCmd === "bash");
+
                   let term: PtyProcess;
-                  const shouldUseDirect =
-                    directExecutionCommands.includes(mainCmd) &&
-                    !validCommand.includes("|") &&
-                    !validCommand.includes("&") &&
-                    !validCommand.includes(";") &&
-                    !validCommand.includes(">") &&
-                    !validCommand.includes("<");
 
-                  // Use detached child_process for initial spawn to ensure true background execution
-                  let childProcess: ChildProcess;
                   try {
-                    // For true detached execution, we'll redirect output in the shell command itself
-                    // This avoids keeping file streams open in the parent process
-                    const finalCommand = shouldUseDirect
-                      ? `${mainCmd} ${cmdArgs.join(" ")} >> "${logFile}" 2>&1`
-                      : `(${validCommand}) >> "${logFile}" 2>&1`;
+                    if (isInteractiveCommand) {
+                      // Use PTY for interactive commands (will require session persistence)
+                      const { spawn: ptySpawn } = await import("bun-pty");
 
-                    const spawnOptions = {
-                      detached: true,
-                      stdio: "ignore" as const, // Completely ignore all stdio
-                      cwd: process.cwd(),
-                      env: process.env,
-                    };
+                      const spawnOptions = {
+                        name: "xterm-256color",
+                        cwd: process.cwd(),
+                        env: process.env as Record<string, string>,
+                      };
 
-                    // Always use shell when we need output redirection
-                    childProcess = childSpawn(
-                      "sh",
-                      ["-c", finalCommand],
-                      spawnOptions,
-                    );
+                      if (mainCmd === "bash" || mainCmd === "sh" || mainCmd === "zsh") {
+                        term = ptySpawn(mainCmd, cmdArgs, spawnOptions);
+                      } else {
+                        term = ptySpawn("sh", ["-c", validCommand], spawnOptions);
+                      }
 
-                    // Immediately unref so parent doesn't wait
-                    childProcess.unref();
+                      // Set up log capture
+                      const logWriter = createLogWriter(logFile, () => rotateLogFile(logFile));
+                      term.onData(logWriter.write);
 
-                    // Create a PTY-compatible interface for compatibility
-                    const compatTerm = {
-                      pid: childProcess.pid || 0,
-                      onData: (_callback: (data: string | Buffer) => void) => {
-                        // For detached processes, we'll stream data through log file watching
-                        // This is handled during attachment
-                      },
-                      onExit: (
-                        callback: (event: { exitCode?: number }) => void,
-                      ) => {
-                        childProcess.on("exit", callback);
-                      },
-                      write: (_data: string) => {
-                        // Writing to detached process not supported
-                        console.warn(
-                          "Cannot write to detached background process",
-                        );
-                      },
-                      kill: (signal?: string | number) => {
-                        if (childProcess.pid) {
-                          try {
-                            process.kill(
-                              childProcess.pid,
-                              (signal as NodeJS.Signals) || "SIGTERM",
-                            );
-                          } catch {
-                            // Process might already be dead
+                      // Set up cleanup on PTY exit
+                      term.onExit(() => this.cleanupSession(validSessionName));
+                    } else {
+                      // Use detached child process for non-interactive commands
+                      const directExecutionCommands = [
+                        "sleep", "ping", "curl", "wget", "tail", "head", "cat", "ls", "find"
+                      ];
+
+                      const shouldUseDirect = directExecutionCommands.includes(mainCmd) &&
+                        !validCommand.includes("|") &&
+                        !validCommand.includes("&") &&
+                        !validCommand.includes(";") &&
+                        !validCommand.includes(">") &&
+                        !validCommand.includes("<");
+
+                      // For non-interactive commands, use detached process with shell redirection
+                      const finalCommand = shouldUseDirect ?
+                        `${mainCmd} ${cmdArgs.join(' ')} >> "${logFile}" 2>&1` :
+                        `(${validCommand}) >> "${logFile}" 2>&1`;
+
+                      const spawnOptions = {
+                        detached: true,
+                        stdio: 'ignore' as const,
+                        cwd: process.cwd(),
+                        env: process.env,
+                      };
+
+                      const childProcess = childSpawn("sh", ["-c", finalCommand], spawnOptions);
+                      if (childProcess.unref) {
+                        childProcess.unref();
+                      }
+
+                      // Create PTY-compatible interface for non-interactive processes
+                      term = {
+                        pid: childProcess.pid || 0,
+                        onData: () => {}, // No-op for detached processes
+                        onExit: (callback: (exitInfo?: any) => void) => {
+                          if (childProcess.on) {
+                            childProcess.on('exit', callback);
+                          }
+                        },
+                        write: () => {
+                          console.warn('Cannot write to non-interactive detached process');
+                        },
+                        kill: (signal?: string | number) => {
+                          const pid = childProcess.pid;
+                          if (pid) {
+                            try {
+                              process.kill(pid, signal as NodeJS.Signals || 'SIGTERM');
+                            } catch {
+                              // Process might already be dead
+                            }
                           }
                         }
-                      },
-                    };
+                      } as any;
 
-                    term = compatTerm;
+                      // Set up cleanup
+                      term.onExit(() => this.cleanupSession(validSessionName));
+                    }
                   } catch (error) {
                     throw new Error(
                       `Failed to spawn command "${validCommand}": ${error instanceof Error ? error.message : String(error)}`,
