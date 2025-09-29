@@ -43,8 +43,146 @@
   },
   {
     "sessionName": "echoe",
-    "pid": 40475,
+    "pid": 87318,
     "command": "sleep 300",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759167689212.log"
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759168841059.log"
+  },
+  {
+    "sessionName": "sleep-test",
+    "pid": 88436,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/sleep-test-1759168955390.log"
+  },
+  {
+    "sessionName": "attach",
+    "pid": 88505,
+    "command": "sleep-test",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach-1759168962469.log"
+  },
+  {
+    "sessionName": "test-echo",
+    "pid": 89976,
+    "command": "echo hello world",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-echo-1759169186671.log"
+  },
+  {
+    "sessionName": "debug-test2",
+    "pid": 91828,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/debug-test2-1759169408085.log"
+  },
+  {
+    "sessionName": "debug-echo",
+    "pid": 92702,
+    "command": "echo hello world",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/debug-echo-1759169575360.log"
+  },
+  {
+    "sessionName": "debug-bash",
+    "pid": 92867,
+    "command": "bash -c 'echo Starting; sleep 5; echo Done'",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/debug-bash-1759169592056.log"
+  },
+  {
+    "sessionName": "test-sleep-fixed",
+    "pid": 93546,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-sleep-fixed-1759169734321.log"
+  },
+  {
+    "sessionName": "test-sh-sleep",
+    "pid": 93655,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-sh-sleep-1759169746440.log"
+  },
+  {
+    "sessionName": "test-direct-sleep",
+    "pid": 93739,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-direct-sleep-1759169759056.log"
+  },
+  {
+    "sessionName": "test-direct-sleep2",
+    "pid": 94472,
+    "command": "sleep 60",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-direct-sleep2-1759169903842.log"
+  },
+  {
+    "sessionName": "final-sleep-test",
+    "pid": 94925,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/final-sleep-test-1759169961817.log"
+  },
+  {
+    "sessionName": "complex-test",
+    "pid": 95486,
+    "command": "echo 'Starting' && sleep 5 && echo 'Done'",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/complex-test-1759170089190.log"
+  },
+  {
+    "sessionName": "attach2-fixed",
+    "pid": 96433,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach2-fixed-1759170242358.log"
+  },
+  {
+    "sessionName": "test-timeout",
+    "pid": 1352,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-timeout-1759171197542.log"
+  },
+  {
+    "sessionName": "test-unref",
+    "pid": 1684,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-unref-1759171234408.log"
+  },
+  {
+    "sessionName": "test-nexttick",
+    "pid": 1901,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-nexttick-1759171259995.log"
+  },
+  {
+    "sessionName": "test-exit",
+    "pid": 2075,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-exit-1759171281665.log"
+  },
+  {
+    "sessionName": "attach2-final",
+    "pid": 2173,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach2-final-1759171292778.log"
+  },
+  {
+    "sessionName": "test-delayed",
+    "pid": 2325,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-delayed-1759171307134.log"
+  },
+  {
+    "sessionName": "test-setimmediate",
+    "pid": 4002,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-setimmediate-1759171548827.log"
+  },
+  {
+    "sessionName": "test-exit10ms",
+    "pid": 4692,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-exit10ms-1759171681405.log"
+  },
+  {
+    "sessionName": "test-detached-final",
+    "pid": 5052,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-detached-final-1759171726897.log"
+  },
+  {
+    "sessionName": "attach2",
+    "pid": 5871,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach2-1759171857183.log"
   }
 ]

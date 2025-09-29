@@ -114,10 +114,13 @@ function buildSpawnSubcommand() {
         const runnerService = yield* ProcessRunnerService.make({
           logDir: logDir._tag === "Some" ? logDir.value : undefined,
         });
+
+        // Spawn the session and immediately detach
         const sessionInfo = yield* runnerService.newSession(
           sessionName,
           command,
         );
+
         console.log(`✅ Spawned session: ${sessionName}`);
         console.log(`📋 Command: ${command}`);
         console.log(`🆔 PID: ${sessionInfo.pid}`);
