@@ -354,7 +354,7 @@ export class ProcessRunnerService {
 
                     const spawnOptions = {
                       detached: true,
-                      stdio: "ignore", // Completely ignore all stdio
+                      stdio: "ignore" as const, // Completely ignore all stdio
                       cwd: process.cwd(),
                       env: process.env,
                     };

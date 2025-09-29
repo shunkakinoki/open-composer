@@ -211,8 +211,8 @@
   },
   {
     "sessionName": "attach3-fixed",
-    "pid": 49897,
+    "pid": 52559,
     "command": "for i in {1..300}; do echo \"e\"; sleep 1; done",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759173342288.log"
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759173395367.log"
   }
 ]
