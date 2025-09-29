@@ -3,7 +3,10 @@ import { afterAll, beforeAll, vi } from "vitest";
 // Mock cloudflare:workers module
 vi.mock("cloudflare:workers", () => ({
   DurableObject: class MockDurableObject {
-    constructor(public state: any, public env: any) {}
+    constructor(
+      public state: unknown,
+      public env: unknown,
+    ) {}
   },
 }));
 
