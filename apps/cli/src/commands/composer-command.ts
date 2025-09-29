@@ -91,8 +91,9 @@ const ALL_COMMAND_BUILDERS = [
 
 const EXCLUDED_HELP_TEXT_BUILDERS = [buildCacheCommand, buildConfigCommand];
 
+const EXCLUDED_HELP_TEXT_BUILDERS_SET = new Set(EXCLUDED_HELP_TEXT_BUILDERS);
 const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter(
-  (cb) => !(EXCLUDED_HELP_TEXT_BUILDERS as unknown[]).includes(cb),
+  (cb) => !EXCLUDED_HELP_TEXT_BUILDERS_SET.has(cb),
 );
 
 // -----------------------------------------------------------------------------
