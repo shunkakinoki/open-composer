@@ -29,7 +29,7 @@ describe("Command Execution Strategies", () => {
       // For PTY processes, check if the session is still active in our tracking
       // The bash process may exit but the session should remain until killed
       const sessions = await Effect.runPromise(service.listSessions());
-      const session = sessions.find(s => s.sessionName === "test-sleep");
+      const session = sessions.find((s) => s.sessionName === "test-sleep");
       expect(session).toBeDefined();
       expect(session?.sessionName).toBe("test-sleep");
 
@@ -113,7 +113,7 @@ describe("Command Execution Strategies", () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       const sessions = await Effect.runPromise(service.listSessions());
-      const session = sessions.find(s => s.sessionName === "test-long");
+      const session = sessions.find((s) => s.sessionName === "test-long");
       expect(session).toBeDefined();
       expect(session?.sessionName).toBe("test-long");
       expect(session?.command).toBe("sleep 5");
