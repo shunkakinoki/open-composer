@@ -12,6 +12,7 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
 interface WorktreeStatus {
   agent: string;
@@ -23,22 +24,39 @@ interface WorktreeStatus {
   baseBranch: string;
 }
 
-export function buildStatusCommand() {
-  return Command.make("status").pipe(
-    Command.withDescription(
-      "Show current status of agents, worktrees, and PRs",
-    ),
-    Command.withHandler(() =>
-      Effect.gen(function* () {
-        yield* trackCommand("status");
-        yield* trackFeatureUsage("status");
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
 
-        const status = yield* gatherStatus();
-        yield* displayStatus(status);
-      }),
-    ),
-  );
+export function buildStatusCommand(): CommandBuilder<"status"> {
+  const command = () =>
+    Command.make("status").pipe(
+      Command.withDescription(
+        "Show current status of agents, worktrees, and PRs",
+      ),
+      Command.withHandler(() =>
+        Effect.gen(function* () {
+          yield* trackCommand("status");
+          yield* trackFeatureUsage("status");
+
+          const status = yield* gatherStatus();
+          yield* displayStatus(status);
+        }),
+      ),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "status",
+      description: "Show current status of agents, worktrees, and PRs",
+    },
+  };
 }
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
 
 function gatherStatus(): Effect.Effect<
   WorktreeStatus[],

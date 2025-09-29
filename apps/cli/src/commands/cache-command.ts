@@ -5,17 +5,35 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
-export function buildCacheCommand() {
-  return Command.make("cache").pipe(
-    Command.withDescription("Manage application cache"),
-    Command.withSubcommands([
-      buildListCommand(),
-      buildClearCommand(),
-      buildStatusCommand(),
-    ]),
-  );
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export function buildCacheCommand(): CommandBuilder<"cache"> {
+  const command = () =>
+    Command.make("cache").pipe(
+      Command.withDescription("Manage application cache"),
+      Command.withSubcommands([
+        buildListCommand(),
+        buildClearCommand(),
+        buildStatusCommand(),
+      ]),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "cache",
+      description: "Manage application cache",
+    },
+  };
 }
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 export function buildListCommand() {
   const jsonOption = Options.boolean("json").pipe(

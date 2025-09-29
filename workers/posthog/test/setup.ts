@@ -1,5 +1,15 @@
 import { afterAll, beforeAll, vi } from "vitest";
 
+// Mock cloudflare:workers module
+vi.mock("cloudflare:workers", () => ({
+  DurableObject: class MockDurableObject {
+    constructor(
+      public state: unknown,
+      public env: unknown,
+    ) {}
+  },
+}));
+
 // Global test setup
 beforeAll(() => {
   // Mock crypto.randomUUID for consistent testing
