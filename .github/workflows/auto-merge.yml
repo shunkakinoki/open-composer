@@ -16,7 +16,7 @@ jobs:
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         uses: shunkakinoki/actions/.github/actions/auto-merge@156beb8dbd9b84135a994da9ea77398d91e33df6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PAT_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
   auto-merge-check:
     if: always()
