@@ -15,7 +15,7 @@
     "prepublishOnly": "turbo run prepublishOnly",
     "type-check": "turbo type-check",
     "publish": "turbo run prepublishOnly && bun run changeset:publish",
-    "version": "bun run changeset:version",
+    "version": "turbo run changeset:version",
     "changeset:status": "changeset status --verbose --since origin/main",
     "changeset:publish": "changeset publish --tag ${TAG}",
     "changeset:version": "changeset version",
