@@ -47,12 +47,18 @@ if (import.meta.main) {
     process.exit(1);
   });
 
+  // Check if this is a config clear command
+  const isConfigClear =
+    process.argv.includes("config") && process.argv.includes("clear");
+
   const program = Effect.provide(
     initializeDatabase.pipe(
       Effect.flatMap(() =>
         cli(process.argv).pipe(
-          // Prompt for telemetry consent on first run
-          Effect.tap(() => promptForTelemetryConsent()),
+          // Prompt for telemetry consent on first run (skip for config clear)
+          Effect.tap(() =>
+            isConfigClear ? Effect.void : promptForTelemetryConsent(),
+          ),
           Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
           // Add global error handling
           Effect.catchAll((error) => {

@@ -69,6 +69,7 @@ mock.module("@open-composer/agent-router", () => {
 const mockConfigService: ConfigServiceInterface = {
   getConfig: () => Effect.succeed(defaultConfig),
   updateConfig: () => Effect.succeed(defaultConfig),
+  clearConfig: () => Effect.succeed(defaultConfig),
   setTelemetryConsent: () => Effect.succeed(defaultConfig),
   getTelemetryConsent: () => Effect.succeed(false),
 };

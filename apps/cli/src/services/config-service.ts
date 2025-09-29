@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
@@ -14,6 +14,7 @@ export interface ConfigServiceInterface {
   readonly updateConfig: (
     updates: Partial<UserConfig>,
   ) => Effect.Effect<UserConfig, never, never>;
+  readonly clearConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly setTelemetryConsent: (
     enabled: boolean,
   ) => Effect.Effect<UserConfig, never, never>;
@@ -87,6 +88,21 @@ const createConfigService = (): ConfigServiceInterface => {
         return updatedConfig;
       }),
 
+    clearConfig: () =>
+      Effect.promise(async () => {
+        const configPath = getConfigPath();
+
+        // Delete the config file entirely to reset to true default state
+        try {
+          await rm(configPath, { force: true });
+        } catch {
+          // Ignore if file doesn't exist
+        }
+
+        // Return the default config (what getConfig will return when file is missing)
+        return defaultConfig;
+      }),
+
     setTelemetryConsent: (enabled: boolean) =>
       Effect.promise(async () => {
         const configPath = getConfigPath();
@@ -103,9 +119,7 @@ const createConfigService = (): ConfigServiceInterface => {
           ...currentConfig,
           telemetry: {
             enabled,
-            consentedAt: enabled
-              ? new Date().toISOString()
-              : currentConfig.telemetry?.consentedAt,
+            consentedAt: new Date().toISOString(),
             version: "1.0.0",
           },
           updatedAt: new Date().toISOString(),

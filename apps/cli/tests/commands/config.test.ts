@@ -3,6 +3,7 @@ import { mkdir, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+  buildClearCommand,
   buildConfigCommand,
   buildGetCommand,
   buildSetCommand,
@@ -39,6 +40,7 @@ describe("config command", () => {
       expect(buildGetCommand()).toBeDefined();
       expect(buildSetCommand()).toBeDefined();
       expect(buildShowCommand()).toBeDefined();
+      expect(buildClearCommand()).toBeDefined();
     });
   });
 
@@ -60,6 +62,13 @@ describe("config command", () => {
     describe("show command", () => {
       it("should build show command successfully", () => {
         const command = buildShowCommand();
+        expect(command).toBeDefined();
+      });
+    });
+
+    describe("clear command", () => {
+      it("should build clear command successfully", () => {
+        const command = buildClearCommand();
         expect(command).toBeDefined();
       });
     });
