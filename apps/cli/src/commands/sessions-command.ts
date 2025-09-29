@@ -6,6 +6,33 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export const buildSessionsCommand = (): CommandBuilder<"sessions"> => ({
+  command: () =>
+    Command.make("sessions").pipe(
+      Command.withDescription("Manage development sessions"),
+      Command.withSubcommands([
+        buildCreateCommand(),
+        buildListCommand(),
+        buildSwitchCommand(),
+        buildArchiveCommand(),
+        buildDeleteCommand(),
+      ]),
+    ),
+  metadata: {
+    name: "sessions",
+    description: "Manage development sessions",
+  },
+});
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 function buildCreateCommand() {
   const nameArg = Args.text({ name: "name" }).pipe(
@@ -73,6 +100,10 @@ function buildCreateCommand() {
     ),
   );
 }
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 function buildListCommand() {
   return Command.make("list").pipe(
@@ -142,15 +173,3 @@ function buildDeleteCommand() {
     ),
   );
 }
-
-export const buildSessionsCommand = () =>
-  Command.make("sessions").pipe(
-    Command.withDescription("Manage development sessions"),
-    Command.withSubcommands([
-      buildCreateCommand(),
-      buildListCommand(),
-      buildSwitchCommand(),
-      buildArchiveCommand(),
-      buildDeleteCommand(),
-    ]),
-  );

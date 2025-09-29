@@ -16,6 +16,24 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export const buildSpawnCommand = (): CommandBuilder<"spawn"> => ({
+  command: () => buildSpawnCommandInternal(),
+  metadata: {
+    name: "spawn",
+    description:
+      "Spawn multiple AI agents in separate worktrees with tmux sessions",
+  },
+});
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
 
 // Function to get available agents from agent router
 export const getAvailableAgentNames: Effect.Effect<
@@ -28,6 +46,10 @@ export const getAvailableAgentNames: Effect.Effect<
     (agent: AgentChecker) => agent.definition.name,
   ) as readonly string[];
 });
+
+// -----------------------------------------------------------------------------
+// Command Implementation
+// -----------------------------------------------------------------------------
 
 function buildSpawnCommandInternal() {
   const sessionNameArg = Args.text({ name: "session-name" }).pipe(
@@ -385,5 +407,3 @@ function showSpawnOutput(
     });
   });
 }
-
-export const buildSpawnCommand = () => buildSpawnCommandInternal();

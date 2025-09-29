@@ -6,11 +6,44 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export const buildGHPRCommand = (): CommandBuilder<"pr"> => ({
+  command: () =>
+    Command.make("pr").pipe(
+      Command.withDescription(
+        "Manage GitHub Pull Requests with comprehensive workflow",
+      ),
+      Command.withSubcommands([
+        buildRegularCreateCommand(),
+        buildAutoCreateCommand(),
+        buildListCommand(),
+        buildViewCommand(),
+        buildMergeCommand(),
+      ]),
+    ),
+  metadata: {
+    name: "pr",
+    description: "Manage GitHub Pull Requests with comprehensive workflow",
+  },
+});
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
 
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
     discard: true,
   });
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 function buildRegularCreateCommand() {
   const titleArg = Args.text({ name: "title" }).pipe(
@@ -644,17 +677,3 @@ function buildListCommand() {
     ),
   );
 }
-
-export const buildGHPRCommand = () =>
-  Command.make("pr").pipe(
-    Command.withDescription(
-      "Manage GitHub Pull Requests with comprehensive workflow",
-    ),
-    Command.withSubcommands([
-      buildRegularCreateCommand(),
-      buildAutoCreateCommand(),
-      buildListCommand(),
-      buildViewCommand(),
-      buildMergeCommand(),
-    ]),
-  );

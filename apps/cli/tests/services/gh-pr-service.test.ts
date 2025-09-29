@@ -139,7 +139,7 @@ describe("GhPRService", () => {
   beforeEach(() => {
     service = new GhPRService();
     // Override execFileAsync for this service instance
-    service.execFileAsync = mockExecFileAsync as any;
+    service.execFileAsync = mockExecFileAsync as typeof service.execFileAsync;
     mockExecFileAsync.mockClear();
     // Reset to default implementation
     mockExecFileAsync.mockImplementation(
