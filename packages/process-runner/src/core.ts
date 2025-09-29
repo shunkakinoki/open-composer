@@ -30,7 +30,7 @@ export class ProcessRunnerService {
     this.sessionDir =
       options?.sessionDir ??
       process.env.OPEN_COMPOSER_SESSION_DIR ??
-      path.resolve(process.cwd(), ".open-composer");
+      path.resolve(os.homedir(), ".open-composer");
     this.logDir = options?.logDir ?? process.env.TMPDIR ?? "/tmp";
     this.lockFile = path.join(this.sessionDir, "sessions.lock");
   }

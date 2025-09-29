@@ -1,8 +1,0 @@
-[
-  {
-    "sessionName": "test-session",
-    "pid": 12345,
-    "command": "echo 'hello world'",
-    "logFile": "/tmp/test-session-1759148203232.log"
-  }
-]
