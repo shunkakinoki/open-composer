@@ -2,7 +2,7 @@ name: Auto Merge
 on:
   pull_request:
 jobs:
-  dependabot-auto-merge:
+  auto-merge-dependabot:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
@@ -10,6 +10,8 @@ jobs:
       contents: write
       issues: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         uses: shunkakinoki/actions/.github/actions/auto-merge@156beb8dbd9b84135a994da9ea77398d91e33df6
@@ -19,7 +21,7 @@ jobs:
   auto-merge-check:
     if: always()
     needs:
-      - dependabot-auto-merge
+      - auto-merge-dependabot
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -27,4 +29,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: dependabot-auto-merge
+          allowed-skips: auto-merge-dependabot
