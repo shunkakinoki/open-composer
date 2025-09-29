@@ -1,0 +1,50 @@
+[
+  {
+    "sessionName": "test-attach",
+    "pid": 52228,
+    "command": "ping -c 5 google.com",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-attach-1759164515335.log"
+  },
+  {
+    "sessionName": "test-long",
+    "pid": 55367,
+    "command": "while true; do echo 'Hello from session' && date && sleep 2; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-long-1759164646928.log"
+  },
+  {
+    "sessionName": "test-immediate",
+    "pid": 56956,
+    "command": "while true; do echo Tue Sep 30 01:51:51 JST 2025 - 'Hello from process'; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-immediate-1759164711357.log"
+  },
+  {
+    "sessionName": "test-simple",
+    "pid": 57447,
+    "command": "ping google.com",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-simple-1759164727531.log"
+  },
+  {
+    "sessionName": "test-sleep",
+    "pid": 57811,
+    "command": "sleep 120",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-sleep-1759164740528.log"
+  },
+  {
+    "sessionName": "manual-sleep",
+    "pid": 63649,
+    "command": "sleep 300",
+    "logFile": "/tmp/manual-sleep.log"
+  },
+  {
+    "sessionName": "echo",
+    "pid": 89854,
+    "command": "hi",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echo-1759166190582.log"
+  },
+  {
+    "sessionName": "echoe",
+    "pid": 40475,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759167689212.log"
+  }
+]

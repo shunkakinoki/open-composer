@@ -36,5 +36,8 @@
     "lefthook": "^1.13.4",
     "turbo": "^2.5.8"
   },
-  "packageManager": "bun@1.0.0"
+  "packageManager": "bun@1.0.0",
+  "dependencies": {
+    "node-pty": "^1.0.0"
+  }
 }

@@ -11,6 +11,7 @@ COMMANDS
   pr                Manage GitHub Pull Requests with comprehensive workflow
   gw                Manage git worktrees
   sessions          Manage development sessions
+  session           Manage persistent process sessions
   settings          Manage application settings
   spawn             Spawn multiple AI agents in separate worktrees with tmux sessions
   stack             Manage stacked pull requests

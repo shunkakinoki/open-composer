@@ -32,6 +32,7 @@ import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
+import { buildSessionCommand } from "./session-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
@@ -124,6 +125,7 @@ export function buildRootCommand() {
             buildGHPRCommand,
             buildGitWorktreeCommand,
             buildSessionsCommand,
+            buildSessionCommand,
             buildSettingsCommand,
             buildSpawnCommand,
             buildStackCommand,
@@ -141,6 +143,7 @@ export function buildRootCommand() {
       buildGHPRCommand(),
       buildGitWorktreeCommand(),
       buildSessionsCommand(),
+      buildSessionCommand(),
       buildSettingsCommand(),
       buildSpawnCommand(),
       buildStackCommand(),
