@@ -31,6 +31,7 @@ import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
+import { buildSessionCommand } from "./session-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
@@ -82,6 +83,7 @@ const ALL_COMMAND_BUILDERS = [
   buildConfigCommand,
   buildGHPRCommand,
   buildGitWorktreeCommand,
+  buildSessionCommand,
   buildSessionsCommand,
   buildSettingsCommand,
   buildSpawnCommand,

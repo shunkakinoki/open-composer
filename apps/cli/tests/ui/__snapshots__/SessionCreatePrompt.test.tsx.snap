@@ -61,33 +61,3 @@ exports[`SessionCreatePrompt renders confirmation step when all props are provid
 
 "
 `;
-
-exports[`SessionCreatePrompt renders creation state during session creation 1`] = `
-"
-
-  ✅ Confirm Session Creation
-
-  Session Name: Test Session
-
-  Workspace: No workspace assigned
-
-
-  Press Enter to create session, Esc to cancel
-
-"
-`;
-
-exports[`SessionCreatePrompt renders confirmation step when all props are provided 2`] = `
-"
-
-  ✅ Confirm Session Creation
-
-  Session Name: Test Session
-
-  Workspace: No workspace assigned
-
-
-  Press Enter to create session, Esc to cancel
-
-"
-`;

@@ -18,7 +18,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "dev": "bun run ./src/index.ts",
     "publish": "bun publish --tag ${TAG}",
     "prepublishOnly": "bun run scripts/prepublish.ts",
@@ -43,7 +43,9 @@
     "@open-composer/git": "workspace:*",
     "@open-composer/git-stack": "workspace:*",
     "@open-composer/git-worktrees": "workspace:*",
+    "@open-composer/process-runner": "workspace:*",
     "@open-composer/tmux": "workspace:*",
+    "bun-pty": "^0.3.2",
     "effect": "^3.17.14",
     "ink": "^6.3.1",
     "posthog-node": "^4.2.0",

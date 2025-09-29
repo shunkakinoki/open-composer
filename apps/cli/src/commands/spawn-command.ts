@@ -48,7 +48,7 @@ export const getAvailableAgentNames: Effect.Effect<
 });
 
 // -----------------------------------------------------------------------------
-// Command Implementation
+// Command Implementations
 // -----------------------------------------------------------------------------
 
 function buildSpawnCommandInternal() {
