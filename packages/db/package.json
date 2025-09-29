@@ -20,7 +20,7 @@
     "@effect/sql": "^0.45.0",
     "@effect/sql-drizzle": "^0.44.0",
     "@effect/sql-sqlite-bun": "^0.46.0",
-    "drizzle-orm": "^0.43.1",
+    "drizzle-orm": "^0.44.5",
     "effect": "^3.17.14"
   },
   "devDependencies": {
