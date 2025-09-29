@@ -1,15 +1,4 @@
-import {
-  buildRunner,
-  type ComposerCliServices,
-  layer,
-} from "../commands/composer-command.js";
-import type { GitWorktreeCliServices } from "../services/git-worktree-service.js";
-
-export type {
-  ComposerCliServices,
-  GitWorktreeCliServices,
-  GitWorktreeCliServices as WorktreeCliServices,
-};
+import { buildRunner, ROOT_LAYER } from "../commands/composer-command.js";
 
 export const cli = buildRunner();
-export const CliLive = layer;
+export const CliLive = ROOT_LAYER;

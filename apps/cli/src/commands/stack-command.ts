@@ -6,6 +6,7 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
 function buildLogCommand() {
   return Command.make("log").pipe(
@@ -176,20 +177,26 @@ function buildConfigCommand() {
   );
 }
 
-export const buildStackCommand = () =>
-  Command.make("stack").pipe(
-    Command.withDescription("Manage stacked pull requests"),
-    Command.withSubcommands([
-      buildLogCommand(),
-      buildStatusCommand(),
-      buildCreateCommand(),
-      buildTrackCommand(),
-      buildUntrackCommand(),
-      buildDeleteCommand(),
-      buildCheckoutCommand(),
-      buildSyncCommand(),
-      buildSubmitCommand(),
-      buildRestackCommand(),
-      buildConfigCommand(),
-    ]),
-  );
+export const buildStackCommand = (): CommandBuilder<"stack"> => ({
+  command: () =>
+    Command.make("stack").pipe(
+      Command.withDescription("Manage stacked pull requests"),
+      Command.withSubcommands([
+        buildLogCommand(),
+        buildStatusCommand(),
+        buildCreateCommand(),
+        buildTrackCommand(),
+        buildUntrackCommand(),
+        buildDeleteCommand(),
+        buildCheckoutCommand(),
+        buildSyncCommand(),
+        buildSubmitCommand(),
+        buildRestackCommand(),
+        buildConfigCommand(),
+      ]),
+    ),
+  metadata: {
+    name: "stack",
+    description: "Manage stacked pull requests",
+  },
+});

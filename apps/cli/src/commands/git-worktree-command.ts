@@ -10,6 +10,37 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export function buildGitWorktreeCommand(): CommandBuilder<"gw"> {
+  const command = () =>
+    Command.make("gw").pipe(
+      Command.withDescription("Manage git worktrees"),
+      Command.withSubcommands([
+        buildListCommand(),
+        buildCreateCommand(),
+        buildEditCommand(),
+        buildPruneCommand(),
+        buildSwitchCommand(),
+      ]),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "gw",
+      description: "Manage git worktrees",
+    },
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
 
 const execFileAsync = promisify(execFile);
 
@@ -100,18 +131,9 @@ const calculateDefaultWorktreePath = (): Effect.Effect<string, Error> =>
     Effect.catchAll(() => Effect.succeed("")), // If anything fails, return empty string (no default)
   );
 
-export function buildGitWorktreeCommand() {
-  return Command.make("gw").pipe(
-    Command.withDescription("Manage git worktrees"),
-    Command.withSubcommands([
-      buildListCommand(),
-      buildCreateCommand(),
-      buildEditCommand(),
-      buildPruneCommand(),
-      buildSwitchCommand(),
-    ]),
-  );
-}
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 function buildListCommand() {
   return Command.make("list").pipe(

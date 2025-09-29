@@ -5,18 +5,36 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
-export function buildSettingsCommand() {
-  return Command.make("settings").pipe(
-    Command.withDescription("Manage application settings"),
-    Command.withSubcommands([
-      buildGetCommand(),
-      buildSetCommand(),
-      buildListCommand(),
-      buildDeleteCommand(),
-    ]),
-  );
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export function buildSettingsCommand(): CommandBuilder<"settings"> {
+  const command = () =>
+    Command.make("settings").pipe(
+      Command.withDescription("Manage application settings"),
+      Command.withSubcommands([
+        buildGetCommand(),
+        buildSetCommand(),
+        buildListCommand(),
+        buildDeleteCommand(),
+      ]),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "settings",
+      description: "Manage application settings",
+    },
+  };
 }
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 export function buildGetCommand() {
   const keyArg = Args.text({ name: "key" }).pipe(

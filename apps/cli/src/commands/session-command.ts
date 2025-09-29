@@ -1,6 +1,31 @@
 import { Args, Command, Options } from "@effect/cli";
 import { ProcessRunnerService } from "@open-composer/process-runner";
 import { Effect } from "effect";
+import type { CommandBuilder } from "../types/commands";
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export const buildSessionCommand = (): CommandBuilder<"session"> => ({
+  command: () => Command.make("session").pipe(
+    Command.withDescription("Manage persistent process sessions"),
+    Command.withSubcommands([
+      buildAttachSubcommand(),
+      buildKillSubcommand(),
+      buildListSubcommand(),
+      buildSpawnSubcommand(),
+    ]),
+    ),
+  metadata: {
+    name: "session",
+    description: "Manage persistent process sessions",
+  },
+});
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 function buildAttachSubcommand() {
   const sessionNameArg = Args.text({ name: "session-name" }).pipe(
@@ -315,17 +340,5 @@ function buildSpawnSubcommand() {
         }
       }),
     ),
-  );
-}
-
-export function buildSessionCommand() {
-  return Command.make("session").pipe(
-    Command.withDescription("Manage persistent process sessions"),
-    Command.withSubcommands([
-      buildAttachSubcommand(),
-      buildKillSubcommand(),
-      buildListSubcommand(),
-      buildSpawnSubcommand(),
-    ]),
   );
 }
