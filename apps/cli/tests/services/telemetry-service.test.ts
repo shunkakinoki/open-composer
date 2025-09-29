@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { TelemetryConfig } from "../../src/services/config-service.js";
+import type { TelemetryConfig } from "@open-composer/config";
 
 // Mock PostHog client
 const _mockPostHogClient = {

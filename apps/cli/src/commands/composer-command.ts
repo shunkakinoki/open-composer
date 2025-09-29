@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: Fix when we have time */
+
 import { Command } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
 import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
@@ -9,6 +11,7 @@ import { DatabaseLive, type SqliteDrizzle } from "@open-composer/db";
 import type { GitService } from "@open-composer/git";
 import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
+import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { CLI_VERSION } from "../lib/version.js";
 import { CacheLive } from "../services/cache-service.js";
@@ -66,22 +69,85 @@ export const layer = baseLayer.pipe(
   Layer.provideMerge(TelemetryLive.pipe(Layer.provide(baseLayer))),
 );
 
+// Function to dynamically generate help text from command builders
+function generateHelpText(commandBuilders: Array<() => any>): string {
+  let commandsText = "";
+
+  for (const builder of commandBuilders) {
+    const command = builder();
+
+    // Extract name and description based on command type
+    let name: string;
+    let description: string;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const descriptor = (command as any).descriptor;
+
+    if ((descriptor as any)._tag === "Map") {
+      // Command with direct handler
+      name = (descriptor as any).command.name;
+      description = (descriptor as any).command.description.value?.value || "";
+    } else if ((descriptor as any)._tag === "Subcommands") {
+      // Command with subcommands
+      name = (descriptor as any).parent.command.name;
+      description =
+        (descriptor as any).parent.command.description.value?.value || "";
+    } else {
+      continue; // Skip unknown command types
+    }
+
+    // Format the command line
+    const paddedName = name.padEnd(18);
+    commandsText += `\n  ${paddedName}${description}`;
+  }
+
+  return `Open Composer CLI
+
+USAGE
+  $ open-composer <command>
+
+COMMANDS${commandsText}
+
+Run 'open-composer <command> --help' for more information on a specific command.`;
+}
+
 export function buildRootCommand() {
+  const commandBuilders = [
+    buildAgentsCommand,
+    buildCacheCommand,
+    buildGHPRCommand,
+    buildGitWorktreeCommand,
+    buildSessionsCommand,
+    buildSettingsCommand,
+    buildSpawnCommand,
+    buildStackCommand,
+    buildStatusCommand,
+    buildTelemetryCommand,
+    buildTUICommand,
+  ];
+
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
+    Command.withHandler(() =>
+      Effect.sync(() => {
+        console.log(generateHelpText(commandBuilders));
+      }),
+    ),
     Command.withSubcommands([
       buildTUICommand(),
       buildConfigCommand(),
       buildGitWorktreeCommand(),
       buildAgentsCommand(),
-      buildCacheCommand(),
+      // buildCacheCommand(), Disabled since internal
       buildGHPRCommand(),
+      buildGitWorktreeCommand(),
       buildSessionsCommand(),
       buildSettingsCommand(),
       buildSpawnCommand(),
-      buildStatusCommand(),
       buildStackCommand(),
+      buildStatusCommand(),
       buildTelemetryCommand(),
+      buildTUICommand(),
     ]),
   );
 }

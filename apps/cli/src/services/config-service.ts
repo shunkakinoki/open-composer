@@ -8,13 +8,6 @@ import {
 } from "@open-composer/config";
 import { Effect, Layer } from "effect";
 
-// Re-export types for backward compatibility
-export type {
-  AgentCache,
-  TelemetryConfig,
-  UserConfig,
-} from "@open-composer/config";
-
 // Config service interface (extending the shared interface)
 export interface ConfigServiceInterface {
   readonly getConfig: () => Effect.Effect<UserConfig, never, never>;

@@ -53,7 +53,7 @@ describe("CLI Execution", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("USAGE");
     expect(stdout).toContain("$ open-composer");
-    expect(stdout).toContain("- gw list");
+    expect(stdout).toContain("Manage AI agents");
   });
 
   it("launches the TUI when requested", async () => {

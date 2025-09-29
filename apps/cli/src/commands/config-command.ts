@@ -1,23 +1,11 @@
 import { Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { ConfigService, type UserConfig } from "../services/config-service.js";
+import { ConfigService } from "../services/config-service.js";
 import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
-
-// Extended config type to include cache fields that may exist
-interface ExtendedUserConfig extends UserConfig {
-  agentCache?: {
-    agents: Array<{
-      name: string;
-      available: boolean;
-      lastChecked: string;
-    }>;
-    lastUpdated: string;
-  };
-}
 
 export function buildConfigCommand() {
   return Command.make("config").pipe(
@@ -26,7 +14,7 @@ export function buildConfigCommand() {
       buildGetCommand(),
       buildSetCommand(),
       buildShowCommand(),
-      buildCacheCommand(),
+      buildClearCommand(),
     ]),
   );
 }
@@ -130,100 +118,21 @@ export function buildShowCommand() {
   );
 }
 
-export function buildCacheCommand() {
-  return Command.make("cache").pipe(
-    Command.withDescription("Manage application caches"),
-    Command.withSubcommands([
-      buildCacheClearCommand(),
-      buildCacheShowCommand(),
-    ]),
-  );
-}
-
-export function buildCacheClearCommand() {
-  const typeOption = Options.text("type").pipe(
-    Options.optional,
-    Options.withDescription("Cache type to clear (default: all)"),
-  );
-
-  return Command.make("clear", { type: typeOption }).pipe(
-    Command.withDescription("Clear application caches"),
-    Command.withHandler((config) =>
-      Effect.gen(function* () {
-        yield* trackCommand("config", "cache-clear");
-        yield* trackFeatureUsage("config_cache_clear", {
-          has_type: Option.isSome(config.type),
-        });
-
-        const configService = yield* ConfigService;
-        const currentConfig = yield* configService.getConfig();
-
-        if (Option.isSome(config.type)) {
-          const cacheType = config.type.value;
-
-          // Handle specific cache types
-          if (cacheType === "agent" || cacheType === "all") {
-            // Remove agentCache if it exists
-            const updatedConfig = { ...currentConfig };
-            delete (updatedConfig as ExtendedUserConfig).agentCache;
-            yield* configService.updateConfig(updatedConfig);
-            console.log("✅ Cleared agent cache");
-          }
-
-          if (cacheType === "all") {
-            // Clear all known cache types
-            console.log("✅ Cleared all caches");
-          }
-        } else {
-          // Clear all caches
-          const updatedConfig = { ...currentConfig };
-          delete (updatedConfig as ExtendedUserConfig).agentCache;
-          // Add other cache clearing logic here as needed
-          yield* configService.updateConfig(updatedConfig);
-          console.log("✅ Cleared all application caches");
-        }
-
-        return undefined;
-      }),
-    ),
-  );
-}
-
-export function buildCacheShowCommand() {
-  return Command.make("show").pipe(
-    Command.withDescription("Show cache contents and status"),
+export function buildClearCommand() {
+  return Command.make("clear").pipe(
+    Command.withDescription("Clear all configuration"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        yield* trackCommand("config", "cache-show");
-        yield* trackFeatureUsage("config_cache_show");
+        yield* trackCommand("config", "clear");
+        yield* trackFeatureUsage("config_clear");
 
         const configService = yield* ConfigService;
-        const config = yield* configService.getConfig();
 
-        console.log("🗄️  Application Cache Status:");
-        console.log("─".repeat(50));
+        // Clear all configuration by setting empty object
+        yield* configService.updateConfig({});
 
-        // Check for agent cache
-        const agentCache = (config as ExtendedUserConfig).agentCache;
-        if (agentCache) {
-          console.log("📦 Agent Cache:");
-          console.log(`   Agents: ${agentCache.agents?.length || 0} cached`);
-          console.log(`   Last Updated: ${agentCache.lastUpdated || "Never"}`);
-          if (agentCache.agents?.length > 0) {
-            console.log("   Cached agents:");
-            for (const agent of agentCache.agents) {
-              console.log(
-                `     • ${agent.name} (${agent.available ? "available" : "unavailable"})`,
-              );
-            }
-          }
-        } else {
-          console.log("📦 Agent Cache: Empty");
-        }
-
-        // Check for other cache types here as they are added
-
-        console.log("\n💡 Use 'config cache clear' to clear caches");
+        console.log("✅ Cleared all configuration");
+        console.log("💡 Use 'config set' to add new configuration values");
 
         return undefined;
       }),

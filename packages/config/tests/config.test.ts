@@ -32,23 +32,4 @@ describe("Config", () => {
 
     expect(config.telemetry?.enabled).toBe(true);
   });
-
-  it("should allow optional agent cache", () => {
-    const config: UserConfig = {
-      ...defaultConfig,
-      agentCache: {
-        agents: [
-          {
-            name: "claude-code",
-            available: true,
-            lastChecked: "2024-01-01T00:00:00.000Z",
-          },
-        ],
-        lastUpdated: "2024-01-01T00:00:00.000Z",
-      },
-    };
-
-    expect(config.agentCache?.agents).toHaveLength(1);
-    expect(config.agentCache?.agents[0]?.name).toBe("claude-code");
-  });
 });

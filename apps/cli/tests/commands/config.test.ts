@@ -3,9 +3,6 @@ import { mkdir, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
-  buildCacheClearCommand,
-  buildCacheCommand,
-  buildCacheShowCommand,
   buildConfigCommand,
   buildGetCommand,
   buildSetCommand,
@@ -42,35 +39,6 @@ describe("config command", () => {
       expect(buildGetCommand()).toBeDefined();
       expect(buildSetCommand()).toBeDefined();
       expect(buildShowCommand()).toBeDefined();
-      expect(buildCacheCommand()).toBeDefined();
-      expect(buildCacheClearCommand()).toBeDefined();
-      expect(buildCacheShowCommand()).toBeDefined();
-    });
-  });
-
-  describe("cache command", () => {
-    describe("buildCacheCommand", () => {
-      it("should build cache command successfully", () => {
-        const command = buildCacheCommand();
-        expect(command).toBeDefined();
-        expect(typeof command).toBe("object");
-      });
-    });
-
-    describe("buildCacheClearCommand", () => {
-      it("should build cache clear command successfully", () => {
-        const command = buildCacheClearCommand();
-        expect(command).toBeDefined();
-        expect(typeof command).toBe("object");
-      });
-    });
-
-    describe("buildCacheShowCommand", () => {
-      it("should build cache show command successfully", () => {
-        const command = buildCacheShowCommand();
-        expect(command).toBeDefined();
-        expect(typeof command).toBe("object");
-      });
     });
   });
 
