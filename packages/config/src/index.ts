@@ -33,6 +33,7 @@ export interface ConfigServiceInterface {
   readonly updateConfig: (
     updates: Partial<UserConfig>,
   ) => Effect.Effect<UserConfig, never, never>;
+  readonly clearConfig: () => Effect.Effect<UserConfig, never, never>;
   readonly setTelemetryConsent: (
     enabled: boolean,
   ) => Effect.Effect<UserConfig, never, never>;

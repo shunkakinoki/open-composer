@@ -128,8 +128,8 @@ export function buildClearCommand() {
 
         const configService = yield* ConfigService;
 
-        // Clear all configuration by setting empty object
-        yield* configService.updateConfig({});
+        // Clear all configuration by resetting to default
+        yield* configService.clearConfig();
 
         console.log("✅ Cleared all configuration");
         console.log("💡 Use 'config set' to add new configuration values");
