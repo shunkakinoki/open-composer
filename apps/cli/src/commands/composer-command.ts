@@ -93,12 +93,10 @@ const ALL_COMMAND_BUILDERS = [
 
 const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];
 
-const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter(
-  (cb) => {
-    const built = cb();
-    return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
-  },
-);
+const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter((cb) => {
+  const built = cb();
+  return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
+});
 
 // -----------------------------------------------------------------------------
 // Helper Functions
