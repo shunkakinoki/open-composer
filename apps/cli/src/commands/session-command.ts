@@ -128,32 +128,29 @@ function buildSpawnSubcommand() {
         console.log(`\nTo attach: open-composer session attach ${sessionName}`);
         console.log(`To kill: open-composer session kill ${sessionName}`);
 
-        // Detect if this is an interactive command that needs PTY
-        const cmdParts = command.trim().split(/\s+/);
-        const mainCmd = cmdParts[0];
-        const interactiveCommands = [
-          "bash", "sh", "zsh", "fish", "csh", "tcsh",
-          "python", "python3", "node", "bun", "deno",
-          "irb", "pry", "rails", "django-admin",
-          "mysql", "psql", "redis-cli", "mongo",
-          "vim", "nvim", "emacs", "nano", "micro",
-          "htop", "top", "less", "more",
-        ];
+        // Default behavior: automatically attach to all sessions
+        console.log("\n🔄 Automatically attaching to session...\n");
 
-        const isInteractiveCommand = interactiveCommands.includes(mainCmd);
+        // Brief delay for session initialization
+        yield* Effect.sleep(100);
 
-        if (isInteractiveCommand) {
-          console.log("\n✨ Interactive session created!");
-          console.log("🔄 Automatically attaching to interactive session...\n");
-
-          // For interactive sessions, immediately attach
-          yield* Effect.sleep(100); // Brief delay for PTY initialization
-          const attachResult = yield* runnerService.attachSession(sessionName, {});
-          if (attachResult) {
-            console.log("\nSession ended.");
-          }
+        // Always attach to the session we just created
+        // This will provide true interactivity since the PTY resources are still alive
+        const attachResult = yield* runnerService.attachSession(
+          sessionName,
+          {},
+        );
+        if (attachResult) {
+          console.log("\nSession ended.");
+        } else {
+          console.log(
+            "\nDetached from session. Session continues running in background.",
+          );
+          console.log(
+            `To re-attach: open-composer session attach ${sessionName}`,
+          );
+          console.log(`To kill: open-composer session kill ${sessionName}`);
         }
-        // For non-interactive commands, let the process exit naturally
       }),
     ),
   );

@@ -1,4 +1,4 @@
-import { type ChildProcess, spawn as childSpawn } from "node:child_process";
+import { spawn as childSpawn } from "node:child_process";
 import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
@@ -317,109 +317,32 @@ export class ProcessRunnerService {
 
                   // Parse command to determine best execution strategy
                   const cmdParts = validCommand.trim().split(/\s+/);
-                  const mainCmd = cmdParts[0];
-                  const cmdArgs = cmdParts.slice(1);
+                  const _mainCmd = cmdParts[0];
+                  const _cmdArgs = cmdParts.slice(1);
 
-                  // Classify commands as interactive vs non-interactive
-                  const interactiveCommands = [
-                    "bash", "sh", "zsh", "fish", "csh", "tcsh",
-                    "python", "python3", "node", "bun", "deno",
-                    "irb", "pry", "rails", "django-admin",
-                    "mysql", "psql", "redis-cli", "mongo",
-                    "vim", "nvim", "emacs", "nano", "micro",
-                    "htop", "top", "less", "more",
-                  ];
-
-                  const isInteractiveCommand = interactiveCommands.includes(mainCmd) ||
-                    validCommand.includes("$") || // Variables suggest shell interaction
-                    validCommand.includes("read ") || // Read command is interactive
-                    (!validCommand.includes("&&") && !validCommand.includes("||") &&
-                     !validCommand.includes("|") && !validCommand.includes(">") &&
-                     !validCommand.includes("for ") && !validCommand.includes("while ") &&
-                     mainCmd === "bash");
-
+                  // Always use PTY for true interactivity - this ensures all sessions support input/output
                   let term: PtyProcess;
 
                   try {
-                    if (isInteractiveCommand) {
-                      // Use PTY for interactive commands (will require session persistence)
-                      const { spawn: ptySpawn } = await import("bun-pty");
+                    const { spawn: ptySpawn } = await import("bun-pty");
 
-                      const spawnOptions = {
-                        name: "xterm-256color",
-                        cwd: process.cwd(),
-                        env: process.env as Record<string, string>,
-                      };
+                    const spawnOptions = {
+                      name: "xterm-256color",
+                      cwd: process.cwd(),
+                      env: process.env as Record<string, string>,
+                    };
 
-                      if (mainCmd === "bash" || mainCmd === "sh" || mainCmd === "zsh") {
-                        term = ptySpawn(mainCmd, cmdArgs, spawnOptions);
-                      } else {
-                        term = ptySpawn("sh", ["-c", validCommand], spawnOptions);
-                      }
+                    // Always spawn through shell for consistency and compatibility
+                    term = ptySpawn("sh", ["-c", validCommand], spawnOptions);
 
-                      // Set up log capture
-                      const logWriter = createLogWriter(logFile, () => rotateLogFile(logFile));
-                      term.onData(logWriter.write);
+                    // Set up log capture
+                    const logWriter = createLogWriter(logFile, () =>
+                      rotateLogFile(logFile),
+                    );
+                    term.onData(logWriter.write);
 
-                      // Set up cleanup on PTY exit
-                      term.onExit(() => this.cleanupSession(validSessionName));
-                    } else {
-                      // Use detached child process for non-interactive commands
-                      const directExecutionCommands = [
-                        "sleep", "ping", "curl", "wget", "tail", "head", "cat", "ls", "find"
-                      ];
-
-                      const shouldUseDirect = directExecutionCommands.includes(mainCmd) &&
-                        !validCommand.includes("|") &&
-                        !validCommand.includes("&") &&
-                        !validCommand.includes(";") &&
-                        !validCommand.includes(">") &&
-                        !validCommand.includes("<");
-
-                      // For non-interactive commands, use detached process with shell redirection
-                      const finalCommand = shouldUseDirect ?
-                        `${mainCmd} ${cmdArgs.join(' ')} >> "${logFile}" 2>&1` :
-                        `(${validCommand}) >> "${logFile}" 2>&1`;
-
-                      const spawnOptions = {
-                        detached: true,
-                        stdio: 'ignore' as const,
-                        cwd: process.cwd(),
-                        env: process.env,
-                      };
-
-                      const childProcess = childSpawn("sh", ["-c", finalCommand], spawnOptions);
-                      if (childProcess.unref) {
-                        childProcess.unref();
-                      }
-
-                      // Create PTY-compatible interface for non-interactive processes
-                      term = {
-                        pid: childProcess.pid || 0,
-                        onData: () => {}, // No-op for detached processes
-                        onExit: (callback: (exitInfo?: any) => void) => {
-                          if (childProcess.on) {
-                            childProcess.on('exit', callback);
-                          }
-                        },
-                        write: () => {
-                          console.warn('Cannot write to non-interactive detached process');
-                        },
-                        kill: (signal?: string | number) => {
-                          const pid = childProcess.pid;
-                          if (pid) {
-                            try {
-                              process.kill(pid, signal as NodeJS.Signals || 'SIGTERM');
-                            } catch {
-                              // Process might already be dead
-                            }
-                          }
-                        }
-                      } as any;
-
-                      // Set up cleanup
-                      term.onExit(() => this.cleanupSession(validSessionName));
-                    }
+                    // Set up cleanup on PTY exit
+                    term.onExit(() => this.cleanupSession(validSessionName));
                   } catch (error) {
                     throw new Error(
                       `Failed to spawn command "${validCommand}": ${error instanceof Error ? error.message : String(error)}`,
@@ -736,13 +659,48 @@ export class ProcessRunnerService {
 
     const { pty: term } = resources;
 
+    console.log(`🔗 Connected to session: ${sessionName}`);
+    console.log("💡 Press Ctrl+C to detach (session will continue running)");
+    console.log("💡 Type 'exit' to end the session");
+    console.log(`${"─".repeat(60)}\n`);
+
+    // Set up raw mode for proper terminal interaction
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
+
     // Connect PTY to stdio
-    term.onData((data: string | Buffer) => process.stdout.write(data));
-    const inputHandler = (data: Buffer) => term.write(data.toString());
+    const dataHandler = (data: string | Buffer) => process.stdout.write(data);
+    term.onData(dataHandler);
+
+    const inputHandler = (data: Buffer) => {
+      // Check for Ctrl+C (0x03)
+      if (data.length === 1 && data[0] === 3) {
+        // Detach from session
+        cleanup();
+        resume(Effect.succeed(false)); // false indicates detach, not session end
+        return;
+      }
+      term.write(data.toString());
+    };
+
     process.stdin.on("data", inputHandler);
 
-    term.onExit(({ exitCode }: { exitCode?: number }) => {
+    const cleanup = () => {
+      // Restore terminal settings
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
       process.stdin.removeListener("data", inputHandler);
+      // Note: we don't remove the dataHandler from term.onData
+      // because we want the session to keep logging
+      console.log(`\n${"─".repeat(60)}`);
+      console.log(`📤 Detached from session: ${sessionName}`);
+    };
+
+    // Handle session exit
+    term.onExit(({ exitCode }: { exitCode?: number }) => {
+      cleanup();
       resume(
         exitCode === 0
           ? Effect.succeed(true)
@@ -754,6 +712,15 @@ export class ProcessRunnerService {
             ),
       );
     });
+
+    // Handle process interruption
+    const interruptHandler = () => {
+      cleanup();
+      resume(Effect.succeed(false));
+    };
+
+    process.once("SIGINT", interruptHandler);
+    process.once("SIGTERM", interruptHandler);
   }
 
   listSessions(): Effect.Effect<ProcessSessionInfo[], ProcessRunnerError> {

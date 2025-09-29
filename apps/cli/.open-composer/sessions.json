@@ -18,12 +18,6 @@
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-immediate-1759164711357.log"
   },
   {
-    "sessionName": "test-simple",
-    "pid": 57447,
-    "command": "ping google.com",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-simple-1759164727531.log"
-  },
-  {
     "sessionName": "test-sleep",
     "pid": 57811,
     "command": "sleep 120",
@@ -52,12 +46,6 @@
     "pid": 88505,
     "command": "sleep-test",
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach-1759168962469.log"
-  },
-  {
-    "sessionName": "test-echo",
-    "pid": 89976,
-    "command": "echo hello world",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-echo-1759169186671.log"
   },
   {
     "sessionName": "debug-test2",
@@ -192,12 +180,6 @@
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-redirect-1759173247259.log"
   },
   {
-    "sessionName": "test-loop",
-    "pid": 46444,
-    "command": "for i in {1..5}; do echo \"Test $i\"; sleep 1; done",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-loop-1759173257930.log"
-  },
-  {
     "sessionName": "test-attach-logs",
     "pid": 47020,
     "command": "for i in {1..60}; do echo \"Message $i\"; sleep 1; done",
@@ -240,15 +222,69 @@
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/persistent-shell-1759174942321.log"
   },
   {
-    "sessionName": "echoe",
-    "pid": 17147,
-    "command": "sleep 300",
-    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759175091742.log"
-  },
-  {
     "sessionName": "attach3-fixed",
     "pid": 17890,
     "command": "for i in {1..300}; do echo \"e\"; sleep 1; done",
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759175108253.log"
+  },
+  {
+    "sessionName": "test-default",
+    "pid": 28884,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-default-1759175383968.log"
+  },
+  {
+    "sessionName": "test-loop",
+    "pid": 29142,
+    "command": "for i in {1..3}; do echo \"Count $i\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-loop-1759175389698.log"
+  },
+  {
+    "sessionName": "test-simple",
+    "pid": 29383,
+    "command": "echo 'Starting...'; sleep 5; echo 'Done\\!'",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-simple-1759175395415.log"
+  },
+  {
+    "sessionName": "test-echo",
+    "pid": 29770,
+    "command": "echo hello",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-echo-1759175405022.log"
+  },
+  {
+    "sessionName": "echoe",
+    "pid": 31959,
+    "command": "sleep 300",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/echoe-1759175460591.log"
+  },
+  {
+    "sessionName": "test-interactive-fixed",
+    "pid": 37949,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-interactive-fixed-1759175618932.log"
+  },
+  {
+    "sessionName": "test-loop-interactive",
+    "pid": 38693,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-loop-interactive-1759175637691.log"
+  },
+  {
+    "sessionName": "persistent-bash",
+    "pid": 39426,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/persistent-bash-1759175656136.log"
+  },
+  {
+    "sessionName": "my-shell",
+    "pid": 43218,
+    "command": "bash",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/my-shell-1759175759460.log"
+  },
+  {
+    "sessionName": "logs",
+    "pid": 44823,
+    "command": "tail -f /var/log/system.log",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/logs-1759175794038.log"
   }
 ]
