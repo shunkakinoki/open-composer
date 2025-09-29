@@ -142,6 +142,62 @@ function buildSpawnSubcommand() {
         );
         if (attachResult) {
           console.log("\nSession ended.");
+
+          // Ensure terminal is properly restored after session end
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode(false);
+          }
+
+          // Provide options after session completion, similar to detachment
+          yield* Effect.async<void, never>((resume) => {
+            console.log("\n" + "=".repeat(60));
+            console.log("🎛️  Session completed - Choose an action:");
+            console.log("  [s] Start a new session");
+            console.log("  [l] List all sessions");
+            console.log("  [q] Quit to terminal");
+            console.log("=".repeat(60));
+
+            const readline = require('readline');
+            const rl = readline.createInterface({
+              input: process.stdin,
+              output: process.stdout
+            });
+
+            const handleCompletionInput = (answer: string) => {
+              const choice = answer.trim().toLowerCase();
+              switch (choice) {
+                case 's':
+                  rl.close();
+                  console.log("\nTo start a new session, use: open-composer session spawn <name> \"<command>\"");
+                  resume(Effect.succeed(void 0));
+                  break;
+                case 'l':
+                  // List sessions
+                  runnerService.listSessions().pipe(
+                    Effect.runPromise
+                  ).then((sessions) => {
+                    console.log("\nActive sessions:");
+                    console.log("----------------");
+                    sessions.forEach(session => {
+                      console.log(`- ${session.sessionName} (PID: ${session.pid})`);
+                      console.log(`  Command: ${session.command}`);
+                      console.log(`  Log file: ${session.logFile}\n`);
+                    });
+                    rl.question('Choose action [s/l/q]: ', handleCompletionInput);
+                  }).catch(() => {
+                    rl.question('Choose action [s/l/q]: ', handleCompletionInput);
+                  });
+                  break;
+                case 'q':
+                default:
+                  rl.close();
+                  resume(Effect.succeed(void 0));
+                  break;
+              }
+            };
+
+            rl.question('Choose action [s/l/q]: ', handleCompletionInput);
+          });
         } else {
           console.log(
             "\nDetached from session. Session continues running in background.",
@@ -150,6 +206,74 @@ function buildSpawnSubcommand() {
             `To re-attach: open-composer session attach ${sessionName}`,
           );
           console.log(`To kill: open-composer session kill ${sessionName}`);
+
+          // Keep the process alive and provide options
+          yield* Effect.async<void, never>((resume) => {
+            console.log("\n" + "=".repeat(60));
+            console.log("🎛️  Session Manager - Choose an action:");
+            console.log("  [a] Attach to this session again");
+            console.log("  [k] Kill this session");
+            console.log("  [l] List all sessions");
+            console.log("  [q] Quit to terminal");
+            console.log("=".repeat(60));
+
+            const readline = require('readline');
+            const rl = readline.createInterface({
+              input: process.stdin,
+              output: process.stdout
+            });
+
+            const handleInput = (answer: string) => {
+              const choice = answer.trim().toLowerCase();
+              switch (choice) {
+                case 'a':
+                  rl.close();
+                  // Re-attach to the session
+                  runnerService.attachSession(sessionName, {}).pipe(
+                    Effect.runPromise
+                  ).then(() => {
+                    resume(Effect.succeed(void 0));
+                  }).catch(() => {
+                    resume(Effect.succeed(void 0));
+                  });
+                  break;
+                case 'k':
+                  rl.close();
+                  runnerService.killSession(sessionName).pipe(
+                    Effect.runPromise
+                  ).then(() => {
+                    console.log(`Session ${sessionName} killed.`);
+                    resume(Effect.succeed(void 0));
+                  }).catch(() => {
+                    resume(Effect.succeed(void 0));
+                  });
+                  break;
+                case 'l':
+                  runnerService.listSessions().pipe(
+                    Effect.runPromise
+                  ).then((sessions) => {
+                    console.log("\nActive sessions:");
+                    console.log("----------------");
+                    sessions.forEach(session => {
+                      console.log(`- ${session.sessionName} (PID: ${session.pid})`);
+                      console.log(`  Command: ${session.command}`);
+                      console.log(`  Log file: ${session.logFile}\n`);
+                    });
+                    rl.question('Choose action [a/k/l/q]: ', handleInput);
+                  }).catch(() => {
+                    rl.question('Choose action [a/k/l/q]: ', handleInput);
+                  });
+                  break;
+                case 'q':
+                default:
+                  rl.close();
+                  resume(Effect.succeed(void 0));
+                  break;
+              }
+            };
+
+            rl.question('Choose action [a/k/l/q]: ', handleInput);
+          });
         }
       }),
     ),

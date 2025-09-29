@@ -1,6 +1,7 @@
 import { spawn as childSpawn } from "node:child_process";
 import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
+import * as os from "node:os";
 import * as path from "node:path";
 import * as Effect from "effect/Effect";
 import { DEFAULT_TIMEOUTS } from "./constants.js";
@@ -332,17 +333,39 @@ export class ProcessRunnerService {
                       env: process.env as Record<string, string>,
                     };
 
-                    // Always spawn through shell for consistency and compatibility
-                    term = ptySpawn("sh", ["-c", validCommand], spawnOptions);
+                    // Use bash directly for better shell compatibility with loops and complex commands
+                    // Create a temporary script file to avoid argument parsing issues
+                    const scriptContent = `#!/bin/bash\n${validCommand}\nexit\n`;
+                    const tempScriptPath = path.join(
+                      os.tmpdir(),
+                      `script-${validSessionName}-${Date.now()}.sh`,
+                    );
+
+                    fsSync.writeFileSync(tempScriptPath, scriptContent, {
+                      mode: 0o755,
+                    });
+
+                    // Log script execution for debugging if needed
+                    // console.log("Created script:", tempScriptPath, "for command:", validCommand);
+
+                    // Execute the script directly
+                    term = ptySpawn("bash", [tempScriptPath], spawnOptions);
+
+                    // Clean up script file after PTY exit
+                    term.onExit(() => {
+                      try {
+                        fsSync.unlinkSync(tempScriptPath);
+                      } catch (error) {
+                        // Ignore cleanup errors
+                      }
+                      this.cleanupSession(validSessionName);
+                    });
 
                     // Set up log capture
                     const logWriter = createLogWriter(logFile, () =>
                       rotateLogFile(logFile),
                     );
                     term.onData(logWriter.write);
-
-                    // Set up cleanup on PTY exit
-                    term.onExit(() => this.cleanupSession(validSessionName));
                   } catch (error) {
                     throw new Error(
                       `Failed to spawn command "${validCommand}": ${error instanceof Error ? error.message : String(error)}`,
@@ -673,10 +696,15 @@ export class ProcessRunnerService {
     const dataHandler = (data: string | Buffer) => process.stdout.write(data);
     term.onData(dataHandler);
 
+    let detached = false;
+
     const inputHandler = (data: Buffer) => {
+      if (detached) return;
+
       // Check for Ctrl+C (0x03)
       if (data.length === 1 && data[0] === 3) {
-        // Detach from session
+        // Detach from session immediately
+        detached = true;
         cleanup();
         resume(Effect.succeed(false)); // false indicates detach, not session end
         return;
@@ -687,19 +715,28 @@ export class ProcessRunnerService {
     process.stdin.on("data", inputHandler);
 
     const cleanup = () => {
-      // Restore terminal settings
+      if (detached) {
+        return;
+      }; // Prevent multiple cleanup calls
+
+      // Restore terminal settings first
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
       process.stdin.removeListener("data", inputHandler);
-      // Note: we don't remove the dataHandler from term.onData
-      // because we want the session to keep logging
+
+      // Remove signal handlers to prevent double-firing
+      process.removeListener("SIGINT", interruptHandler);
+      process.removeListener("SIGTERM", interruptHandler);
+
       console.log(`\n${"─".repeat(60)}`);
       console.log(`📤 Detached from session: ${sessionName}`);
     };
 
     // Handle session exit
-    term.onExit(({ exitCode }: { exitCode?: number }) => {
+    const exitHandler = ({ exitCode }: { exitCode?: number }) => {
+      if (detached) return;
+      detached = true;
       cleanup();
       resume(
         exitCode === 0
@@ -711,16 +748,21 @@ export class ProcessRunnerService {
               ),
             ),
       );
-    });
+    };
 
-    // Handle process interruption
+    term.onExit(exitHandler);
+
+    // Handle process interruption - immediate detachment
     const interruptHandler = () => {
+      if (detached) return;
+      detached = true;
       cleanup();
       resume(Effect.succeed(false));
     };
 
-    process.once("SIGINT", interruptHandler);
-    process.once("SIGTERM", interruptHandler);
+    // Use regular listeners instead of once to ensure they fire
+    process.on("SIGINT", interruptHandler);
+    process.on("SIGTERM", interruptHandler);
   }
 
   listSessions(): Effect.Effect<ProcessSessionInfo[], ProcessRunnerError> {
