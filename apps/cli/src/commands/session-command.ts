@@ -8,14 +8,15 @@ import type { CommandBuilder } from "../types/commands";
 // -----------------------------------------------------------------------------
 
 export const buildSessionCommand = (): CommandBuilder<"session"> => ({
-  command: () => Command.make("session").pipe(
-    Command.withDescription("Manage persistent process sessions"),
-    Command.withSubcommands([
-      buildAttachSubcommand(),
-      buildKillSubcommand(),
-      buildListSubcommand(),
-      buildSpawnSubcommand(),
-    ]),
+  command: () =>
+    Command.make("session").pipe(
+      Command.withDescription("Manage persistent process sessions"),
+      Command.withSubcommands([
+        buildAttachSubcommand(),
+        buildKillSubcommand(),
+        buildListSubcommand(),
+        buildSpawnSubcommand(),
+      ]),
     ),
   metadata: {
     name: "session",
