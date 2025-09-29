@@ -184,5 +184,35 @@
     "pid": 5871,
     "command": "sleep 300",
     "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach2-1759171857183.log"
+  },
+  {
+    "sessionName": "attach3",
+    "pid": 31814,
+    "command": "for i in {1..300}; do echo \"e\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-1759172912239.log"
+  },
+  {
+    "sessionName": "test-redirect",
+    "pid": 45946,
+    "command": "echo hello world",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-redirect-1759173247259.log"
+  },
+  {
+    "sessionName": "test-loop",
+    "pid": 46444,
+    "command": "for i in {1..5}; do echo \"Test $i\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-loop-1759173257930.log"
+  },
+  {
+    "sessionName": "test-attach-logs",
+    "pid": 47020,
+    "command": "for i in {1..60}; do echo \"Message $i\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/test-attach-logs-1759173271351.log"
+  },
+  {
+    "sessionName": "attach3-fixed",
+    "pid": 49897,
+    "command": "for i in {1..300}; do echo \"e\"; sleep 1; done",
+    "logFile": "/var/folders/_q/7p1zk5vx4t3_y09kcgk3krzm0000gn/T/attach3-fixed-1759173342288.log"
   }
 ]

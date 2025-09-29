@@ -4,7 +4,6 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as Effect from "effect/Effect";
 import { DEFAULT_TIMEOUTS } from "./constants.js";
-import { createLogWriter, rotateLogFile } from "./log-manager.js";
 import {
   type ProcessRunnerError,
   ProcessRunnerError as ProcessRunnerErrorValue,
@@ -313,10 +312,7 @@ export class ProcessRunnerService {
                     `${validSessionName}-${Date.now()}.log`,
                   );
 
-                  // Import both PTY and regular child_process
-                  const { spawn: childSpawn } = await import(
-                    "node:child_process"
-                  );
+                  // Use already imported childSpawn from top of file
 
                   // Parse command to determine best execution strategy
                   const cmdParts = validCommand.trim().split(/\s+/);
@@ -350,27 +346,25 @@ export class ProcessRunnerService {
                   // Use detached child_process for initial spawn to ensure true background execution
                   let childProcess: ChildProcess;
                   try {
-                    const _logStream = createLogWriter(logFile, () =>
-                      rotateLogFile(logFile),
-                    );
+                    // For true detached execution, we'll redirect output in the shell command itself
+                    // This avoids keeping file streams open in the parent process
+                    const finalCommand = shouldUseDirect
+                      ? `${mainCmd} ${cmdArgs.join(" ")} >> "${logFile}" 2>&1`
+                      : `(${validCommand}) >> "${logFile}" 2>&1`;
 
                     const spawnOptions = {
                       detached: true,
-                      stdio: "ignore" as const,
+                      stdio: "ignore", // Completely ignore all stdio
                       cwd: process.cwd(),
                       env: process.env,
                     };
 
-                    if (shouldUseDirect) {
-                      childProcess = childSpawn(mainCmd, cmdArgs, spawnOptions);
-                    } else {
-                      // Use shell for complex commands
-                      childProcess = childSpawn(
-                        "sh",
-                        ["-c", validCommand],
-                        spawnOptions,
-                      );
-                    }
+                    // Always use shell when we need output redirection
+                    childProcess = childSpawn(
+                      "sh",
+                      ["-c", finalCommand],
+                      spawnOptions,
+                    );
 
                     // Immediately unref so parent doesn't wait
                     childProcess.unref();
