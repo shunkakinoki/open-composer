@@ -19,6 +19,7 @@ import {
 let testDir: string;
 let originalCwd: string;
 
+
 // Helper to run effects that can fail and extract the value
 const runEffect = async <A>(
   effect: Effect.Effect<A, GitCommandError>,
@@ -59,13 +60,13 @@ describe("GitStack", () => {
     await cleanupTestRepo(testDir);
   });
 
-  test("log returns helpful message when stack is empty", async () => {
+  test.serial("log returns helpful message when stack is empty", async () => {
     process.chdir(testDir);
     const lines = await runEffect(runWithGitStack(logStack));
     expect(lines[0]).toContain("No tracked stack branches");
   });
 
-  test("create branch and track it in stack", async () => {
+  test.serial("create branch and track it in stack", async () => {
     process.chdir(testDir);
 
     // Get the initial branch name for tracking
@@ -110,7 +111,7 @@ describe("GitStack", () => {
     );
   });
 
-  test("track multiple branches and show stack", async () => {
+  test.serial("track multiple branches and show stack", async () => {
     process.chdir(testDir);
 
     // Get the initial branch name for tracking
@@ -169,7 +170,7 @@ describe("GitStack", () => {
     ).toBe(true);
   });
 
-  test("status shows current branch and relationships", async () => {
+  test.serial("status shows current branch and relationships", async () => {
     process.chdir(testDir);
 
     // Get the initial branch name for tracking
@@ -196,7 +197,7 @@ describe("GitStack", () => {
     expect(status.currentBranch).toBe("test-branch");
   });
 
-  test("untrack removes branch from stack", async () => {
+  test.serial("untrack removes branch from stack", async () => {
     process.chdir(testDir);
 
     // Get the initial branch name for tracking

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { TelemetryConfig } from "@open-composer/config";
 
 // Mock PostHog client
@@ -13,9 +13,10 @@ const _mockPostHogClient = {
 // Note: In a real implementation, we would mock the PostHog constructor
 // For this test, we're testing the service interface directly
 
-describe("TelemetryService", () => {
-  describe("exception autocapture configuration", () => {
-    it("should create PostHog client with exception autocapture enabled", () => {
+
+describe.concurrent("TelemetryService", () => {
+  describe.concurrent("exception autocapture configuration", () => {
+    test.concurrent("should create PostHog client with exception autocapture enabled", () => {
       const testConfig: TelemetryConfig = {
         enabled: true,
         apiKey: "test-api-key",
@@ -29,7 +30,7 @@ describe("TelemetryService", () => {
       expect(testConfig.host).toBe("https://test.posthog.com");
     });
 
-    it("should use production API key and host by default", () => {
+    test.concurrent("should use production API key and host by default", () => {
       // Test that the default configuration uses production values from the PostHog docs
       const productionApiKey =
         "phc_myz44Az2Eim07Kk1aP3jWLVb2pzn75QWVDhOMv9dSsU";

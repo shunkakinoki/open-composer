@@ -1,8 +1,8 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { AgentCache } from "../src/index.js";
 
-describe("Cache", () => {
-  it("should define AgentCache interface", () => {
+describe.concurrent("Cache", () => {
+  test.concurrent("should define AgentCache interface", async () => {
     const cache: AgentCache = {
       agents: [
         {
@@ -20,7 +20,7 @@ describe("Cache", () => {
     expect(cache.lastUpdated).toBe("2024-01-01T00:00:00.000Z");
   });
 
-  it("should allow empty agent cache", () => {
+  test.concurrent("should allow empty agent cache", async () => {
     const cache: AgentCache = {
       agents: [],
       lastUpdated: "2024-01-01T00:00:00.000Z",

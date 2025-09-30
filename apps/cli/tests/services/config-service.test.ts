@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -7,6 +7,7 @@ import type { UserConfig } from "@open-composer/config";
 // Mock file system operations for testing
 const mockConfigDir = join(homedir(), ".config", "open-composer-test");
 const mockConfigPath = join(mockConfigDir, "config.json");
+
 
 // Helper functions to test config operations directly
 async function testGetConfig(): Promise<UserConfig> {
@@ -116,7 +117,7 @@ describe("Config Operations", () => {
   });
 
   describe("getConfig", () => {
-    it("should return default config when no file exists", async () => {
+    test.serial("should return default config when no file exists", async () => {
       const result = await testGetConfig();
 
       expect(result).toEqual({
@@ -126,7 +127,7 @@ describe("Config Operations", () => {
       });
     });
 
-    it("should read existing config file", async () => {
+    test.serial("should read existing config file", async () => {
       const testConfig = {
         version: "1.0.0",
         createdAt: "2024-01-01T00:00:00.000Z",
@@ -157,7 +158,7 @@ describe("Config Operations", () => {
       });
     });
 
-    it("should handle invalid JSON gracefully", async () => {
+    test.serial("should handle invalid JSON gracefully", async () => {
       await writeFile(mockConfigPath, "invalid json", "utf8");
 
       const result = await testGetConfig();
@@ -171,7 +172,7 @@ describe("Config Operations", () => {
   });
 
   describe("setTelemetryConsent", () => {
-    it("should enable telemetry consent", async () => {
+    test.serial("should enable telemetry consent", async () => {
       const result = await testSetTelemetryConsent(true);
 
       expect(result.telemetry?.enabled).toBe(true);
@@ -179,7 +180,7 @@ describe("Config Operations", () => {
       expect(result.telemetry?.version).toBe("1.0.0");
     });
 
-    it("should disable telemetry consent", async () => {
+    test.serial("should disable telemetry consent", async () => {
       const result = await testSetTelemetryConsent(false);
 
       expect(result.telemetry?.enabled).toBe(false);
@@ -187,7 +188,7 @@ describe("Config Operations", () => {
       expect(result.telemetry?.version).toBe("1.0.0");
     });
 
-    it("should persist consent to file", async () => {
+    test.serial("should persist consent to file", async () => {
       await testSetTelemetryConsent(true);
 
       // Verify file was written
@@ -200,7 +201,7 @@ describe("Config Operations", () => {
   });
 
   describe("updateConfig", () => {
-    it("should update config with partial data", async () => {
+    test.serial("should update config with partial data", async () => {
       const result = await testUpdateConfig({
         version: "2.0.0",
         telemetry: {
@@ -217,13 +218,13 @@ describe("Config Operations", () => {
   });
 
   describe("getTelemetryConsent", () => {
-    it("should return false when telemetry is not configured", async () => {
+    test.serial("should return false when telemetry is not configured", async () => {
       const result = await testGetTelemetryConsent();
 
       expect(result).toBe(false);
     });
 
-    it("should return true when telemetry is enabled", async () => {
+    test.serial("should return true when telemetry is enabled", async () => {
       // First set telemetry consent
       await testSetTelemetryConsent(true);
 
@@ -233,7 +234,7 @@ describe("Config Operations", () => {
       expect(result).toBe(true);
     });
 
-    it("should return false when telemetry is disabled", async () => {
+    test.serial("should return false when telemetry is disabled", async () => {
       // First set telemetry consent to false
       await testSetTelemetryConsent(false);
 

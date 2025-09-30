@@ -1,12 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  mock,
-  spyOn,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
 import type {
   AddOptions,
   ListOptions,
@@ -83,6 +75,7 @@ mock.module("@open-composer/git-worktrees", () => ({
 // Mock Effect and console
 const mockConsoleLog = spyOn(console, "log");
 
+
 // Import GitWorktreeService after mocks are set up
 import {
   type CreateGitWorktreeOptions,
@@ -109,7 +102,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("list", () => {
-    it("should list git worktrees", async () => {
+    test.serial("should list git worktrees", async () => {
       const result = await Effect.runPromise(
         service.list().pipe(Effect.provide(GitLive)),
       );
@@ -117,7 +110,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should handle empty worktree list", async () => {
+    test.serial("should handle empty worktree list", async () => {
       // Temporarily override the mock to return empty list
       const originalMock = service.listWorktrees;
       service.listWorktrees = () => Effect.succeed([]);
@@ -134,7 +127,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("create", () => {
-    it("should create a worktree with branch", async () => {
+    test.serial("should create a worktree with branch", async () => {
       const options: CreateGitWorktreeOptions = {
         path: "/tmp/new-worktree",
         branch: "new-feature",
@@ -151,7 +144,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should create a worktree with ref", async () => {
+    test.serial("should create a worktree with ref", async () => {
       const options: CreateGitWorktreeOptions = {
         path: "/tmp/new-worktree",
         ref: "v1.0.0",
@@ -168,7 +161,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should create a detached worktree", async () => {
+    test.serial("should create a detached worktree", async () => {
       const options: CreateGitWorktreeOptions = {
         path: "/tmp/new-worktree",
         force: false,
@@ -186,7 +179,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("edit", () => {
-    it("should move a worktree", async () => {
+    test.serial("should move a worktree", async () => {
       const options: EditGitWorktreeOptions = {
         from: "/old/path",
         to: "/new/path",
@@ -202,7 +195,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("prune", () => {
-    it("should prune worktrees in dry-run mode", async () => {
+    test.serial("should prune worktrees in dry-run mode", async () => {
       const options: PruneGitWorktreeOptions = {
         dryRun: true,
         verbose: false,
@@ -216,7 +209,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should show message when no prunable worktrees in dry-run", async () => {
+    test.serial("should show message when no prunable worktrees in dry-run", async () => {
       // Temporarily override to return worktrees with no prunable ones
       const originalMock = service.listWorktrees;
       service.listWorktrees = () =>
@@ -245,7 +238,7 @@ describe("GitWorktreeService", () => {
       service.listWorktrees = originalMock;
     });
 
-    it("should actually prune worktrees", async () => {
+    test.serial("should actually prune worktrees", async () => {
       const options: PruneGitWorktreeOptions = {
         dryRun: false,
         verbose: true,
@@ -259,7 +252,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should handle no worktrees pruned", async () => {
+    test.serial("should handle no worktrees pruned", async () => {
       // Same worktrees before and after (none removed)
       const options: PruneGitWorktreeOptions = {
         dryRun: false,
@@ -274,7 +267,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("switch", () => {
-    it("should switch to a worktree", async () => {
+    test.serial("should switch to a worktree", async () => {
       const result = await Effect.runPromise(
         service
           .switch("/path/to/feature-worktree")
@@ -284,7 +277,7 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should switch to detached worktree", async () => {
+    test.serial("should switch to detached worktree", async () => {
       // Temporarily override to return detached worktree
       const originalMock = service.listWorktrees;
       service.listWorktrees = () =>
@@ -311,7 +304,7 @@ describe("GitWorktreeService", () => {
       service.listWorktrees = originalMock;
     });
 
-    it("should fail when worktree not found", async () => {
+    test.serial("should fail when worktree not found", async () => {
       const result = await Effect.runPromiseExit(
         service.switch("/nonexistent/path").pipe(Effect.provide(GitLive)),
       );
@@ -332,7 +325,7 @@ describe("GitWorktreeService", () => {
   });
 
   describe("static make", () => {
-    it("should create a service instance", () => {
+    test.serial("should create a service instance", () => {
       const result = Effect.runSync(
         GitWorktreeService.make().pipe(Effect.provide(GitLive)),
       );

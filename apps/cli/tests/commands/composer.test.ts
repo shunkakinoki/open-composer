@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   buildRootCommand,
   buildRunner,
@@ -6,21 +6,21 @@ import {
 import { buildGHPRCommand } from "../../src/commands/gh-pr-command.js";
 import { buildSessionsCommand } from "../../src/commands/sessions-command.js";
 
-describe("composer command", () => {
-  describe("Root Command Structure", () => {
-    it("should build root command successfully", () => {
+describe.concurrent("composer command", () => {
+  describe.concurrent("Root Command Structure", () => {
+    test.concurrent("should build root command successfully", () => {
       const command = buildRootCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build runner successfully", () => {
+    test.concurrent("should build runner successfully", () => {
       const runner = buildRunner();
       expect(typeof runner).toBe("function");
       expect(runner).toBeDefined();
     });
 
-    it("should include all expected subcommands", () => {
+    test.concurrent("should include all expected subcommands", () => {
       const command = buildRootCommand();
       // Note: We can't directly inspect the internal command structure,
       // but we can verify the command builds without errors
@@ -28,48 +28,48 @@ describe("composer command", () => {
     });
   });
 
-  describe("PR Create Command Integration", () => {
-    it("should build pr-create command successfully", () => {
+  describe.concurrent("PR Create Command Integration", () => {
+    test.concurrent("should build pr-create command successfully", () => {
       const command = buildGHPRCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should have pr-create subcommands", () => {
+    test.concurrent("should have pr-create subcommands", () => {
       const command = buildGHPRCommand();
       expect(command).toBeDefined();
       // Verify command structure is valid
     });
 
-    it("should handle pr-create command arguments correctly", () => {
+    test.concurrent("should handle pr-create command arguments correctly", () => {
       // Test that the command accepts proper arguments
       const command = buildGHPRCommand();
       expect(command).toBeDefined();
     });
   });
 
-  describe("Sessions Command Integration", () => {
-    it("should build sessions command successfully", () => {
+  describe.concurrent("Sessions Command Integration", () => {
+    test.concurrent("should build sessions command successfully", () => {
       const command = buildSessionsCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should have sessions subcommands", () => {
+    test.concurrent("should have sessions subcommands", () => {
       const command = buildSessionsCommand();
       expect(command).toBeDefined();
       // Verify command structure is valid
     });
 
-    it("should handle sessions command arguments correctly", () => {
+    test.concurrent("should handle sessions command arguments correctly", () => {
       // Test that the command accepts proper arguments
       const command = buildSessionsCommand();
       expect(command).toBeDefined();
     });
   });
 
-  describe("End-to-End Command Integration", () => {
-    it("should integrate pr-create command into root command", () => {
+  describe.concurrent("End-to-End Command Integration", () => {
+    test.concurrent("should integrate pr-create command into root command", () => {
       const rootCommand = buildRootCommand();
       const prCreateCommand = buildGHPRCommand();
       expect(rootCommand).toBeDefined();
@@ -77,7 +77,7 @@ describe("composer command", () => {
       // Both commands should be buildable without conflicts
     });
 
-    it("should integrate sessions command into root command", () => {
+    test.concurrent("should integrate sessions command into root command", () => {
       const rootCommand = buildRootCommand();
       const sessionsCommand = buildSessionsCommand();
       expect(rootCommand).toBeDefined();
@@ -85,7 +85,7 @@ describe("composer command", () => {
       // Both commands should be buildable without conflicts
     });
 
-    it("should handle multiple new commands without conflicts", () => {
+    test.concurrent("should handle multiple new commands without conflicts", () => {
       const rootCommand = buildRootCommand();
       const prCreateCommand = buildGHPRCommand();
       const sessionsCommand = buildSessionsCommand();
@@ -99,8 +99,8 @@ describe("composer command", () => {
     });
   });
 
-  describe("Command Validation", () => {
-    it("should validate command structure integrity", () => {
+  describe.concurrent("Command Validation", () => {
+    test.concurrent("should validate command structure integrity", () => {
       const rootCommand = buildRootCommand();
       expect(rootCommand).toBeDefined();
 
@@ -108,7 +108,7 @@ describe("composer command", () => {
       expect(typeof rootCommand).toBe("object");
     });
 
-    it("should handle command composition correctly", () => {
+    test.concurrent("should handle command composition correctly", () => {
       // Test that commands can be composed together
       const rootCommand = buildRootCommand();
       expect(rootCommand).toBeDefined();

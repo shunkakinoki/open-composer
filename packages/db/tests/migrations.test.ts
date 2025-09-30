@@ -1,12 +1,4 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -14,6 +6,7 @@ import { Effect } from "effect";
 
 let tempDir: string;
 let dbFile: string;
+
 
 beforeAll(async () => {
   tempDir = mkdtempSync(path.join(tmpdir(), "open-composer-migrations-"));
@@ -51,7 +44,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Database Initialization", () => {
-    test("initializes database with migrations", async () => {
+    test.serial("initializes database with migrations", async () => {
       const program = Effect.gen(function* () {
         // Initialize database should run all migrations
         yield* dbModule.initializeDatabase;
@@ -86,7 +79,7 @@ describe("Migration Functionality", () => {
       expect(result.value.migrations.length).toBeGreaterThan(0); // Migrations ran successfully
     });
 
-    test("creates proper directory structure", async () => {
+    test.serial("creates proper directory structure", async () => {
       const program = Effect.gen(function* () {
         yield* dbModule.initializeDatabase;
 
@@ -116,7 +109,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Migration Status Tracking", () => {
-    test("tracks migration execution correctly", async () => {
+    test.serial("tracks migration execution correctly", async () => {
       const program = Effect.gen(function* () {
         // After initialization
         yield* dbModule.initializeDatabase;
@@ -143,7 +136,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Schema Validation", () => {
-    test("validates complete database schema", async () => {
+    test.serial("validates complete database schema", async () => {
       const program = Effect.gen(function* () {
         yield* dbModule.initializeDatabase;
         const validation = yield* dbModule.validateDatabaseSchema;
@@ -166,7 +159,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Settings Snapshot", () => {
-    test("creates settings snapshot", async () => {
+    test.serial("creates settings snapshot", async () => {
       const program = Effect.gen(function* () {
         yield* dbModule.initializeDatabase;
 
@@ -185,7 +178,7 @@ describe("Migration Functionality", () => {
       );
     });
 
-    test("restores settings snapshot", async () => {
+    test.serial("restores settings snapshot", async () => {
       const program = Effect.gen(function* () {
         yield* dbModule.initializeDatabase;
 

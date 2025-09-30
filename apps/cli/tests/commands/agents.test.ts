@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   buildActivateCommand,
   buildAgentsCommand,
@@ -7,15 +7,15 @@ import {
   buildRouteCommand,
 } from "../../src/commands/agents-command.js";
 
-describe("agents command", () => {
-  describe("command structure", () => {
-    it("should build agents command successfully", () => {
+describe.concurrent("agents command", () => {
+  describe.concurrent("command structure", () => {
+    test.concurrent("should build agents command successfully", () => {
       const command = buildAgentsCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build individual subcommands successfully", () => {
+    test.concurrent("should build individual subcommands successfully", () => {
       expect(buildListCommand()).toBeDefined();
       expect(buildActivateCommand()).toBeDefined();
       expect(buildDeactivateCommand()).toBeDefined();

@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, spyOn } from "bun:test";
+import { describe, expect, test, mock, spyOn } from "bun:test";
 import * as Effect from "effect/Effect";
 
 // Mock the git-stack package functions
@@ -52,14 +52,15 @@ const _mockConsoleError = spyOn(console, "error");
 // Import StackService after mocks are set up
 import { StackService } from "../../src/services/stack-service.js";
 
-describe("StackService", () => {
-  describe("service instantiation", () => {
-    it("should handle default constructor", () => {
+
+describe.concurrent("StackService", () => {
+  describe.concurrent("service instantiation", () => {
+    test.concurrent("should handle default constructor", () => {
       const defaultService = new StackService();
       expect(defaultService).toBeInstanceOf(StackService);
     });
 
-    it("should create service with dependencies", () => {
+    test.concurrent("should create service with dependencies", () => {
       const service = new StackService(
         mockLogStack,
         mockStatusStack,

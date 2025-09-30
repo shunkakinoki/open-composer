@@ -1,13 +1,14 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { run } from "../src/index.js";
 
-describe("GitHub CLI Package", () => {
-  describe("run", () => {
-    it("should export run function", () => {
+
+describe.concurrent("GitHub CLI Package", () => {
+  describe.concurrent("run", () => {
+    test.concurrent("should export run function", async () => {
       expect(typeof run).toBe("function");
     });
 
-    it("should create an Effect for GitHub commands", () => {
+    test.concurrent("should create an Effect for GitHub commands", async () => {
       const effect = run(["--help"]);
       expect(effect).toBeDefined();
       // Note: We don't run the effect as it would require gh CLI
@@ -16,8 +17,8 @@ describe("GitHub CLI Package", () => {
 
   // Note: Actual CLI tests would require gh CLI to be installed
   // and authenticated, which is not suitable for CI
-  describe("commands", () => {
-    it("should export authStatus", async () => {
+  describe.concurrent("commands", () => {
+    test.concurrent("should export authStatus", async () => {
       const { authStatus } = await import("../src/commands.js");
       expect(typeof authStatus).toBe("object");
     });

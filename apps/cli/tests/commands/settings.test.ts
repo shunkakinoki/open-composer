@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   buildDeleteCommand,
   buildGetCommand,
@@ -7,35 +7,36 @@ import {
   buildSettingsCommand,
 } from "../../src/commands/settings-command.js";
 
-describe("settings command", () => {
-  describe("buildSettingsCommand", () => {
-    it("should build settings command successfully", () => {
+
+describe.concurrent("settings command", () => {
+  describe.concurrent("buildSettingsCommand", () => {
+    test.concurrent("should build settings command successfully", () => {
       const command = buildSettingsCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
   });
 
-  describe("subcommands", () => {
-    it("should build get command successfully", () => {
+  describe.concurrent("subcommands", () => {
+    test.concurrent("should build get command successfully", () => {
       const command = buildGetCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build set command successfully", () => {
+    test.concurrent("should build set command successfully", () => {
       const command = buildSetCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build list command successfully", () => {
+    test.concurrent("should build list command successfully", () => {
       const command = buildListCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build delete command successfully", () => {
+    test.concurrent("should build delete command successfully", () => {
       const command = buildDeleteCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");

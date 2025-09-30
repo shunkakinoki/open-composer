@@ -1,11 +1,12 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import * as path from "node:path";
 import * as Effect from "effect/Effect";
 import { add, list, lock, move, remove } from "../src/worktrees.js";
 import { createGitStub, success } from "./utils.js";
 
-describe("git worktrees", () => {
-  it("parses porcelain worktree listings", async () => {
+
+describe.concurrent("git worktrees", () => {
+  test.concurrent("parses porcelain worktree listings", async () => {
     const porcelain = [
       "worktree /repo/main",
       "HEAD aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -40,7 +41,7 @@ describe("git worktrees", () => {
     });
   });
 
-  it("creates worktrees with branching and locking", async () => {
+  test.concurrent("creates worktrees with branching and locking", async () => {
     const porcelain = [
       "worktree /repo/main",
       "HEAD aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -89,7 +90,7 @@ describe("git worktrees", () => {
     });
   });
 
-  it("propagates not-found errors after move", async () => {
+  test.concurrent("propagates not-found errors after move", async () => {
     const stub = createGitStub([
       success(""),
       success("worktree /repo/main\n\n"),
@@ -114,7 +115,7 @@ describe("git worktrees", () => {
     }
   });
 
-  it("removes worktrees", async () => {
+  test.concurrent("removes worktrees", async () => {
     const stub = createGitStub([success("")]);
 
     await Effect.runPromise(
@@ -129,7 +130,7 @@ describe("git worktrees", () => {
     ]);
   });
 
-  it("locks worktrees with reasons", async () => {
+  test.concurrent("locks worktrees with reasons", async () => {
     const porcelain = [
       "worktree /repo/feature/foo",
       "HEAD bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
