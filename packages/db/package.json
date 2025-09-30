@@ -16,11 +16,11 @@
     "test:update-snapshot": "bun test --updateSnapshot"
   },
   "dependencies": {
-    "@effect/platform-bun": "^0.80.0",
-    "@effect/sql": "^0.45.0",
-    "@effect/sql-drizzle": "^0.44.0",
-    "@effect/sql-sqlite-bun": "^0.46.0",
-    "drizzle-orm": "^0.43.1",
+    "@effect/platform-bun": "^0.81.0",
+    "@effect/sql": "^0.46.0",
+    "@effect/sql-drizzle": "^0.45.0",
+    "@effect/sql-sqlite-bun": "^0.47.0",
+    "drizzle-orm": "^0.44.5",
     "effect": "^3.17.14"
   },
   "devDependencies": {
