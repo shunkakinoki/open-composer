@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "test": "bun test",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
