@@ -1,57 +1,60 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AgentCache } from "../../src/services/cache-service";
 
-// Mock file system operations for testing
-const mockCacheDir = join(homedir(), ".config", "open-composer-test");
-const mockCachePath = join(mockCacheDir, "cache.json");
-
-// Helper functions to test cache operations directly
-async function testGetAgentCache(): Promise<AgentCache | undefined> {
-  try {
-    const content = await readFile(mockCachePath, "utf-8");
-    return JSON.parse(content) as AgentCache;
-  } catch {
-    return undefined;
-  }
-}
-
-async function testUpdateAgentCache(cache: AgentCache): Promise<void> {
-  await mkdir(mockCacheDir, { recursive: true });
-  await writeFile(mockCachePath, JSON.stringify(cache, null, 2), "utf-8");
-}
-
-async function testClearAgentCache(): Promise<void> {
-  const emptyCache = {
-    agents: [],
-    lastUpdated: new Date().toISOString(),
-  };
-  await mkdir(mockCacheDir, { recursive: true });
-  await writeFile(mockCachePath, JSON.stringify(emptyCache, null, 2), "utf-8");
-}
+// Test isolation variables
+let mockCacheDir: string;
+let mockCachePath: string;
 
 describe("CacheService", () => {
-  beforeEach(async () => {
-    // Clean up before each test
-    try {
-      await rm(mockCachePath, { force: true });
-      await rm(mockCacheDir, { recursive: true, force: true });
-    } catch {
-      // Ignore if files don't exist
-    }
+  beforeEach(() => {
+    // Create unique test directory for each test
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    mockCacheDir = join(tmpdir(), `open-composer-cache-test-${testId}`);
+    mockCachePath = join(mockCacheDir, "cache.json");
   });
 
   afterEach(async () => {
-    // Clean up after each test
+    // Clean up test directory
     try {
-      await rm(mockCachePath, { force: true });
-      await rm(mockCacheDir, { recursive: true, force: true });
+      if (existsSync(mockCacheDir)) {
+        await rm(mockCacheDir, { recursive: true, force: true });
+      }
     } catch {
-      // Ignore if files don't exist
+      // Ignore cleanup errors
     }
   });
+
+  // Helper functions to test cache operations directly
+  async function testGetAgentCache(): Promise<AgentCache | undefined> {
+    try {
+      const content = await readFile(mockCachePath, "utf-8");
+      return JSON.parse(content) as AgentCache;
+    } catch {
+      return undefined;
+    }
+  }
+
+  async function testUpdateAgentCache(cache: AgentCache): Promise<void> {
+    await mkdir(mockCacheDir, { recursive: true });
+    await writeFile(mockCachePath, JSON.stringify(cache, null, 2), "utf-8");
+  }
+
+  async function testClearAgentCache(): Promise<void> {
+    const emptyCache = {
+      agents: [],
+      lastUpdated: new Date().toISOString(),
+    };
+    await mkdir(mockCacheDir, { recursive: true });
+    await writeFile(
+      mockCachePath,
+      JSON.stringify(emptyCache, null, 2),
+      "utf-8",
+    );
+  }
 
   describe("getAgentCache", () => {
     it("should return undefined when no cache file exists", async () => {

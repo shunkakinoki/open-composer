@@ -26,13 +26,23 @@ export const ConfigService = ConfigServiceTag;
 
 // Get config directory path
 function getConfigDir(): string {
+  // Use temp directory during testing to avoid conflicts
+  if (process.env.BUN_TEST) {
+    const { tmpdir } = require("node:os");
+    const { join } = require("node:path");
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    return join(tmpdir(), `open-composer-test-config-${testId}`);
+  }
   const home = homedir();
   return join(home, ".config", "open-composer");
 }
 
 // Get config file path
 function getConfigPath(): string {
-  return join(getConfigDir(), "config.json");
+  const dir = getConfigDir();
+  // Ensure directory exists
+  require("node:fs").mkdirSync(dir, { recursive: true });
+  return join(dir, "config.json");
 }
 
 // Create config service implementation
@@ -169,13 +179,15 @@ export const promptForTelemetryConsent = () =>
       return config.telemetry.enabled;
     }
 
-    // Check if we're in a CI environment
+    // Check if we're in a test or CI environment
+    const isTestMode =
+      process.env.NODE_ENV === "test" || process.env.BUN_TEST === "1";
     const isCI =
       process.env.CI ||
       process.env.CONTINUOUS_INTEGRATION ||
       process.env.GITHUB_ACTIONS;
 
-    if (isCI) {
+    if (isTestMode || isCI) {
       // Non-interactive environment, default to false
       yield* _(configService.setTelemetryConsent(false));
       return false;

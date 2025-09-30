@@ -24,17 +24,19 @@ const runCli = (
   options: { timeout?: number; input?: string } = {},
 ): Promise<CliResult> =>
   new Promise((resolve, reject) => {
+    const env = {
+      ...process.env,
+      TMPDIR: testWorkDir,
+      // Set session directory to the test working directory
+      OPEN_COMPOSER_SESSION_DIR: testWorkDir,
+      // Set test mode to avoid interactive prompts
+      BUN_TEST: "1",
+    };
+
     const child = spawn("bun", ["run", cliPath, ...args], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: join(__dirname, "../.."), // Run from CLI root directory
-      env: {
-        ...process.env,
-        TMPDIR: testWorkDir,
-        // Set session directory to the test working directory
-        OPEN_COMPOSER_SESSION_DIR: testWorkDir,
-        // Set test mode to avoid interactive prompts
-        BUN_TEST: "1",
-      },
+      env,
     });
 
     let stdout = "";
@@ -75,11 +77,9 @@ let testWorkDir: string;
 
 describe("Process Runner E2E Tests", () => {
   beforeEach(() => {
-    // Create a temporary directory for each test
-    testWorkDir = join(
-      tmpdir(),
-      `open-composer-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    );
+    // Create a unique temporary directory for each test
+    const testId = Math.random().toString(36).substring(7);
+    testWorkDir = join(tmpdir(), `open-composer-test-${testId}`);
     mkdirSync(testWorkDir, { recursive: true });
   });
 
@@ -93,12 +93,10 @@ describe("Process Runner E2E Tests", () => {
   describe("True Terminal Experience", () => {
     it("should spawn a process and allow live stdio interaction", async () => {
       // Spawn a long-running process that echoes input
-      const spawnResult = await runCli([
-        "session",
-        "spawn",
-        "test-interactive-session",
-        "echo 'hello world'",
-      ]);
+      const spawnResult = await runCli(
+        ["session", "spawn", "test-interactive-session", "echo 'hello world'"],
+        { timeout: 2000 },
+      );
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(

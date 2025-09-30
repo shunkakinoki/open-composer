@@ -16,6 +16,13 @@ export const CacheService = CacheServiceTag;
 
 // Get cache directory path (same as config directory)
 function getCacheDir(): string {
+  // Use temp directory during testing to avoid conflicts
+  if (process.env.BUN_TEST) {
+    const { tmpdir } = require("node:os");
+    const { join } = require("node:path");
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    return join(tmpdir(), `open-composer-test-cache-${testId}`);
+  }
   const home = homedir();
   return join(home, ".config", "open-composer");
 }
