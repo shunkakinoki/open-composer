@@ -183,7 +183,7 @@ export function buildRouteCommand() {
         };
 
         const cliPath = Option.map(config.path, (path) =>
-          path.split(",").map((part: string) => part.trim())
+          path.split(",").map((part: string) => part.trim()),
         );
 
         if (Option.isSome(cliPath)) {
