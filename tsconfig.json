@@ -12,13 +12,13 @@
       "path": "agents/opencode"
     },
     {
+      "path": "agents/router"
+    },
+    {
       "path": "agents/types"
     },
     {
       "path": "apps/cli"
-    },
-    {
-      "path": "packages/agent-router"
     },
     {
       "path": "packages/cache"
