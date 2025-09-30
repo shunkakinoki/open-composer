@@ -1,3 +1,0 @@
-[test]
-# Exclude Cloudflare Worker tests that require Vitest
-exclude = ["workers/posthog/test/*.test.ts"]
