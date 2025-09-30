@@ -245,9 +245,8 @@ const renderStackedPRs = (
     return lines;
   });
 
-const makeService = (): GitStackService => {
-  const getCwd = () => process.cwd();
-  const statePath = path.join(getCwd(), ".git", "open-composer-stack.json");
+const makeService = (cwd: string): GitStackService => {
+  const statePath = path.join(cwd, ".git", "open-composer-stack.json");
 
   const withState = <A>(
     f: (state: StackState) => Effect.Effect<[A, StackState]>,
