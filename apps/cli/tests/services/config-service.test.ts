@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { UserConfig } from "@open-composer/config";
 
-// Mock file system operations for testing
-const mockConfigDir = join(homedir(), ".config", "open-composer-test");
-const mockConfigPath = join(mockConfigDir, "config.json");
+// Test isolation variables
+let mockConfigDir: string;
+let mockConfigPath: string;
 
 // Helper functions to test config operations directly
 async function testGetConfig(): Promise<UserConfig> {
@@ -102,6 +102,11 @@ async function testGetTelemetryConsent(): Promise<boolean> {
 
 describe("Config Operations", () => {
   beforeEach(async () => {
+    // Create unique test directory for each test
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    mockConfigDir = join(tmpdir(), `open-composer-config-test-${testId}`);
+    mockConfigPath = join(mockConfigDir, "config.json");
+
     // Create test directory
     await mkdir(mockConfigDir, { recursive: true });
   });

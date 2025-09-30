@@ -1,7 +1,9 @@
 #!/usr/bin/env bun
 
-import type { ValidationError } from "@effect/cli/ValidationError";
-import * as BunRuntime from "@effect/platform-bun/BunRuntime";
+import {
+  isValidationError,
+  type ValidationError,
+} from "@effect/cli/ValidationError";
 import { initializeDatabase } from "@open-composer/db";
 import * as Effect from "effect/Effect";
 import { CliLive, cli } from "./lib/cli.js";
@@ -76,20 +78,6 @@ if (import.meta.main) {
             isConfigClear ? Effect.void : promptForTelemetryConsent(),
           ),
           Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
-          // Add global error handling
-          Effect.catchAll((error) => {
-            // Track only actual Error instances, not ValidationError
-            const trackEffect =
-              error instanceof Error
-                ? trackException(error, "cli_execution_error")
-                : Effect.void;
-
-            return trackEffect.pipe(
-              Effect.provide(TelemetryLive),
-              Effect.provide(ConfigLive),
-              Effect.flatMap(() => Effect.fail(error)),
-            );
-          }),
         ),
       ),
     ),
@@ -102,7 +90,14 @@ if (import.meta.main) {
     never
   >;
 
-  BunRuntime.runMain(runnable, {
-    disableErrorReporting: true,
-  });
+  Effect.runPromise(runnable)
+    .then(() => process.exit(0))
+    .catch((error) => {
+      // For ValidationError (CLI argument errors), just exit with code 1
+      // For other errors, print and exit with code 1
+      if (!isValidationError(error)) {
+        console.error("CLI Error:", error.message || error);
+      }
+      process.exit(1);
+    });
 }

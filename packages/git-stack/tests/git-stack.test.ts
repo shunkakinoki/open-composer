@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
 import { execSync } from "node:child_process";
 import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -27,7 +35,8 @@ const runEffect = async <A>(
 };
 
 const setupTestRepo = async (): Promise<string> => {
-  const testRepoDir = path.join(tmpdir(), `git-stack-test-${Date.now()}`);
+  const testId = Math.random().toString(36).substring(7);
+  const testRepoDir = path.join(tmpdir(), `git-stack-test-${testId}`);
   await mkdir(testRepoDir, { recursive: true });
 
   // Initialize git repo
@@ -45,13 +54,25 @@ const setupTestRepo = async (): Promise<string> => {
 };
 
 const cleanupTestRepo = async (repoDir: string): Promise<void> => {
-  await rm(repoDir, { recursive: true, force: true });
+  try {
+    await rm(repoDir, { recursive: true, force: true });
+  } catch {
+    // Ignore cleanup errors
+  }
 };
 
 describe("GitStack", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     originalCwd = process.cwd();
+  });
+
+  afterAll(() => {
+    process.chdir(originalCwd);
+  });
+
+  beforeEach(async () => {
     testDir = await setupTestRepo();
+    process.chdir(testDir);
   });
 
   afterEach(async () => {
@@ -60,14 +81,11 @@ describe("GitStack", () => {
   });
 
   test("log returns helpful message when stack is empty", async () => {
-    process.chdir(testDir);
     const lines = await runEffect(runWithGitStack(logStack));
     expect(lines[0]).toContain("No tracked stack branches");
   });
 
   test("create branch and track it in stack", async () => {
-    process.chdir(testDir);
-
     // Get the initial branch name for tracking
     const branchesOutput1 = execSync("git branch", {
       cwd: testDir,
@@ -111,8 +129,6 @@ describe("GitStack", () => {
   });
 
   test("track multiple branches and show stack", async () => {
-    process.chdir(testDir);
-
     // Get the initial branch name for tracking
     const branchesOutput2 = execSync("git branch", {
       cwd: testDir,
@@ -170,8 +186,6 @@ describe("GitStack", () => {
   });
 
   test("status shows current branch and relationships", async () => {
-    process.chdir(testDir);
-
     // Get the initial branch name for tracking
     const branchesOutput3 = execSync("git branch", {
       cwd: testDir,
@@ -197,8 +211,6 @@ describe("GitStack", () => {
   });
 
   test("untrack removes branch from stack", async () => {
-    process.chdir(testDir);
-
     // Get the initial branch name for tracking
     const branchesOutput4 = execSync("git branch", {
       cwd: testDir,
@@ -262,8 +274,6 @@ describe("GitStack", () => {
   });
 
   test("log shows tracked branches", async () => {
-    process.chdir(testDir);
-
     // Get the initial branch name for tracking
     const branchesOutput5 = execSync("git branch", {
       cwd: testDir,

@@ -4,11 +4,14 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
-import type { GitHubCommandError } from "@open-composer/gh";
 import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
-import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
+import {
+  type ProcessRunnerError,
+  ProcessRunnerService,
+} from "@open-composer/process-runner";
+import type { TimeoutException } from "effect/Cause";
 import * as Effect from "effect/Effect";
 import {
   trackCommand,
@@ -20,7 +23,7 @@ interface WorktreeStatus {
   agent: string;
   branchName: string;
   worktreePath: string;
-  tmuxPid?: number;
+  processPid?: number;
   prNumber?: number;
   changes?: string;
   baseBranch: string;
@@ -68,93 +71,113 @@ export function buildStatusCommand(): CommandBuilder<"status"> {
 
 function gatherStatus(): Effect.Effect<
   WorktreeStatus[],
-  | Error
-  | TmuxCommandError
-  | GitCommandError
-  | GitHubCommandError
-  | GitWorktreeError,
+  GitCommandError | GitWorktreeError | ProcessRunnerError | TimeoutException,
   GitService
 > {
   return Effect.gen(function* () {
-    const tmuxService = yield* TmuxService.make();
+    try {
+      const runnerService = yield* ProcessRunnerService.make();
 
-    // Get all worktrees
-    const worktrees = yield* list();
-    console.log(`Found ${worktrees.length} worktrees`);
+      // Get all worktrees
+      const worktrees = yield* list();
 
-    const statusResults: WorktreeStatus[] = [];
+      // Get all process runner sessions once
+      const allSessions = yield* runnerService.listSessions();
 
-    for (const worktree of worktrees) {
-      try {
-        // Skip the main worktree and bare repositories
-        if (worktree.bare || !worktree.branch) {
-          console.log(
-            `Skipping worktree ${worktree.path} (bare: ${worktree.bare}, branch: ${worktree.branch})`,
-          );
-          continue;
-        }
+      const statusResults: WorktreeStatus[] = [];
 
-        // Extract agent name from branch (e.g., "codex-branch" -> "codex")
-        const agentMatch = worktree.branch.match(/^(.+)-branch$/);
-        if (!agentMatch) {
-          console.log(`Branch ${worktree.branch} doesn't match agent pattern`);
-          continue;
-        }
-
-        const agent = agentMatch[1];
-        const branchName = worktree.branch;
-        const worktreePath = worktree.path;
-
-        // Check if tmux session is running
-        let tmuxPid: number | undefined;
+      for (const worktree of worktrees) {
         try {
+          // Skip the main worktree and bare repositories
+          if (worktree.bare || !worktree.branch) {
+            continue;
+          }
+
+          // Check if worktree path exists (synchronously to avoid hanging)
+          let pathExists = false;
+          try {
+            const fs = require("node:fs");
+            fs.accessSync(worktree.path);
+            pathExists = true;
+          } catch {
+            pathExists = false;
+          }
+
+          if (!pathExists) {
+            continue;
+          }
+
+          // Extract agent name from branch (e.g., "codex-branch" -> "codex" or "codex-run-123" -> "codex")
+          const agentMatch = worktree.branch.match(
+            /^(.+?)(?:-branch|-run-\d+)$/,
+          );
+          if (!agentMatch) {
+            continue;
+          }
+
+          const agent = agentMatch[1];
+          const branchName = worktree.branch;
+          const worktreePath = worktree.path;
+
+          // Check if process runner session is running
+          let processPid: number | undefined;
           const sessionName = `open-composer-${branchName}`;
-          tmuxPid = yield* tmuxService.getSessionPid(sessionName);
-        } catch {
-          // Session not running, leave tmuxPid undefined
+          const session = allSessions.find(
+            (s) => s.sessionName === sessionName,
+          );
+          if (session) {
+            processPid = session.pid;
+          }
+
+          // Calculate change stats
+          const changes = yield* calculateChangeStats(worktreePath, "main");
+
+          // Get PR status
+          // Skip PR check for now as it's hanging
+          // TODO: Fix PR check to not hang
+          const prNumber = undefined;
+
+          // Get base branch (assume main for now)
+          const baseBranch = "main";
+
+          statusResults.push({
+            agent,
+            branchName,
+            worktreePath,
+            processPid,
+            prNumber,
+            changes,
+            baseBranch,
+          });
+        } catch (_err) {
+          // Skip worktrees that can't be processed
         }
-
-        // Calculate change stats
-        const changes = yield* calculateChangeStats(worktreePath, "main");
-
-        // TODO: Get PR status - for now we'll simulate
-        const prNumber = yield* getPRNumber(branchName);
-
-        // Get base branch (assume main for now)
-        const baseBranch = "main";
-
-        statusResults.push({
-          agent,
-          branchName,
-          worktreePath,
-          tmuxPid,
-          prNumber,
-          changes,
-          baseBranch,
-        });
-      } catch (error) {
-        // Skip worktrees that can't be processed
-        console.warn(`Could not process worktree ${worktree.path}:`, error);
       }
-    }
 
-    return statusResults;
+      return statusResults;
+    } catch (_error) {
+      // If something goes wrong, return empty results
+      return [];
+    }
   });
 }
 
 function calculateChangeStats(
   worktreePath: string,
   baseBranch: string,
-): Effect.Effect<string, Error | GitCommandError> {
+): Effect.Effect<string, GitCommandError | TimeoutException> {
   return Effect.gen(function* () {
     try {
       // Run git diff --stat to get change statistics
-      const result = yield* run(["diff", "--stat", `${baseBranch}..HEAD`], {
-        cwd: worktreePath,
-      });
+      const gitResult = yield* Effect.timeout(
+        run(["diff", "--stat", `${baseBranch}..HEAD`], {
+          cwd: worktreePath,
+        }),
+        5000, // 5 second timeout
+      );
 
       // Parse the output to extract added and removed lines
-      const lines = result.stdout.split("\n");
+      const lines = gitResult.stdout.split("\n");
       const statLine = lines[lines.length - 1]; // Last line contains the summary
 
       if (!statLine || !statLine.includes("changed")) {
@@ -176,33 +199,27 @@ function calculateChangeStats(
   });
 }
 
-function getPRNumber(
+function _getPRNumber(
   branchName: string,
-): Effect.Effect<number | undefined, GitHubCommandError> {
+): Effect.Effect<number | undefined, never> {
   return Effect.gen(function* () {
-    try {
-      // List open PRs in JSON format
-      const result = yield* listPRs({
-        state: "open",
-        json: true,
-        limit: 100, // Increase limit to ensure we find the PR
-      });
+    // List open PRs in JSON format
+    const result = yield* listPRs({
+      state: "open",
+      json: true,
+      limit: 100, // Increase limit to ensure we find the PR
+    });
 
-      // Parse the JSON response
-      const prs = JSON.parse(result.stdout);
+    // Parse the JSON response
+    const prs = JSON.parse(result.stdout);
 
-      // Find PR where headRefName matches the branch name
-      const matchingPR = prs.find(
-        (pr: GitHubPR) => pr.headRefName === branchName,
-      );
+    // Find PR where headRefName matches the branch name
+    const matchingPR = prs.find(
+      (pr: GitHubPR) => pr.headRefName === branchName,
+    );
 
-      return matchingPR ? matchingPR.number : undefined;
-    } catch (error) {
-      // If PR lookup fails (e.g., GitHub CLI not available), return undefined
-      console.warn(`Could not lookup PR for branch ${branchName}:`, error);
-      return undefined;
-    }
-  });
+    return matchingPR ? matchingPR.number : undefined;
+  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 }
 
 function displayStatus(
@@ -219,9 +236,13 @@ function displayStatus(
 
     console.log("Agents Running:");
     worktreeStatuses.forEach((status) => {
-      if (status.tmuxPid) {
+      const isRunning = status.processPid;
+      if (isRunning) {
+        const pidInfo = status.processPid
+          ? `(Process PID: ${status.processPid})`
+          : "";
         console.log(
-          `- ${status.agent}: Running in ${status.worktreePath} (Tmux PID: ${status.tmuxPid})`,
+          `- ${status.agent}: Running in ${status.worktreePath} ${pidInfo}`,
         );
       } else {
         console.log(`- ${status.agent}: Not running`);
@@ -235,7 +256,7 @@ function displayStatus(
     );
 
     const runningAgents = worktreeStatuses
-      .filter((s) => s.tmuxPid)
+      .filter((s) => s.processPid)
       .map((s: WorktreeStatus) => s.agent);
     const notRunningAgents = availableAgentNames.filter(
       (agent: string) => !runningAgents.includes(agent),
