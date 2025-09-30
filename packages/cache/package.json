@@ -1,7 +1,6 @@
 {
   "name": "@open-composer/cache",
   "version": "0.1.0",
-  "description": "Caching functionality for Open Composer",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",

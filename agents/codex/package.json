@@ -1,7 +1,6 @@
 {
   "name": "@open-composer/agent-codex",
   "version": "0.1.0",
-  "description": "Codex agent for GitHub Copilot CLI integration",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",

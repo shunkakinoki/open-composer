@@ -1,7 +1,6 @@
 {
   "name": "@open-composer/agent-claude-code",
   "version": "0.1.0",
-  "description": "Claude Code agent for Anthropic's coding assistant",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",
