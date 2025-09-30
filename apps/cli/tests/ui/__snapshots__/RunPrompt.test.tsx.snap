@@ -1,0 +1,61 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`RunPrompt renders agent selection step 1`] = `
+"
+
+  🚀 Run Task: Test task description
+  Select an AI agent to execute this task:
+
+  →  claude-code
+     codex
+     opencode
+
+  Use ↑↓ to navigate, Enter to select, Esc to cancel
+
+"
+`;
+
+exports[`RunPrompt renders base-branch input step 1`] = `
+"
+
+  🚀 Run Task: Test task description
+  Select an AI agent to execute this task:
+
+  →  claude-code
+     codex
+     opencode
+
+  Use ↑↓ to navigate, Enter to select, Esc to cancel
+
+"
+`;
+
+exports[`RunPrompt renders create-pr toggle step 1`] = `
+"
+
+  🚀 Run Task: Test task description
+  Select an AI agent to execute this task:
+
+  →  claude-code
+     codex
+     opencode
+
+  Use ↑↓ to navigate, Enter to select, Esc to cancel
+
+"
+`;
+
+exports[`RunPrompt renders confirmation step 1`] = `
+"
+
+  🚀 Run Task: Test task description
+  Select an AI agent to execute this task:
+
+  →  claude-code
+     codex
+     opencode
+
+  Use ↑↓ to navigate, Enter to select, Esc to cancel
+
+"
+`;
