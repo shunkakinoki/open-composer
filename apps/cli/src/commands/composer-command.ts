@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: Fix when we have time */
-
 import { Command } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
 import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
@@ -27,11 +25,13 @@ import {
   TelemetryLive,
   type TelemetryService,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
+import { buildSessionCommand } from "./session-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
@@ -39,6 +39,10 @@ import { buildStackCommand } from "./stack-command.js";
 import { buildStatusCommand } from "./status-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
 import { buildTUICommand } from "./tui-command.js";
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
 
 export type ComposerCliServices =
   | SqliteDrizzle
@@ -51,8 +55,12 @@ export type ComposerCliServices =
   | SettingsService
   | TelemetryService;
 
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+
 // Create base layer without telemetry
-const baseLayer = Layer.mergeAll(
+const BASE_LAYER = Layer.mergeAll(
   CliConfig.layer({ showBuiltIns: false }),
   BunContext.layer,
   DatabaseLive,
@@ -65,36 +73,43 @@ const baseLayer = Layer.mergeAll(
 );
 
 // Add telemetry layer that depends on config
-export const layer = baseLayer.pipe(
-  Layer.provideMerge(TelemetryLive.pipe(Layer.provide(baseLayer))),
+export const ROOT_LAYER = BASE_LAYER.pipe(
+  Layer.provideMerge(TelemetryLive.pipe(Layer.provide(BASE_LAYER))),
 );
 
-// Function to dynamically generate help text from command builders
-function generateHelpText(commandBuilders: Array<() => any>): string {
+const ALL_COMMAND_BUILDERS = [
+  buildAgentsCommand,
+  buildCacheCommand,
+  buildConfigCommand,
+  buildGHPRCommand,
+  buildGitWorktreeCommand,
+  buildSessionCommand,
+  buildSessionsCommand,
+  buildSettingsCommand,
+  buildSpawnCommand,
+  buildStackCommand,
+  buildStatusCommand,
+  buildTelemetryCommand,
+  buildTUICommand,
+];
+
+const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];
+
+const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter((cb) => {
+  const built = cb();
+  return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
+});
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
+
+// Function to generate help text from command builders with explicit metadata
+function generateHelpText(commandBuilders: CommandBuilder[]): string {
   let commandsText = "";
 
   for (const builder of commandBuilders) {
-    const command = builder();
-
-    // Extract name and description based on command type
-    let name: string;
-    let description: string;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const descriptor = (command as any).descriptor;
-
-    if ((descriptor as any)._tag === "Map") {
-      // Command with direct handler
-      name = (descriptor as any).command.name;
-      description = (descriptor as any).command.description.value?.value || "";
-    } else if ((descriptor as any)._tag === "Subcommands") {
-      // Command with subcommands
-      name = (descriptor as any).parent.command.name;
-      description =
-        (descriptor as any).parent.command.description.value?.value || "";
-    } else {
-      continue; // Skip unknown command types
-    }
+    const { name, description } = builder.metadata;
 
     // Format the command line
     const paddedName = name.padEnd(18);
@@ -111,43 +126,26 @@ COMMANDS${commandsText}
 Run 'open-composer <command> --help' for more information on a specific command.`;
 }
 
+// -----------------------------------------------------------------------------
+// Command Implmentations
+// -----------------------------------------------------------------------------
+
 export function buildRootCommand() {
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
     Command.withHandler(() =>
       Effect.sync(() => {
         console.log(
-          generateHelpText([
-            buildAgentsCommand,
-            // buildCacheCommand, disabled since internal
-            // buildConfigCommand, disabled since internal
-            buildGHPRCommand,
-            buildGitWorktreeCommand,
-            buildSessionsCommand,
-            buildSettingsCommand,
-            buildSpawnCommand,
-            buildStackCommand,
-            buildStatusCommand,
-            buildTelemetryCommand,
-            buildTUICommand,
-          ]),
+          generateHelpText(
+            HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+          ),
         );
       }),
     ),
-    Command.withSubcommands([
-      buildAgentsCommand(),
-      buildCacheCommand(),
-      buildConfigCommand(),
-      buildGHPRCommand(),
-      buildGitWorktreeCommand(),
-      buildSessionsCommand(),
-      buildSettingsCommand(),
-      buildSpawnCommand(),
-      buildStackCommand(),
-      buildStatusCommand(),
-      buildTelemetryCommand(),
-      buildTUICommand(),
-    ]),
+    Command.withSubcommands(
+      // biome-ignore lint/suspicious/noExplicitAny: Command union types incompatible with generic Command type
+      ALL_COMMAND_BUILDERS.map((cb) => cb().command()) as any,
+    ),
   );
 }
 

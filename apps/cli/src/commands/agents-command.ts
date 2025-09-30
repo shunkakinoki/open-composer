@@ -8,19 +8,37 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
-export function buildAgentsCommand() {
-  return Command.make("agents").pipe(
-    Command.withDescription("Manage AI agents"),
-    Command.withSubcommands([
-      buildListCommand(),
-      buildActivateCommand(),
-      buildDeactivateCommand(),
-      buildRefreshCommand(),
-      buildRouteCommand(),
-    ]),
-  );
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export function buildAgentsCommand(): CommandBuilder<"agents"> {
+  const command = () =>
+    Command.make("agents").pipe(
+      Command.withDescription("Manage AI agents"),
+      Command.withSubcommands([
+        buildListCommand(),
+        buildActivateCommand(),
+        buildDeactivateCommand(),
+        buildRefreshCommand(),
+        buildRouteCommand(),
+      ]),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "agents",
+      description: "Manage AI agents",
+    },
+  };
 }
+
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
 export function buildListCommand() {
   const activeOnlyOption = Options.boolean("active").pipe(

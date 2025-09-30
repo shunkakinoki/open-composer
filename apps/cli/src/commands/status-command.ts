@@ -4,6 +4,8 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
+import type { GitHubCommandError } from "@open-composer/gh";
+import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
@@ -12,6 +14,7 @@ import {
   trackCommand,
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 
 interface WorktreeStatus {
   agent: string;
@@ -23,26 +26,53 @@ interface WorktreeStatus {
   baseBranch: string;
 }
 
-export function buildStatusCommand() {
-  return Command.make("status").pipe(
-    Command.withDescription(
-      "Show current status of agents, worktrees, and PRs",
-    ),
-    Command.withHandler(() =>
-      Effect.gen(function* () {
-        yield* trackCommand("status");
-        yield* trackFeatureUsage("status");
-
-        const status = yield* gatherStatus();
-        yield* displayStatus(status);
-      }),
-    ),
-  );
+interface GitHubPR {
+  number: number;
+  headRefName: string;
+  // Add other fields as needed
 }
+
+// -----------------------------------------------------------------------------
+// Command Builder
+// -----------------------------------------------------------------------------
+
+export function buildStatusCommand(): CommandBuilder<"status"> {
+  const command = () =>
+    Command.make("status").pipe(
+      Command.withDescription(
+        "Show current status of agents, worktrees, and PRs",
+      ),
+      Command.withHandler(() =>
+        Effect.gen(function* () {
+          yield* trackCommand("status");
+          yield* trackFeatureUsage("status");
+
+          const status = yield* gatherStatus();
+          yield* displayStatus(status);
+        }),
+      ),
+    );
+
+  return {
+    command,
+    metadata: {
+      name: "status",
+      description: "Show current status of agents, worktrees, and PRs",
+    },
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
 
 function gatherStatus(): Effect.Effect<
   WorktreeStatus[],
-  Error | TmuxCommandError | GitCommandError | GitWorktreeError,
+  | Error
+  | TmuxCommandError
+  | GitCommandError
+  | GitHubCommandError
+  | GitWorktreeError,
   GitService
 > {
   return Effect.gen(function* () {
@@ -147,12 +177,31 @@ function calculateChangeStats(
 }
 
 function getPRNumber(
-  _branchName: string,
-): Effect.Effect<number | undefined, never> {
-  return Effect.sync(() => {
-    // TODO: Implement actual PR lookup
-    // For now, return undefined (no PR)
-    return undefined;
+  branchName: string,
+): Effect.Effect<number | undefined, GitHubCommandError> {
+  return Effect.gen(function* () {
+    try {
+      // List open PRs in JSON format
+      const result = yield* listPRs({
+        state: "open",
+        json: true,
+        limit: 100, // Increase limit to ensure we find the PR
+      });
+
+      // Parse the JSON response
+      const prs = JSON.parse(result.stdout);
+
+      // Find PR where headRefName matches the branch name
+      const matchingPR = prs.find(
+        (pr: GitHubPR) => pr.headRefName === branchName,
+      );
+
+      return matchingPR ? matchingPR.number : undefined;
+    } catch (error) {
+      // If PR lookup fails (e.g., GitHub CLI not available), return undefined
+      console.warn(`Could not lookup PR for branch ${branchName}:`, error);
+      return undefined;
+    }
   });
 }
 

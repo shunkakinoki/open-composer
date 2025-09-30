@@ -11,10 +11,22 @@ import {
 } from "./services/config-service.js";
 import { TelemetryLive, trackException } from "./services/telemetry-service.js";
 
+// -----------------------------------------------------------------------------
+// Exports
+// -----------------------------------------------------------------------------
+
 export * from "./components/ComposerApp.js";
 export * from "./lib/index.js";
 
+// -----------------------------------------------------------------------------
+// Main
+// -----------------------------------------------------------------------------
+
 if (import.meta.main) {
+  // -----------------------------------------------------------------------------
+  // Global Error Handlers
+  // -----------------------------------------------------------------------------
+
   // Set up global error handlers for exception tracking
   process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception:", error);
@@ -46,6 +58,10 @@ if (import.meta.main) {
       });
     process.exit(1);
   });
+
+  // -----------------------------------------------------------------------------
+  // Program
+  // -----------------------------------------------------------------------------
 
   // Check if this is a config clear command
   const isConfigClear =
