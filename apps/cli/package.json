@@ -5,7 +5,8 @@
   "license": "MIT",
   "author": "Shun Kakinoki",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "bin": {
     "oc": "./src/index.ts",
     "open-composer": "./src/index.ts"

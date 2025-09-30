@@ -5,7 +5,14 @@
   "license": "MIT",
   "author": "Shun Kakinoki",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "type-check": "tsc -b tsconfig.json"
@@ -18,5 +25,8 @@
     "@types/bun": "^1.2.23",
     "@types/node": "^24.6.0",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

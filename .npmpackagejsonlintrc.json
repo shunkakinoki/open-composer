@@ -1,15 +1,39 @@
 {
   "rules": {
     "require-author": "error",
-    "require-description": "off",
-    "require-engines": "off",
-    "require-license": "error",
-    "require-name": "error",
-    "require-repository": "error",
-    "require-version": "error",
+    "require-bin": "off",
     "require-bugs": "off",
+    "require-bundledDependencies": "off",
+    "require-config": "off",
+    "require-contributors": "off",
+    "require-cpu": "off",
+    "require-dependencies": "off",
+    "require-description": "off",
+    "require-devDependencies": "off",
+    "require-directories": "off",
+    "require-engines": "off",
+    "require-files": "error",
+    "require-funding": "off",
     "require-homepage": "off",
     "require-keywords": "off",
+    "require-license": "error",
+    "require-main": "error",
+    "require-man": "off",
+    "require-module": "error",
+    "require-name": "error",
+    "require-optionalDependencies": "off",
+    "require-os": "off",
+    "require-peerDependencies": "off",
+    "require-preferGlobal": "off",
+    "require-private": "off",
+    "require-publishConfig": "error",
+    "require-repository": "error",
+    "require-repository-directory": "off",
+    "require-scripts": "error",
+    "require-type": "off",
+    "require-types": "off",
+    "require-typings": "off",
+    "require-version": "error",
     "bin-type": "error",
     "config-type": "error",
     "description-type": "error",
@@ -32,5 +56,33 @@
     "valid-values-author": ["error", ["Shun Kakinoki"]],
     "name-format": "error",
     "version-format": "error"
-  }
+  },
+  "overrides": [
+    {
+      "patterns": ["./package.json"],
+      "rules": {
+        "require-files": "off",
+        "require-main": "off",
+        "require-module": "off",
+        "require-publishConfig": "off"
+      }
+    },
+    {
+      "patterns": ["./apps/docs/package.json", "./apps/landing/package.json"],
+      "rules": {
+        "require-files": "off",
+        "require-main": "off",
+        "require-module": "off",
+        "require-publishConfig": "off"
+      }
+    },
+    {
+      "patterns": ["./workers/**/package.json"],
+      "rules": {
+        "require-files": "off",
+        "require-module": "off",
+        "require-publishConfig": "off"
+      }
+    }
+  ]
 }
