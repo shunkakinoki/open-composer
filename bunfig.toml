@@ -1,0 +1,5 @@
+[test]
+# Show warning when running bun test directly
+preload = ["./bun-test-setup.ts"]
+# Exclude workers directory (uses vitest with cloudflare runtime)
+exclude = ["**/workers/**"]
