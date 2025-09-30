@@ -75,10 +75,20 @@
       "cache": false
     },
     "//#biome:format:check": {
-      "cache": false
+      "cache": false,
+      "dependsOn": [
+        "//#biome:check:check",
+        "//#npm-package-json:check",
+        "//#sort-package-json:check"
+      ]
     },
     "//#biome:format:fix": {
-      "cache": false
+      "cache": false,
+      "dependsOn": [
+        "//#biome:check:fix",
+        "//#npm-package-json:fix",
+        "//#sort-package-json:fix"
+      ]
     },
     "//#npm-package-json:check": {
       "cache": false
