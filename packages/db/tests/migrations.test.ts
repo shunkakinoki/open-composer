@@ -53,8 +53,7 @@ describe("Migration Functionality", () => {
   describe("Database Initialization", () => {
     test("initializes database with migrations", async () => {
       const program = Effect.gen(function* () {
-        // Initialize database should run all migrations
-        yield* dbModule.initializeDatabase;
+        // DatabaseWithMigrationsLive already runs migrations, so just verify they worked
 
         // Verify migrations ran by checking migration status
         const status = yield* dbModule.getMigrationStatus;
@@ -69,7 +68,9 @@ describe("Migration Functionality", () => {
       });
 
       const result = await Effect.runPromiseExit(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<
           {
             initialized: boolean;
             migrations: { id: string; name: string; createdAt: string }[];
@@ -88,8 +89,6 @@ describe("Migration Functionality", () => {
 
     test("creates proper directory structure", async () => {
       const program = Effect.gen(function* () {
-        yield* dbModule.initializeDatabase;
-
         // Check that database file was created
         const fs = yield* Effect.promise(() => import("node:fs/promises"));
         const dbExists = yield* Effect.promise(() =>
@@ -102,11 +101,9 @@ describe("Migration Functionality", () => {
       });
 
       const result = await Effect.runPromiseExit(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
 
       if (result._tag === "Failure") {
@@ -118,8 +115,7 @@ describe("Migration Functionality", () => {
   describe("Migration Status Tracking", () => {
     test("tracks migration execution correctly", async () => {
       const program = Effect.gen(function* () {
-        // After initialization
-        yield* dbModule.initializeDatabase;
+        // After initialization (migrations already ran via DatabaseWithMigrationsLive)
         const afterStatus = yield* dbModule.getMigrationStatus;
         expect(afterStatus.initialized).toBe(true);
 
@@ -133,11 +129,9 @@ describe("Migration Functionality", () => {
       });
 
       await Effect.runPromise(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
     });
   });
@@ -145,7 +139,6 @@ describe("Migration Functionality", () => {
   describe("Schema Validation", () => {
     test("validates complete database schema", async () => {
       const program = Effect.gen(function* () {
-        yield* dbModule.initializeDatabase;
         const validation = yield* dbModule.validateDatabaseSchema;
 
         expect(validation).toEqual({
@@ -156,11 +149,9 @@ describe("Migration Functionality", () => {
       });
 
       await Effect.runPromise(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
     });
   });
@@ -168,8 +159,6 @@ describe("Migration Functionality", () => {
   describe("Settings Snapshot", () => {
     test("creates settings snapshot", async () => {
       const program = Effect.gen(function* () {
-        yield* dbModule.initializeDatabase;
-
         const snapshot = yield* dbModule.createSettingsSnapshot;
         expect(snapshot).toHaveProperty("timestamp");
         expect(snapshot).toHaveProperty("settings");
@@ -177,18 +166,14 @@ describe("Migration Functionality", () => {
       });
 
       await Effect.runPromise(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
     });
 
     test("restores settings snapshot", async () => {
       const program = Effect.gen(function* () {
-        yield* dbModule.initializeDatabase;
-
         // Create snapshot
         const snapshot = yield* dbModule.createSettingsSnapshot;
 
@@ -200,11 +185,9 @@ describe("Migration Functionality", () => {
       });
 
       await Effect.runPromise(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
     });
   });
@@ -212,8 +195,6 @@ describe("Migration Functionality", () => {
   describe("Database Snapshot", () => {
     test("creates database snapshot structure", async () => {
       const program = Effect.gen(function* () {
-        yield* dbModule.initializeDatabase;
-
         const snapshot = yield* dbModule.createDatabaseSnapshot;
 
         expect(snapshot).toHaveProperty("timestamp");
@@ -226,11 +207,9 @@ describe("Migration Functionality", () => {
       });
 
       const result = await Effect.runPromiseExit(
-        program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
-          unknown,
-          unknown,
-          never
-        >,
+        program.pipe(
+          Effect.provide(dbModule.DatabaseWithMigrationsLive),
+        ) as Effect.Effect<unknown, unknown, never>,
       );
 
       if (result._tag === "Failure") {

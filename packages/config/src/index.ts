@@ -23,8 +23,8 @@ export interface UserConfig {
 // Default configuration
 export const defaultConfig: UserConfig = {
   version: "1.0.0",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: "2024-01-01T00:00:00.000Z",
+  updatedAt: "2024-01-01T00:00:00.000Z",
 };
 
 // Config service interface
