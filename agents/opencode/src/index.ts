@@ -7,7 +7,6 @@ import type {
   AgentStatus,
 } from "@open-composer/agent-types";
 import * as Effect from "effect/Effect";
-import { pipe } from "effect/Function";
 
 const definition: AgentDefinition = {
   name: "opencode",
@@ -38,33 +37,6 @@ const commandMightExist = (command: string): Effect.Effect<boolean, never> =>
       return commonPaths.some((path) => existsSync(join(path, command)));
     }
   });
-
-const execCommand = (command: string): Effect.Effect<string, Error> =>
-  Effect.try({
-    try: () =>
-      execSync(command, {
-        encoding: "utf8",
-        timeout: 1000, // Reduced from 5000ms for faster agent checking
-        stdio: "pipe", // Suppress output to console
-      }),
-    catch: (error) =>
-      new Error(`Command failed: ${command} - ${(error as Error).message}`),
-  });
-
-const _checkFileExists = (path: string): Effect.Effect<boolean> =>
-  Effect.sync(() => existsSync(path));
-
-const _checkToolAtPath = (
-  path: string,
-): Effect.Effect<{ version?: string; path: string }, Error> =>
-  pipe(
-    execCommand(`${path} --version`),
-    Effect.map((result) => {
-      const versionMatch = result.match(/(\d+\.\d+\.\d+)/);
-      const version = versionMatch ? versionMatch[0] : undefined;
-      return { version, path };
-    }),
-  );
 
 const checkInstallation = (): Effect.Effect<AgentStatus> =>
   Effect.gen(function* () {
@@ -116,8 +88,8 @@ const checkInstallation = (): Effect.Effect<AgentStatus> =>
     return {
       name: "opencode",
       available: true,
-      version: versionResult,
       path: "opencode",
+      ...(versionResult !== undefined && { version: versionResult }),
     } satisfies AgentStatus;
   }).pipe(
     Effect.catchAll((error) =>

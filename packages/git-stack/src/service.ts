@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 import {
   checkoutNewBranch,
   deleteBranch,
@@ -107,7 +107,7 @@ const getBranchPRInfo = (
     const prNumber = extractPRNumber(commitMessage);
     return {
       title: commitMessage,
-      prNumber,
+      ...(prNumber !== undefined && { prNumber }),
     };
   });
 
@@ -116,14 +116,13 @@ const updateNodeParent = (
   branch: string,
   parent: string | undefined,
 ): StackState => {
-  const _existing = state.nodes[branch] ?? { name: branch };
   return {
     ...state,
     nodes: {
       ...state.nodes,
       [branch]: {
         name: branch,
-        parent,
+        ...(parent !== undefined && { parent }),
       },
     },
   } satisfies StackState;
@@ -134,7 +133,7 @@ const removeNode = (state: StackState, branch: string): StackState => {
   const updated = Object.fromEntries(
     Object.entries(rest).map(([name, node]) =>
       node.parent === branch
-        ? ([name, { ...node, parent: undefined }] satisfies [string, StackNode])
+        ? ([name, { name: node.name }] satisfies [string, StackNode])
         : ([name, node] satisfies [string, StackNode]),
     ),
   );
@@ -279,7 +278,7 @@ const makeService = (): GitStackService => {
           .map((candidate) => candidate.name);
         return {
           currentBranch,
-          parent: node?.parent,
+          ...(node?.parent !== undefined && { parent: node.parent }),
           children,
         } satisfies StackStatus;
       }),

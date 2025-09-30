@@ -88,8 +88,8 @@ const checkInstallation = (): Effect.Effect<AgentStatus> =>
     return {
       name: "codex",
       available: true,
-      version: versionResult,
       path: "gh copilot",
+      ...(versionResult !== undefined && { version: versionResult }),
     } satisfies AgentStatus;
   }).pipe(
     Effect.catchAll((error) =>

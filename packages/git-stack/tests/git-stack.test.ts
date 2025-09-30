@@ -10,7 +10,7 @@ import {
 import { execSync } from "node:child_process";
 import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import path from "node:path";
+import * as path from "node:path";
 import type { GitCommandError } from "@open-composer/git";
 import * as Effect from "effect/Effect";
 import {

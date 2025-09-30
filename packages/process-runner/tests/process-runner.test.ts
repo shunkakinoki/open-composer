@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import path from "node:path";
+import * as path from "node:path";
 import * as Effect from "effect/Effect";
 import { ProcessRunnerService } from "../src/core.js";
 
@@ -64,7 +64,10 @@ const fsWatchMock = mock(
       actualListener = options;
       watchOptions = undefined;
     } else {
-      watchOptions = options ?? {};
+      watchOptions =
+        options?.persistent !== undefined
+          ? { persistent: options.persistent }
+          : {};
       actualListener = listener;
     }
 

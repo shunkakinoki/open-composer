@@ -34,7 +34,7 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "ES2022",
-    "types": ["bun-types"],
+    "types": [],
     "plugins": [
       {
         "name": "@effect/language-service"

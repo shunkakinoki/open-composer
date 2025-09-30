@@ -1,7 +1,7 @@
 import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { LOG_LIMITS } from "./constants";
+import { LOG_LIMITS } from "./constants.js";
 
 export function createLogWriter(
   logFile: string,
