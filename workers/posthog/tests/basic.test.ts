@@ -38,11 +38,12 @@ describe("PostHog Anonymous Logger Worker - Basic Tests", () => {
     // Reset mocks
     vi.clearAllMocks();
     global.fetch = vi.fn();
-    global.crypto = {
+    // biome-ignore lint/suspicious/noExplicitAny: We're mocking the crypto object
+    (globalThis as any).crypto = {
       randomUUID: vi.fn(() => "test-uuid-123"),
       getRandomValues: vi.fn(() => new Uint8Array()),
       subtle: {} as SubtleCrypto,
-    } as Crypto;
+    } as unknown as Crypto;
   });
 
   it("should handle CORS preflight requests", async () => {
