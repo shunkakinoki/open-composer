@@ -61,7 +61,11 @@ export const initializeDatabase = Effect.gen(function* () {
     const fs = await import("node:fs/promises");
     const entries = await fs.readdir(migrationsDirectory);
     return entries
-      .filter((file) => (file.endsWith(".ts") || file.endsWith(".js")) && !file.startsWith("_"))
+      .filter(
+        (file) =>
+          (file.endsWith(".ts") || file.endsWith(".js")) &&
+          !file.startsWith("_"),
+      )
       .sort(); // Sort by filename (should be numbered)
   });
 
