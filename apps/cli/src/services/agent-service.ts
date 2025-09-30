@@ -5,7 +5,7 @@ import {
   getActiveAgents,
   getAgents,
   routeQuery,
-} from "@open-composer/agent-router";
+} from "agents/agent-router/src/index.js";
 import type { CacheServiceInterface } from "@open-composer/cache";
 import * as Effect from "effect/Effect";
 

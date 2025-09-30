@@ -4,7 +4,7 @@ import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
 import * as CliConfig from "@effect/cli/CliConfig";
 import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
-import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
+import { type AgentRouter, AgentRouterLive } from "agents/agent-router/src/index.js";
 import { DatabaseLive, type SqliteDrizzle } from "@open-composer/db";
 import type { GitService } from "@open-composer/git";
 import { GitLive } from "@open-composer/git";

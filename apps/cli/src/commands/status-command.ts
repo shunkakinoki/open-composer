@@ -2,7 +2,7 @@ import { Command } from "@effect/cli";
 import {
   type AgentChecker,
   getAvailableAgents,
-} from "@open-composer/agent-router";
+} from "agents/agent-router/src/index.js";
 import type { CacheServiceInterface } from "@open-composer/cache";
 import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";

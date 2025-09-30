@@ -3,7 +3,7 @@ import { Args, Command, Options } from "@effect/cli";
 import {
   type AgentChecker,
   getAvailableAgents,
-} from "@open-composer/agent-router";
+} from "agents/agent-router/src/index.js";
 import type { CacheServiceInterface } from "@open-composer/cache";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { trackStackBranch } from "@open-composer/git-stack";
