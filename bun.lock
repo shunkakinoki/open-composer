@@ -14,24 +14,6 @@
         "turbo": "^2.5.8",
       },
     },
-    "agents/agent-router": {
-      "name": "@open-composer/agent-router",
-      "version": "0.2.1",
-      "dependencies": {
-        "@open-composer/agent-claude-code": "workspace:*",
-        "@open-composer/agent-codex": "workspace:*",
-        "@open-composer/agent-opencode": "workspace:*",
-        "@open-composer/agent-types": "workspace:*",
-        "@open-composer/cache": "workspace:*",
-        "effect": "^3.18.0",
-      },
-      "devDependencies": {
-        "@effect/language-service": "^0.41.1",
-        "@types/bun": "^1.2.23",
-        "@types/node": "^24.6.0",
-        "typescript": "^5.9.2",
-      },
-    },
     "agents/claude-code": {
       "name": "@open-composer/agent-claude-code",
       "version": "0.1.0",
@@ -64,6 +46,24 @@
         "effect": "^3.18.0",
       },
       "devDependencies": {
+        "@types/node": "^24.6.0",
+        "typescript": "^5.9.2",
+      },
+    },
+    "agents/router": {
+      "name": "@open-composer/agent-router",
+      "version": "0.2.1",
+      "dependencies": {
+        "@open-composer/agent-claude-code": "workspace:*",
+        "@open-composer/agent-codex": "workspace:*",
+        "@open-composer/agent-opencode": "workspace:*",
+        "@open-composer/agent-types": "workspace:*",
+        "@open-composer/cache": "workspace:*",
+        "effect": "^3.18.0",
+      },
+      "devDependencies": {
+        "@effect/language-service": "^0.41.1",
+        "@types/bun": "^1.2.23",
         "@types/node": "^24.6.0",
         "typescript": "^5.9.2",
       },
@@ -593,7 +593,7 @@
 
     "@open-composer/agent-opencode": ["@open-composer/agent-opencode@workspace:agents/opencode"],
 
-    "@open-composer/agent-router": ["@open-composer/agent-router@workspace:agents/agent-router"],
+    "@open-composer/agent-router": ["@open-composer/agent-router@workspace:agents/router"],
 
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
 
