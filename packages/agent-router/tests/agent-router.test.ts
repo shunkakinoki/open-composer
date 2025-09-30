@@ -260,14 +260,14 @@ const provideRouter = <A>(
   );
 
 describe("AgentRouter", () => {
-  test("initializes with default agents", async () => {
+  test.serial("initializes with default agents", async () => {
     const agents = await Effect.runPromise(provideRouter(getAgents));
 
     expect(agents.length).toBeGreaterThan(0);
     expect(agents.find((agent) => agent.name === "claude-code")).toBeDefined();
   });
 
-  test("activates agents via effect", async () => {
+  test.serial("activates agents via effect", async () => {
     const activeAgents = await Effect.runPromise(
       provideRouter(
         Effect.gen(function* () {
@@ -280,7 +280,7 @@ describe("AgentRouter", () => {
     expect(activeAgents.some((agent) => agent.name === "opencode")).toBe(true);
   });
 
-  test("routes queries based on CLI path", async () => {
+  test.serial("routes queries based on CLI path", async () => {
     const response = await Effect.runPromise(
       provideRouter(
         Effect.gen(function* () {
@@ -296,7 +296,7 @@ describe("AgentRouter", () => {
     expect(response.agent).toBe("opencode");
   });
 
-  test("falls back to default agent", async () => {
+  test.serial("falls back to default agent", async () => {
     const response = await Effect.runPromise(
       provideRouter(
         routeQuery({
@@ -309,7 +309,7 @@ describe("AgentRouter", () => {
     expect(response.agent).toBe("claude-code");
   });
 
-  test("executes squad mode", async () => {
+  test.serial("executes squad mode", async () => {
     const responses = await Effect.runPromise(
       provideRouter(
         Effect.gen(function* () {

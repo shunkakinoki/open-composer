@@ -80,12 +80,12 @@ describe("GitStack", () => {
     await cleanupTestRepo(testDir);
   });
 
-  test("log returns helpful message when stack is empty", async () => {
+  test.serial("log returns helpful message when stack is empty", async () => {
     const lines = await runEffect(runWithGitStack(logStack));
     expect(lines[0]).toContain("No tracked stack branches");
   });
 
-  test("create branch and track it in stack", async () => {
+  test.serial("create branch and track it in stack", async () => {
     // Get the initial branch name for tracking
     const branchesOutput1 = execSync("git branch", {
       cwd: testDir,
@@ -128,7 +128,7 @@ describe("GitStack", () => {
     );
   });
 
-  test("track multiple branches and show stack", async () => {
+  test.serial("track multiple branches and show stack", async () => {
     // Get the initial branch name for tracking
     const branchesOutput2 = execSync("git branch", {
       cwd: testDir,
@@ -185,7 +185,7 @@ describe("GitStack", () => {
     ).toBe(true);
   });
 
-  test("status shows current branch and relationships", async () => {
+  test.serial("status shows current branch and relationships", async () => {
     // Get the initial branch name for tracking
     const branchesOutput3 = execSync("git branch", {
       cwd: testDir,
@@ -210,7 +210,7 @@ describe("GitStack", () => {
     expect(status.currentBranch).toBe("test-branch");
   });
 
-  test("untrack removes branch from stack", async () => {
+  test.serial("untrack removes branch from stack", async () => {
     // Get the initial branch name for tracking
     const branchesOutput4 = execSync("git branch", {
       cwd: testDir,

@@ -51,7 +51,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Database Initialization", () => {
-    test("initializes database with migrations", async () => {
+    test.serial("initializes database with migrations", async () => {
       const program = Effect.gen(function* () {
         // DatabaseWithMigrationsLive already runs migrations, so just verify they worked
 
@@ -87,7 +87,7 @@ describe("Migration Functionality", () => {
       expect(result.value.migrations.length).toBeGreaterThan(0); // Migrations ran successfully
     });
 
-    test("creates proper directory structure", async () => {
+    test.serial("creates proper directory structure", async () => {
       const program = Effect.gen(function* () {
         // Check that database file was created
         const fs = yield* Effect.promise(() => import("node:fs/promises"));
@@ -113,7 +113,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Migration Status Tracking", () => {
-    test("tracks migration execution correctly", async () => {
+    test.serial("tracks migration execution correctly", async () => {
       const program = Effect.gen(function* () {
         // After initialization (migrations already ran via DatabaseWithMigrationsLive)
         const afterStatus = yield* dbModule.getMigrationStatus;
@@ -137,7 +137,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Schema Validation", () => {
-    test("validates complete database schema", async () => {
+    test.serial("validates complete database schema", async () => {
       const program = Effect.gen(function* () {
         const validation = yield* dbModule.validateDatabaseSchema;
 
@@ -157,7 +157,7 @@ describe("Migration Functionality", () => {
   });
 
   describe("Settings Snapshot", () => {
-    test("creates settings snapshot", async () => {
+    test.serial("creates settings snapshot", async () => {
       const program = Effect.gen(function* () {
         const snapshot = yield* dbModule.createSettingsSnapshot;
         expect(snapshot).toHaveProperty("timestamp");
@@ -172,7 +172,7 @@ describe("Migration Functionality", () => {
       );
     });
 
-    test("restores settings snapshot", async () => {
+    test.serial("restores settings snapshot", async () => {
       const program = Effect.gen(function* () {
         // Create snapshot
         const snapshot = yield* dbModule.createSettingsSnapshot;

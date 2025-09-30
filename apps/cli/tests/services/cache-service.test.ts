@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -57,12 +57,15 @@ describe("CacheService", () => {
   }
 
   describe("getAgentCache", () => {
-    it("should return undefined when no cache file exists", async () => {
-      const result = await testGetAgentCache();
-      expect(result).toBeUndefined();
-    });
+    test.serial(
+      "should return undefined when no cache file exists",
+      async () => {
+        const result = await testGetAgentCache();
+        expect(result).toBeUndefined();
+      },
+    );
 
-    it("should return cache data when file exists", async () => {
+    test.serial("should return cache data when file exists", async () => {
       const testCache: AgentCache = {
         agents: [
           {
@@ -82,7 +85,7 @@ describe("CacheService", () => {
   });
 
   describe("updateAgentCache", () => {
-    it("should store agent cache data", async () => {
+    test.serial("should store agent cache data", async () => {
       const testCache: AgentCache = {
         agents: [
           {
@@ -107,7 +110,7 @@ describe("CacheService", () => {
   });
 
   describe("clearAgentCache", () => {
-    it("should clear the cache to empty state", async () => {
+    test.serial("should clear the cache to empty state", async () => {
       const testCache: AgentCache = {
         agents: [
           {

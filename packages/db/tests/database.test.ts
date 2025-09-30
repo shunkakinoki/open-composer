@@ -45,12 +45,16 @@ afterEach(() => {
 });
 
 describe("Database layer", () => {
-  test("uses the configured sqlite file", () => {
+  test.serial("uses the configured sqlite file", () => {
     expect(dbModule.databaseFile.value).toBe(tempFile);
   });
 
-  test("runs migrations and supports drizzle queries", async () => {
-    // Initialize database with migrations, then test drizzle queries
+  test.serial("runs migrations and supports drizzle queries", async () => {
+    // Run migrations manually
+    const migration = (await import("../migrations/0000_create_settings.js"))
+      .default;
+    await Effect.runPromise(dbModule.runMigration(migration));
+
     const program = Effect.gen(function* () {
       yield* dbModule.initializeDatabase;
       const db = yield* dbModule.SqliteDrizzle;
@@ -81,7 +85,7 @@ describe("Database layer", () => {
     );
   });
 
-  test("creates database snapshot", async () => {
+  test.serial("creates database snapshot", async () => {
     const snapshot = (await Effect.runPromise(
       dbModule.createDatabaseSnapshot.pipe(
         Effect.provide(dbModule.DatabaseLive),
@@ -97,7 +101,7 @@ describe("Database layer", () => {
     expect(typeof snapshot.timestamp).toBe("string");
   });
 
-  test("creates and restores settings snapshot", async () => {
+  test.serial("creates and restores settings snapshot", async () => {
     const program = Effect.gen(function* () {
       yield* dbModule.initializeDatabase;
 
@@ -152,7 +156,7 @@ describe("Database layer", () => {
     );
   });
 
-  test("gets migration status", async () => {
+  test.serial("gets migration status", async () => {
     const status = (await Effect.runPromise(
       dbModule.getMigrationStatus.pipe(Effect.provide(dbModule.DatabaseLive)),
     )) as any;
@@ -171,7 +175,7 @@ describe("Database layer", () => {
     }
   });
 
-  test("validates database schema", async () => {
+  test.serial("validates database schema", async () => {
     const validation = await (
       Effect.runPromise as (
         effect: Effect.Effect<
@@ -207,7 +211,7 @@ describe("Database layer", () => {
     expect(validation.errors).toHaveLength(0);
   });
 
-  test("validates database schema with missing table", async () => {
+  test.serial("validates database schema with missing table", async () => {
     // Test validation against a non-existent database
     const tempDbPath = path.join(tempDir, "non-existent.db");
 

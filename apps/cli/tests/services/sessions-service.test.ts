@@ -3,9 +3,9 @@ import {
   beforeEach,
   describe,
   expect,
-  it,
   mock,
   spyOn,
+  test,
 } from "bun:test";
 import * as Effect from "effect/Effect";
 import { SessionsService } from "../../src/services/sessions-service.js";
@@ -75,7 +75,7 @@ describe("SessionsService", () => {
   // The database mocking is complex and requires deep understanding of Drizzle ORM internals
   // For now, we provide a basic test structure that can be expanded later
 
-  it("should instantiate SessionsService", () => {
+  test.serial("should instantiate SessionsService", () => {
     expect(service).toBeInstanceOf(SessionsService);
   });
 
@@ -83,7 +83,7 @@ describe("SessionsService", () => {
   // These would require extensive mocking of the Drizzle ORM query builder
   /*
   describe("createInteractive", () => {
-    it("should create a session with existing workspace", async () => {
+    test.serial("should create a session with existing workspace", async () => {
       // Test implementation here
     });
   });

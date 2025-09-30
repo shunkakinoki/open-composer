@@ -1,13 +1,13 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { createPR, getPRStatus } from "../src/index.js";
 
-describe("GitHub PR Package", () => {
-  describe("createPR", () => {
-    it("should export createPR function", () => {
+describe.concurrent("GitHub PR Package", () => {
+  describe.concurrent("createPR", () => {
+    test.concurrent("should export createPR function", () => {
       expect(typeof createPR).toBe("function");
     });
 
-    it("should create PR effect", () => {
+    test.concurrent("should create PR effect", () => {
       const prOptions = {
         title: "Test PR",
         body: "Test body",
@@ -23,12 +23,12 @@ describe("GitHub PR Package", () => {
     });
   });
 
-  describe("getPRStatus", () => {
-    it("should export getPRStatus function", () => {
+  describe.concurrent("getPRStatus", () => {
+    test.concurrent("should export getPRStatus function", () => {
       expect(typeof getPRStatus).toBe("function");
     });
 
-    it("should create status effect", () => {
+    test.concurrent("should create status effect", () => {
       const effect = getPRStatus(123);
       expect(effect).toBeDefined();
     });

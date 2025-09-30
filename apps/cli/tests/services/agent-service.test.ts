@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, spyOn } from "bun:test";
+import { describe, expect, mock, spyOn, test } from "bun:test";
 import {
   ConfigService,
   type ConfigServiceInterface,
@@ -89,7 +89,7 @@ const mockConsoleLog = spyOn(console, "log");
 
 describe("AgentService", () => {
   describe("list", () => {
-    it("should list all agents when activeOnly is false", async () => {
+    test.serial("should list all agents when activeOnly is false", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
@@ -112,34 +112,39 @@ describe("AgentService", () => {
       expect(calls).toContain("* test            Test agent");
     });
 
-    it("should list only active agents when activeOnly is true", async () => {
-      mockConsoleLog.mockClear();
-      const service = new AgentService(["open-composer"]);
+    test.serial(
+      "should list only active agents when activeOnly is true",
+      async () => {
+        mockConsoleLog.mockClear();
+        const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(
-        service
-          .list({ activeOnly: true })
-          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
-      );
+        const result = await Effect.runPromise(
+          service
+            .list({ activeOnly: true })
+            .pipe(
+              Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive)),
+            ),
+        );
 
-      // The effect should complete without error
-      expect(result).toBeUndefined();
+        // The effect should complete without error
+        expect(result).toBeUndefined();
 
-      // Verify the output contains only active agents
-      const calls = mockConsoleLog.mock.calls.map((call) => call[0]);
-      expect(calls).toContain("Active agents:");
-      expect(calls).toContain(
-        "* claude-code     Code assistant powered by Claude",
-      );
-      expect(calls).toContain("* test            Test agent");
-      expect(calls).not.toContain(
-        "  codex           Code generation specialist",
-      );
-    });
+        // Verify the output contains only active agents
+        const calls = mockConsoleLog.mock.calls.map((call) => call[0]);
+        expect(calls).toContain("Active agents:");
+        expect(calls).toContain(
+          "* claude-code     Code assistant powered by Claude",
+        );
+        expect(calls).toContain("* test            Test agent");
+        expect(calls).not.toContain(
+          "  codex           Code generation specialist",
+        );
+      },
+    );
   });
 
   describe("activate", () => {
-    it("should activate an agent", async () => {
+    test.serial("should activate an agent", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
@@ -157,7 +162,7 @@ describe("AgentService", () => {
       expect(calls).toContain("Activated agent: claude-code");
     });
 
-    it("should handle agent not found", async () => {
+    test.serial("should handle agent not found", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
@@ -177,7 +182,7 @@ describe("AgentService", () => {
   });
 
   describe("deactivate", () => {
-    it("should deactivate an agent", async () => {
+    test.serial("should deactivate an agent", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
@@ -195,7 +200,7 @@ describe("AgentService", () => {
       expect(calls).toContain("Deactivated agent: claude-code");
     });
 
-    it("should handle agent not found", async () => {
+    test.serial("should handle agent not found", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 
@@ -215,7 +220,7 @@ describe("AgentService", () => {
   });
 
   describe("route", () => {
-    it("should route a query", async () => {
+    test.serial("should route a query", async () => {
       mockConsoleLog.mockClear();
       const service = new AgentService(["open-composer"]);
 

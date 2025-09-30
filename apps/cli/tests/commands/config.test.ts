@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -30,13 +30,13 @@ describe("config command", () => {
   });
 
   describe("command structure", () => {
-    it("should build config command successfully", () => {
+    test.serial("should build config command successfully", () => {
       const command = buildConfigCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
-    it("should build individual subcommands successfully", () => {
+    test.serial("should build individual subcommands successfully", () => {
       expect(buildGetCommand()).toBeDefined();
       expect(buildSetCommand()).toBeDefined();
       expect(buildShowCommand()).toBeDefined();
@@ -46,28 +46,34 @@ describe("config command", () => {
 
   describe("config operations", () => {
     describe("get command", () => {
-      it("should build get command with optional key parameter", () => {
-        const command = buildGetCommand();
-        expect(command).toBeDefined();
-      });
+      test.serial(
+        "should build get command with optional key parameter",
+        () => {
+          const command = buildGetCommand();
+          expect(command).toBeDefined();
+        },
+      );
     });
 
     describe("set command", () => {
-      it("should build set command with required key and value parameters", () => {
-        const command = buildSetCommand();
-        expect(command).toBeDefined();
-      });
+      test.serial(
+        "should build set command with required key and value parameters",
+        () => {
+          const command = buildSetCommand();
+          expect(command).toBeDefined();
+        },
+      );
     });
 
     describe("show command", () => {
-      it("should build show command successfully", () => {
+      test.serial("should build show command successfully", () => {
         const command = buildShowCommand();
         expect(command).toBeDefined();
       });
     });
 
     describe("clear command", () => {
-      it("should build clear command successfully", () => {
+      test.serial("should build clear command successfully", () => {
         const command = buildClearCommand();
         expect(command).toBeDefined();
       });

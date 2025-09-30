@@ -3,9 +3,9 @@ import {
   beforeEach,
   describe,
   expect,
-  it,
   mock,
   spyOn,
+  test,
 } from "bun:test";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -203,62 +203,71 @@ describe("GhPRService", () => {
   });
 
   describe("checkGitHubCliSetup", () => {
-    it("should return success when CLI is available and authenticated", async () => {
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+    test.serial(
+      "should return success when CLI is available and authenticated",
+      async () => {
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(true);
-      expect(result.authenticated).toBe(true);
-      expect(result.repository).toBe("test/repo");
-    });
+        expect(result.cliAvailable).toBe(true);
+        expect(result.authenticated).toBe(true);
+        expect(result.repository).toBe("test/repo");
+      },
+    );
 
-    it("should return CLI not available when which fails", async () => {
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "which" && args[0] === "gh") {
-            throw new Error("Command not found");
-          }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
-        },
-      );
+    test.serial(
+      "should return CLI not available when which fails",
+      async () => {
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "which" && args[0] === "gh") {
+              throw new Error("Command not found");
+            }
+            // Call the original mock implementation for other commands
+            return mockExecFileAsync(cmd, args);
+          },
+        );
 
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(false);
-      expect(result.authenticated).toBe(false);
-      expect(result.repository).toBeUndefined();
-    });
+        expect(result.cliAvailable).toBe(false);
+        expect(result.authenticated).toBe(false);
+        expect(result.repository).toBeUndefined();
+      },
+    );
 
-    it("should return not authenticated when auth status fails", async () => {
-      // First call (which gh) should succeed
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "which" && args[0] === "gh") {
-            return { stdout: "/usr/local/bin/gh", stderr: "" };
-          }
-          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
-        },
-      );
-      // Second call (gh auth status) should fail
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
-            throw new Error("Not authenticated");
-          }
-          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
-        },
-      );
+    test.serial(
+      "should return not authenticated when auth status fails",
+      async () => {
+        // First call (which gh) should succeed
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "which" && args[0] === "gh") {
+              return { stdout: "/usr/local/bin/gh", stderr: "" };
+            }
+            throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+          },
+        );
+        // Second call (gh auth status) should fail
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
+              throw new Error("Not authenticated");
+            }
+            throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+          },
+        );
 
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(true);
-      expect(result.authenticated).toBe(false);
-      expect(result.repository).toBeUndefined();
-    });
+        expect(result.cliAvailable).toBe(true);
+        expect(result.authenticated).toBe(false);
+        expect(result.repository).toBeUndefined();
+      },
+    );
   });
 
   describe("validateGitState", () => {
-    it("should validate git state successfully", async () => {
+    test.serial("should validate git state successfully", async () => {
       const result = await Effect.runPromise(service.validateGitState());
 
       expect(result.currentBranch).toBe("main");
@@ -267,7 +276,7 @@ describe("GhPRService", () => {
       expect(result.isOnMainBranch).toBe(true);
     });
 
-    it("should handle uncommitted changes", async () => {
+    test.serial("should handle uncommitted changes", async () => {
       // First call (git rev-parse) should succeed
       mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
@@ -300,7 +309,7 @@ describe("GhPRService", () => {
       expect(result.hasUncommittedChanges).toBe(true);
     });
 
-    it("should handle commits ahead of origin", async () => {
+    test.serial("should handle commits ahead of origin", async () => {
       // First call (git rev-parse) should succeed
       mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
@@ -344,7 +353,7 @@ describe("GhPRService", () => {
   });
 
   describe("detectPackageManager", () => {
-    it("should detect bun when bun.lockb exists", async () => {
+    test.serial("should detect bun when bun.lockb exists", async () => {
       (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
         (path: string) => path.includes("bun.lockb"),
       );
@@ -354,7 +363,7 @@ describe("GhPRService", () => {
       expect(result).toBe("bun");
     });
 
-    it("should detect pnpm when pnpm-lock.yaml exists", async () => {
+    test.serial("should detect pnpm when pnpm-lock.yaml exists", async () => {
       (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
         (path: string) => path.includes("pnpm-lock.yaml"),
       );
@@ -364,7 +373,7 @@ describe("GhPRService", () => {
       expect(result).toBe("pnpm");
     });
 
-    it("should detect yarn when yarn.lock exists", async () => {
+    test.serial("should detect yarn when yarn.lock exists", async () => {
       (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
         (path: string) => path.includes("yarn.lock"),
       );
@@ -374,7 +383,7 @@ describe("GhPRService", () => {
       expect(result).toBe("yarn");
     });
 
-    it("should detect npm when package-lock.json exists", async () => {
+    test.serial("should detect npm when package-lock.json exists", async () => {
       (existsSync as unknown as ReturnType<typeof mock>).mockImplementation(
         (path: string) => path.includes("package-lock.json"),
       );
@@ -384,7 +393,7 @@ describe("GhPRService", () => {
       expect(result).toBe("npm");
     });
 
-    it("should default to npm", async () => {
+    test.serial("should default to npm", async () => {
       (existsSync as unknown as ReturnType<typeof mock>).mockReturnValue(false);
 
       const result = await Effect.runPromise(service.detectPackageManager());
@@ -394,7 +403,7 @@ describe("GhPRService", () => {
   });
 
   describe("runQualityChecks", () => {
-    it("should run all quality checks successfully", async () => {
+    test.serial("should run all quality checks successfully", async () => {
       const result = await Effect.runPromise(service.runQualityChecks("bun"));
 
       expect(result.lintPassed).toBe(true);
@@ -403,7 +412,7 @@ describe("GhPRService", () => {
       expect(result.errors).toEqual([]);
     });
 
-    it("should handle linting failure", async () => {
+    test.serial("should handle linting failure", async () => {
       mockExecFileAsync.mockImplementationOnce(
         async (cmd: string, args: string[]) => {
           if (cmd === "bun" && args.includes("lint")) {
@@ -422,7 +431,7 @@ describe("GhPRService", () => {
       expect(result.errors).toContain("Linting failed: Error: Linting failed");
     });
 
-    it("should handle test failure", async () => {
+    test.serial("should handle test failure", async () => {
       mockExecFileAsync.mockImplementation(
         async (cmd: string, args: string[]) => {
           if (cmd === "bun" && args.includes("lint")) {
@@ -451,7 +460,7 @@ describe("GhPRService", () => {
   });
 
   describe("createPullRequest", () => {
-    it("should create a pull request", async () => {
+    test.serial("should create a pull request", async () => {
       const options = {
         title: "Test PR",
         body: "Test body",
@@ -470,7 +479,7 @@ describe("GhPRService", () => {
   });
 
   describe("getPRStatus", () => {
-    it("should get PR status", async () => {
+    test.serial("should get PR status", async () => {
       const result = await Effect.runPromise(service.getPRStatus(123));
 
       expect(result.isInMergeQueue).toBe(false);
@@ -481,7 +490,7 @@ describe("GhPRService", () => {
   });
 
   describe("listPRs", () => {
-    it("should list pull requests", async () => {
+    test.serial("should list pull requests", async () => {
       const result = await Effect.runPromise(service.listPRs());
 
       expect(result).toContain("123");
@@ -490,7 +499,7 @@ describe("GhPRService", () => {
       expect(result).toContain("Another PR");
     });
 
-    it("should list PRs with options", async () => {
+    test.serial("should list PRs with options", async () => {
       const options = { state: "open" as const, author: "testuser" };
 
       const result = await Effect.runPromise(service.listPRs(options));
@@ -501,7 +510,7 @@ describe("GhPRService", () => {
   });
 
   describe("viewPR", () => {
-    it("should view PR details", async () => {
+    test.serial("should view PR details", async () => {
       const result = await Effect.runPromise(service.viewPR(123));
 
       expect(result).toContain("PR #123");
@@ -509,7 +518,7 @@ describe("GhPRService", () => {
       expect(result).toContain("State: open");
     });
 
-    it("should view PR with options", async () => {
+    test.serial("should view PR with options", async () => {
       const options = { json: "true" };
 
       const result = await Effect.runPromise(service.viewPR("123", options));
@@ -519,13 +528,13 @@ describe("GhPRService", () => {
   });
 
   describe("mergePR", () => {
-    it("should merge a pull request", async () => {
+    test.serial("should merge a pull request", async () => {
       const result = await Effect.runPromise(service.mergePR(123));
 
       expect(result).toContain("Successfully merged PR #123");
     });
 
-    it("should merge PR with options", async () => {
+    test.serial("should merge PR with options", async () => {
       const options = { method: "squash" as const, deleteBranch: true };
 
       const result = await Effect.runPromise(service.mergePR(123, options));
