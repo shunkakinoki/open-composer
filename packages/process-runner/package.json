@@ -1,19 +1,32 @@
 {
   "name": "@open-composer/process-runner",
   "version": "0.2.0",
-  "main": "src/index.ts",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "build": "bun build ./src/core.ts --outdir ./dist --target=bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "type-check": "tsc -b tsconfig.json"
   },
   "dependencies": {
     "bun-pty": "^0.3.2",
-    "effect": "^3.17.14"
+    "effect": "^3.18.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.22",
-    "@types/node": "^24.5.2",
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.0",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
