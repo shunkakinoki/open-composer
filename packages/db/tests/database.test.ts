@@ -1,24 +1,47 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
+import { existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
-import path from "node:path";
+import * as path from "node:path";
 import { Effect } from "effect";
 
-let dbModule: typeof import("../src/index");
+let dbModule: typeof import("../src/index.js");
 let tempDir: string;
 let tempFile: string;
 
-
 beforeAll(async () => {
   tempDir = mkdtempSync(path.join(tmpdir(), "open-composer-db-"));
-  tempFile = path.join(tempDir, "app.db");
-  process.env.OPEN_COMPOSER_DB_FILE = tempFile;
-  dbModule = await import("../src/index");
+  dbModule = await import("../src/index.js");
 });
 
 afterAll(() => {
-  delete process.env.OPEN_COMPOSER_DB_FILE;
   rmSync(tempDir, { recursive: true, force: true });
+});
+
+beforeEach(() => {
+  // Create a unique database file for each test
+  const testId = Math.random().toString(36).substring(7);
+  tempFile = path.join(tempDir, `test-${testId}.db`);
+  process.env.OPEN_COMPOSER_DB_FILE = tempFile;
+});
+
+afterEach(() => {
+  // Clean up the test database
+  delete process.env.OPEN_COMPOSER_DB_FILE;
+  if (existsSync(tempFile)) {
+    try {
+      unlinkSync(tempFile);
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
 });
 
 describe("Database layer", () => {
@@ -28,21 +51,31 @@ describe("Database layer", () => {
 
   test.serial("runs migrations and supports drizzle queries", async () => {
     // Run migrations manually
-    const migration = (await import("../migrations/0000_create_settings"))
+    const migration = (await import("../migrations/0000_create_settings.js"))
       .default;
     await Effect.runPromise(dbModule.runMigration(migration));
 
     const program = Effect.gen(function* () {
+      yield* dbModule.initializeDatabase;
       const db = yield* dbModule.SqliteDrizzle;
-      yield* db.delete(dbModule.settings);
+      // Ensure clean state
+      yield* db.delete(dbModule.settings as any);
       yield* db
-        .insert(dbModule.settings)
+        .insert(dbModule.settings as any)
         .values({ key: "theme", value: "dark" });
-      return yield* db.select().from(dbModule.settings);
+      return yield* db.select().from(dbModule.settings as any);
     });
 
-    const result = await Effect.runPromise(
-      program.pipe(Effect.provide(dbModule.DatabaseLive)),
+    const result = await (
+      Effect.runPromise as (
+        effect: Effect.Effect<unknown, never, never>,
+      ) => Promise<unknown>
+    )(
+      program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
+        unknown,
+        never,
+        never
+      >,
     );
 
     expect(result).toEqual(
@@ -53,11 +86,11 @@ describe("Database layer", () => {
   });
 
   test.serial("creates database snapshot", async () => {
-    const snapshot = await Effect.runPromise(
+    const snapshot = (await Effect.runPromise(
       dbModule.createDatabaseSnapshot.pipe(
         Effect.provide(dbModule.DatabaseLive),
       ),
-    );
+    )) as any;
 
     expect(snapshot).toHaveProperty("timestamp");
     expect(snapshot).toHaveProperty("schema");
@@ -69,80 +102,64 @@ describe("Database layer", () => {
   });
 
   test.serial("creates and restores settings snapshot", async () => {
-    // First clear any existing data
-    const clearProgram = Effect.gen(function* () {
-      const db = yield* dbModule.SqliteDrizzle;
-      yield* db.delete(dbModule.settings);
-    });
+    const program = Effect.gen(function* () {
+      yield* dbModule.initializeDatabase;
 
-    await Effect.runPromise(
-      clearProgram.pipe(Effect.provide(dbModule.DatabaseLive)),
-    );
-
-    // Add some test data
-    const insertProgram = Effect.gen(function* () {
+      // First clear any existing data
       const db = yield* dbModule.SqliteDrizzle;
-      yield* db.insert(dbModule.settings).values([
+      yield* db.delete(dbModule.settings as any);
+
+      // Add some test data
+      yield* db.insert(dbModule.settings as any).values([
         { key: "test1", value: "value1" },
         { key: "test2", value: "value2" },
       ]);
-    });
 
-    await Effect.runPromise(
-      insertProgram.pipe(Effect.provide(dbModule.DatabaseLive)),
-    );
+      // Create snapshot
+      const snapshot = yield* dbModule.createSettingsSnapshot;
+      expect(snapshot).toHaveProperty("timestamp");
+      expect(snapshot).toHaveProperty("settings");
+      expect(Array.isArray(snapshot.settings)).toBe(true);
+      expect(snapshot.settings).toHaveLength(2);
 
-    // Create snapshot
-    const snapshot = await Effect.runPromise(
-      dbModule.createSettingsSnapshot.pipe(
-        Effect.provide(dbModule.DatabaseLive),
-      ),
-    );
+      // Clear existing data again before restore
+      yield* db.delete(dbModule.settings as any);
 
-    expect(snapshot).toHaveProperty("timestamp");
-    expect(snapshot).toHaveProperty("settings");
-    expect(Array.isArray(snapshot.settings)).toBe(true);
-    expect(snapshot.settings).toHaveLength(2);
+      // Restore from snapshot
+      yield* dbModule.restoreSettingsSnapshot(snapshot);
 
-    // Clear existing data again before restore
-    const clearProgram2 = Effect.gen(function* () {
-      const db = yield* dbModule.SqliteDrizzle;
-      yield* db.delete(dbModule.settings);
-    });
-
-    await Effect.runPromise(
-      clearProgram2.pipe(Effect.provide(dbModule.DatabaseLive)),
-    );
-
-    // Restore from snapshot
-    await Effect.runPromise(
-      dbModule
-        .restoreSettingsSnapshot(snapshot)
-        .pipe(Effect.provide(dbModule.DatabaseLive)),
-    );
-
-    // Verify data was restored
-    const verifyProgram = Effect.gen(function* () {
-      const db = yield* dbModule.SqliteDrizzle;
-      return yield* db
+      // Verify data was restored
+      const restoredData = yield* db
         .select()
-        .from(dbModule.settings)
-        .orderBy(dbModule.settings.key);
+        .from(dbModule.settings as any)
+        .orderBy(dbModule.settings.key as any);
+
+      expect(restoredData).toHaveLength(2);
+      expect(restoredData.find((s: any) => s.key === "test1")?.value).toBe(
+        "value1",
+      );
+      expect(restoredData.find((s: any) => s.key === "test2")?.value).toBe(
+        "value2",
+      );
     });
 
-    const restoredData = await Effect.runPromise(
-      verifyProgram.pipe(Effect.provide(dbModule.DatabaseLive)),
+    await (
+      Effect.runPromise as (
+        effect: Effect.Effect<unknown, never, never>,
+      ) => Promise<unknown>
+    )(
+      program.pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
+        unknown,
+        never,
+        never
+      >,
     );
-
-    expect(restoredData).toHaveLength(2);
-    expect(restoredData.find((s) => s.key === "test1")?.value).toBe("value1");
-    expect(restoredData.find((s) => s.key === "test2")?.value).toBe("value2");
   });
 
   test.serial("gets migration status", async () => {
-    const status = await Effect.runPromise(
+    const status = (await Effect.runPromise(
       dbModule.getMigrationStatus.pipe(Effect.provide(dbModule.DatabaseLive)),
-    );
+    )) as any;
 
     expect(status).toHaveProperty("initialized");
     expect(status).toHaveProperty("migrations");
@@ -150,7 +167,7 @@ describe("Database layer", () => {
 
     if (status.initialized) {
       expect(status.migrations.length).toBeGreaterThan(0);
-      status.migrations.forEach((migration) => {
+      status.migrations.forEach((migration: any) => {
         expect(migration).toHaveProperty("id");
         expect(migration).toHaveProperty("name");
         expect(migration).toHaveProperty("createdAt");
@@ -159,10 +176,27 @@ describe("Database layer", () => {
   });
 
   test.serial("validates database schema", async () => {
-    const validation = await Effect.runPromise(
-      dbModule.validateDatabaseSchema.pipe(
-        Effect.provide(dbModule.DatabaseLive),
-      ),
+    const validation = await (
+      Effect.runPromise as (
+        effect: Effect.Effect<
+          { valid: boolean; missingTables: string[]; errors: string[] },
+          never,
+          never
+        >,
+      ) => Promise<{
+        valid: boolean;
+        missingTables: string[];
+        errors: string[];
+      }>
+    )(
+      Effect.gen(function* () {
+        yield* dbModule.initializeDatabase;
+        return yield* dbModule.validateDatabaseSchema;
+      }).pipe(Effect.provide(dbModule.DatabaseLive)) as Effect.Effect<
+        { valid: boolean; missingTables: string[]; errors: string[] },
+        never,
+        never
+      >,
     );
 
     expect(validation).toHaveProperty("valid");

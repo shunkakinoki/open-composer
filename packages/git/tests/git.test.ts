@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Git, getCurrentBranch, log, status } from "../src/index.js";
 
-
 const gitCommands = [
   ["status", status],
   ["log", log],

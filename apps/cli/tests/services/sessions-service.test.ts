@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import * as Effect from "effect/Effect";
 import { SessionsService } from "../../src/services/sessions-service.js";
 
@@ -47,7 +55,6 @@ mock.module("../../src/services/stack-service", () => ({
 
 // Mock console.log
 const mockConsoleLog = spyOn(console, "log");
-
 
 describe("SessionsService", () => {
   let service: SessionsService;

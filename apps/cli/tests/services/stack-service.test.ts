@@ -1,4 +1,4 @@
-import { describe, expect, test, mock, spyOn } from "bun:test";
+import { describe, expect, mock, spyOn, test } from "bun:test";
 import * as Effect from "effect/Effect";
 
 // Mock the git-stack package functions
@@ -51,7 +51,6 @@ const _mockConsoleError = spyOn(console, "error");
 
 // Import StackService after mocks are set up
 import { StackService } from "../../src/services/stack-service.js";
-
 
 describe.concurrent("StackService", () => {
   describe.concurrent("service instantiation", () => {

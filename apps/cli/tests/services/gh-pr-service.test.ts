@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import * as Effect from "effect/Effect";
@@ -125,7 +133,6 @@ const mockRequire = mock((path: string) => {
 // @ts-expect-error - mocking global require
 spyOn(global, "require").mockImplementation(mockRequire);
 
-
 describe("GhPRService", () => {
   let service: GhPRService;
 
@@ -196,58 +203,67 @@ describe("GhPRService", () => {
   });
 
   describe("checkGitHubCliSetup", () => {
-    test.serial("should return success when CLI is available and authenticated", async () => {
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+    test.serial(
+      "should return success when CLI is available and authenticated",
+      async () => {
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(true);
-      expect(result.authenticated).toBe(true);
-      expect(result.repository).toBe("test/repo");
-    });
+        expect(result.cliAvailable).toBe(true);
+        expect(result.authenticated).toBe(true);
+        expect(result.repository).toBe("test/repo");
+      },
+    );
 
-    test.serial("should return CLI not available when which fails", async () => {
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "which" && args[0] === "gh") {
-            throw new Error("Command not found");
-          }
-          // Call the original mock implementation for other commands
-          return mockExecFileAsync(cmd, args);
-        },
-      );
+    test.serial(
+      "should return CLI not available when which fails",
+      async () => {
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "which" && args[0] === "gh") {
+              throw new Error("Command not found");
+            }
+            // Call the original mock implementation for other commands
+            return mockExecFileAsync(cmd, args);
+          },
+        );
 
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(false);
-      expect(result.authenticated).toBe(false);
-      expect(result.repository).toBeUndefined();
-    });
+        expect(result.cliAvailable).toBe(false);
+        expect(result.authenticated).toBe(false);
+        expect(result.repository).toBeUndefined();
+      },
+    );
 
-    test.serial("should return not authenticated when auth status fails", async () => {
-      // First call (which gh) should succeed
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "which" && args[0] === "gh") {
-            return { stdout: "/usr/local/bin/gh", stderr: "" };
-          }
-          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
-        },
-      );
-      // Second call (gh auth status) should fail
-      mockExecFileAsync.mockImplementationOnce(
-        async (cmd: string, args: string[]) => {
-          if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
-            throw new Error("Not authenticated");
-          }
-          throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
-        },
-      );
+    test.serial(
+      "should return not authenticated when auth status fails",
+      async () => {
+        // First call (which gh) should succeed
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "which" && args[0] === "gh") {
+              return { stdout: "/usr/local/bin/gh", stderr: "" };
+            }
+            throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+          },
+        );
+        // Second call (gh auth status) should fail
+        mockExecFileAsync.mockImplementationOnce(
+          async (cmd: string, args: string[]) => {
+            if (cmd === "gh" && args[0] === "auth" && args[1] === "status") {
+              throw new Error("Not authenticated");
+            }
+            throw new Error(`Unexpected command: ${cmd} ${args.join(" ")}`);
+          },
+        );
 
-      const result = await Effect.runPromise(service.checkGitHubCliSetup());
+        const result = await Effect.runPromise(service.checkGitHubCliSetup());
 
-      expect(result.cliAvailable).toBe(true);
-      expect(result.authenticated).toBe(false);
-      expect(result.repository).toBeUndefined();
-    });
+        expect(result.cliAvailable).toBe(true);
+        expect(result.authenticated).toBe(false);
+        expect(result.repository).toBeUndefined();
+      },
+    );
   });
 
   describe("validateGitState", () => {

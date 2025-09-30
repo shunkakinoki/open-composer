@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 import {
   checkoutNewBranch,
   deleteBranch,
@@ -107,7 +107,7 @@ const getBranchPRInfo = (
     const prNumber = extractPRNumber(commitMessage);
     return {
       title: commitMessage,
-      prNumber,
+      ...(prNumber !== undefined && { prNumber }),
     };
   });
 
@@ -116,14 +116,13 @@ const updateNodeParent = (
   branch: string,
   parent: string | undefined,
 ): StackState => {
-  const _existing = state.nodes[branch] ?? { name: branch };
   return {
     ...state,
     nodes: {
       ...state.nodes,
       [branch]: {
         name: branch,
-        parent,
+        ...(parent !== undefined && { parent }),
       },
     },
   } satisfies StackState;
@@ -134,7 +133,7 @@ const removeNode = (state: StackState, branch: string): StackState => {
   const updated = Object.fromEntries(
     Object.entries(rest).map(([name, node]) =>
       node.parent === branch
-        ? ([name, { ...node, parent: undefined }] satisfies [string, StackNode])
+        ? ([name, { name: node.name }] satisfies [string, StackNode])
         : ([name, node] satisfies [string, StackNode]),
     ),
   );
@@ -245,8 +244,9 @@ const renderStackedPRs = (
     return lines;
   });
 
-const makeService = (cwd: string): GitStackService => {
-  const statePath = path.join(cwd, ".git", "open-composer-stack.json");
+const makeService = (): GitStackService => {
+  const getCwd = () => process.cwd();
+  const statePath = path.join(getCwd(), ".git", "open-composer-stack.json");
 
   const withState = <A>(
     f: (state: StackState) => Effect.Effect<[A, StackState]>,
@@ -270,7 +270,7 @@ const makeService = (cwd: string): GitStackService => {
     log: readOnlyState((state) => renderLog(state)),
 
     status: loadState(statePath).pipe(
-      Effect.zip(getCurrentBranch({ cwd })),
+      Effect.zip(getCurrentBranch({ cwd: getCwd() })),
       Effect.map(([state, currentBranch]) => {
         const node = state.nodes[currentBranch];
         const children = Object.values(state.nodes)
@@ -278,7 +278,7 @@ const makeService = (cwd: string): GitStackService => {
           .map((candidate) => candidate.name);
         return {
           currentBranch,
-          parent: node?.parent,
+          ...(node?.parent !== undefined && { parent: node.parent }),
           children,
         } satisfies StackStatus;
       }),
@@ -286,8 +286,8 @@ const makeService = (cwd: string): GitStackService => {
 
     create: ({ name, base }) =>
       Effect.gen(function* () {
-        const baseBranch = base ?? (yield* getCurrentBranch({ cwd }));
-        yield* checkoutNewBranch(name, baseBranch, { cwd });
+        const baseBranch = base ?? (yield* getCurrentBranch({ cwd: getCwd() }));
+        yield* checkoutNewBranch(name, baseBranch, { cwd: getCwd() });
         yield* withState((state) =>
           Effect.succeed([
             { branch: name, base: baseBranch },
@@ -309,13 +309,14 @@ const makeService = (cwd: string): GitStackService => {
 
     remove: (branch, force = false) =>
       Effect.gen(function* () {
-        yield* deleteBranch(branch, force, { cwd });
+        yield* deleteBranch(branch, force, { cwd: getCwd() });
         yield* withState((state) =>
           Effect.succeed([void 0, removeNode(state, branch)]),
         );
       }),
 
-    checkout: (branch) => gitCheckout(branch, { cwd }).pipe(Effect.asVoid),
+    checkout: (branch) =>
+      gitCheckout(branch, { cwd: getCwd() }).pipe(Effect.asVoid),
 
     sync: readOnlyState((state) => {
       const branches = Object.keys(state.nodes);
@@ -327,8 +328,8 @@ const makeService = (cwd: string): GitStackService => {
 
     submit: Effect.gen(function* () {
       const state = yield* loadState(statePath);
-      const currentBranch = yield* getCurrentBranch({ cwd });
-      return yield* renderStackedPRs(cwd, state, currentBranch);
+      const currentBranch = yield* getCurrentBranch({ cwd: getCwd() });
+      return yield* renderStackedPRs(getCwd(), state, currentBranch);
     }),
 
     restack: readOnlyState((state) => {
@@ -358,7 +359,7 @@ const makeService = (cwd: string): GitStackService => {
 
 export const GitStackLive = Layer.effect(
   GitStack,
-  Effect.sync(() => makeService(process.cwd())),
+  Effect.sync(() => makeService()),
 );
 
 export const GitStackWithGitLive = Layer.merge(GitStackLive, GitLive);

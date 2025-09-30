@@ -14,7 +14,6 @@ import {
 const mockConfigDir = join(homedir(), ".config", "open-composer-test");
 const _mockConfigPath = join(mockConfigDir, "config.json");
 
-
 describe("config command", () => {
   beforeEach(async () => {
     // Create test directory
@@ -47,17 +46,23 @@ describe("config command", () => {
 
   describe("config operations", () => {
     describe("get command", () => {
-      test.serial("should build get command with optional key parameter", () => {
-        const command = buildGetCommand();
-        expect(command).toBeDefined();
-      });
+      test.serial(
+        "should build get command with optional key parameter",
+        () => {
+          const command = buildGetCommand();
+          expect(command).toBeDefined();
+        },
+      );
     });
 
     describe("set command", () => {
-      test.serial("should build set command with required key and value parameters", () => {
-        const command = buildSetCommand();
-        expect(command).toBeDefined();
-      });
+      test.serial(
+        "should build set command with required key and value parameters",
+        () => {
+          const command = buildSetCommand();
+          expect(command).toBeDefined();
+        },
+      );
     });
 
     describe("show command", () => {

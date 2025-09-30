@@ -1,11 +1,11 @@
 import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
-import path from "node:path";
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BunContext } from "@effect/platform-bun";
 import { SqlClient } from "@effect/sql";
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
-import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-bun";
+import { SqliteClient } from "@effect/sql-sqlite-bun";
 import { Effect, Layer } from "effect";
 import * as schema from "./schema.js";
 
@@ -41,16 +41,69 @@ const SqliteClientLive = Layer.unwrapEffect(
   }),
 );
 
+/**
+ * Initializes the database by running migrations
+ */
+export const initializeDatabase = Effect.gen(function* () {
+  const sql = yield* SqlClient.SqlClient;
+
+  // Create migrations table if it doesn't exist
+  yield* sql`
+    CREATE TABLE IF NOT EXISTS effect_sql_migrations (
+      migration_id INTEGER PRIMARY KEY NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      name VARCHAR(255) NOT NULL
+    )
+  `;
+
+  // Read all migration files from the migrations directory
+  const migrationFiles = yield* Effect.promise(async () => {
+    const fs = await import("node:fs/promises");
+    const entries = await fs.readdir(migrationsDirectory);
+    return entries
+      .filter(
+        (file) =>
+          (file.endsWith(".ts") || file.endsWith(".js")) &&
+          !file.startsWith("_"),
+      )
+      .sort(); // Sort by filename (should be numbered)
+  });
+
+  // Import and run each migration in order, tracking them
+  for (const file of migrationFiles) {
+    const migrationId = parseInt(file.split("_")[0], 10); // Extract ID from filename like "0000_create_settings.ts"
+    const migrationName = file.replace(".ts", "");
+
+    // Check if migration already ran
+    const existing = yield* sql`
+      SELECT migration_id FROM effect_sql_migrations WHERE migration_id = ${migrationId}
+    `;
+
+    if (existing.length === 0) {
+      // Run the migration
+      const migrationPath = `../migrations/${file.replace(".ts", "")}`;
+      const migration = yield* Effect.promise(() => import(migrationPath));
+      yield* migration.default;
+
+      // Record the migration
+      yield* sql`
+        INSERT INTO effect_sql_migrations (migration_id, name, created_at)
+        VALUES (${migrationId}, ${migrationName}, ${new Date().toISOString()})
+      `;
+    }
+  }
+});
+
 const DrizzleLive = SqliteDrizzle.layer.pipe(Layer.provide(SqliteClientLive));
 
-const MigrationsLive = Layer.scopedDiscard(
-  SqliteMigrator.run({
-    loader: SqliteMigrator.fromFileSystem(migrationsDirectory),
-    schemaDirectory: migrationsDirectory,
-  }).pipe(Effect.provide(BunContext.layer), Effect.provide(SqliteClientLive)),
+const MigrationsLive = Layer.effectDiscard(initializeDatabase).pipe(
+  Layer.provide(SqliteClientLive),
 );
 
-export const DatabaseLive = Layer.mergeAll(
+export const DatabaseLive = Layer.mergeAll(SqliteClientLive, DrizzleLive);
+
+// Layer that includes migrations for testing migration functionality
+export const DatabaseWithMigrationsLive = Layer.mergeAll(
   SqliteClientLive,
   DrizzleLive,
   MigrationsLive,
@@ -64,27 +117,6 @@ export const runMigration = <R, E>(migration: Effect.Effect<unknown, E, R>) =>
     Effect.provide(SqliteClientLive),
     Effect.provide(BunContext.layer),
   );
-
-/**
- * Initializes the database by running migrations
- */
-export const initializeDatabase = Effect.gen(function* () {
-  // Read all migration files from the migrations directory
-  const migrationFiles = yield* Effect.promise(async () => {
-    const fs = await import("node:fs/promises");
-    const entries = await fs.readdir(migrationsDirectory);
-    return entries
-      .filter((file) => file.endsWith(".ts") || file.endsWith(".js"))
-      .sort(); // Sort by filename (should be numbered)
-  });
-
-  // Import and run each migration in order
-  for (const file of migrationFiles) {
-    const migrationPath = `../migrations/${file.replace(".ts", "").replace(".js", "")}`;
-    const migration = yield* Effect.promise(() => import(migrationPath));
-    yield* migration.default;
-  }
-});
 
 /**
  * Creates a snapshot of the current database schema and data
@@ -125,12 +157,12 @@ export const createSettingsSnapshot = Effect.gen(function* () {
   const db = yield* SqliteDrizzle.SqliteDrizzle;
   const settings = yield* db
     .select()
-    .from(schema.settings)
-    .orderBy(schema.settings.key);
+    .from(schema.settings as any)
+    .orderBy(schema.settings.key as any);
 
   return {
     timestamp: new Date().toISOString(),
-    settings: settings.map((setting: schema.Setting) => ({
+    settings: settings.map((setting: any) => ({
       key: setting.key,
       value: setting.value,
       updatedAt: setting.updatedAt,
@@ -148,11 +180,11 @@ export const restoreSettingsSnapshot = (snapshot: {
     const db = yield* SqliteDrizzle.SqliteDrizzle;
 
     // Clear existing settings
-    yield* db.delete(schema.settings);
+    yield* db.delete(schema.settings as any);
 
     // Insert snapshot settings
     if (snapshot.settings.length > 0) {
-      yield* db.insert(schema.settings).values(
+      yield* db.insert(schema.settings as any).values(
         snapshot.settings.map((setting) => ({
           key: setting.key,
           value: setting.value,
@@ -248,4 +280,4 @@ export const validateDatabaseSchema = Effect.gen(function* () {
 
 export { SqliteClientLive, DrizzleLive, MigrationsLive };
 export { SqliteDrizzle } from "@effect/sql-drizzle/Sqlite";
-export * from "./schema";
+export * from "./schema.js";

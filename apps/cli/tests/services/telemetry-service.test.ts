@@ -13,22 +13,24 @@ const _mockPostHogClient = {
 // Note: In a real implementation, we would mock the PostHog constructor
 // For this test, we're testing the service interface directly
 
-
 describe.concurrent("TelemetryService", () => {
   describe.concurrent("exception autocapture configuration", () => {
-    test.concurrent("should create PostHog client with exception autocapture enabled", () => {
-      const testConfig: TelemetryConfig = {
-        enabled: true,
-        apiKey: "test-api-key",
-        host: "https://test.posthog.com",
-      };
+    test.concurrent(
+      "should create PostHog client with exception autocapture enabled",
+      () => {
+        const testConfig: TelemetryConfig = {
+          enabled: true,
+          apiKey: "test-api-key",
+          host: "https://test.posthog.com",
+        };
 
-      // This test verifies that the PostHog client is created with enableExceptionAutocapture: true
-      // The actual PostHog client creation is tested implicitly through the service functionality
-      expect(testConfig.enabled).toBe(true);
-      expect(testConfig.apiKey).toBe("test-api-key");
-      expect(testConfig.host).toBe("https://test.posthog.com");
-    });
+        // This test verifies that the PostHog client is created with enableExceptionAutocapture: true
+        // The actual PostHog client creation is tested implicitly through the service functionality
+        expect(testConfig.enabled).toBe(true);
+        expect(testConfig.apiKey).toBe("test-api-key");
+        expect(testConfig.host).toBe("https://test.posthog.com");
+      },
+    );
 
     test.concurrent("should use production API key and host by default", () => {
       // Test that the default configuration uses production values from the PostHog docs

@@ -41,11 +41,14 @@ describe.concurrent("composer command", () => {
       // Verify command structure is valid
     });
 
-    test.concurrent("should handle pr-create command arguments correctly", () => {
-      // Test that the command accepts proper arguments
-      const command = buildGHPRCommand();
-      expect(command).toBeDefined();
-    });
+    test.concurrent(
+      "should handle pr-create command arguments correctly",
+      () => {
+        // Test that the command accepts proper arguments
+        const command = buildGHPRCommand();
+        expect(command).toBeDefined();
+      },
+    );
   });
 
   describe.concurrent("Sessions Command Integration", () => {
@@ -61,42 +64,54 @@ describe.concurrent("composer command", () => {
       // Verify command structure is valid
     });
 
-    test.concurrent("should handle sessions command arguments correctly", () => {
-      // Test that the command accepts proper arguments
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-    });
+    test.concurrent(
+      "should handle sessions command arguments correctly",
+      () => {
+        // Test that the command accepts proper arguments
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+      },
+    );
   });
 
   describe.concurrent("End-to-End Command Integration", () => {
-    test.concurrent("should integrate pr-create command into root command", () => {
-      const rootCommand = buildRootCommand();
-      const prCreateCommand = buildGHPRCommand();
-      expect(rootCommand).toBeDefined();
-      expect(prCreateCommand).toBeDefined();
-      // Both commands should be buildable without conflicts
-    });
+    test.concurrent(
+      "should integrate pr-create command into root command",
+      () => {
+        const rootCommand = buildRootCommand();
+        const prCreateCommand = buildGHPRCommand();
+        expect(rootCommand).toBeDefined();
+        expect(prCreateCommand).toBeDefined();
+        // Both commands should be buildable without conflicts
+      },
+    );
 
-    test.concurrent("should integrate sessions command into root command", () => {
-      const rootCommand = buildRootCommand();
-      const sessionsCommand = buildSessionsCommand();
-      expect(rootCommand).toBeDefined();
-      expect(sessionsCommand).toBeDefined();
-      // Both commands should be buildable without conflicts
-    });
+    test.concurrent(
+      "should integrate sessions command into root command",
+      () => {
+        const rootCommand = buildRootCommand();
+        const sessionsCommand = buildSessionsCommand();
+        expect(rootCommand).toBeDefined();
+        expect(sessionsCommand).toBeDefined();
+        // Both commands should be buildable without conflicts
+      },
+    );
 
-    test.concurrent("should handle multiple new commands without conflicts", () => {
-      const rootCommand = buildRootCommand();
-      const prCreateCommand = buildGHPRCommand();
-      const sessionsCommand = buildSessionsCommand();
+    test.concurrent(
+      "should handle multiple new commands without conflicts",
+      () => {
+        const rootCommand = buildRootCommand();
+        const prCreateCommand = buildGHPRCommand();
+        const sessionsCommand = buildSessionsCommand();
 
-      expect(rootCommand).toBeDefined();
-      expect(prCreateCommand).toBeDefined();
-      expect(sessionsCommand).toBeDefined();
+        expect(rootCommand).toBeDefined();
+        expect(prCreateCommand).toBeDefined();
+        expect(sessionsCommand).toBeDefined();
 
-      // All commands should coexist without naming conflicts
-      expect(prCreateCommand).not.toBe(sessionsCommand);
-    });
+        // All commands should coexist without naming conflicts
+        expect(prCreateCommand).not.toBe(sessionsCommand);
+      },
+    );
   });
 
   describe.concurrent("Command Validation", () => {

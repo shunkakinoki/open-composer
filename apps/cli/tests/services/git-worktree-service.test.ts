@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import type {
   AddOptions,
   ListOptions,
@@ -74,7 +82,6 @@ mock.module("@open-composer/git-worktrees", () => ({
 
 // Mock Effect and console
 const mockConsoleLog = spyOn(console, "log");
-
 
 // Import GitWorktreeService after mocks are set up
 import {
@@ -209,34 +216,37 @@ describe("GitWorktreeService", () => {
       expect(result).toBeUndefined();
     });
 
-    test.serial("should show message when no prunable worktrees in dry-run", async () => {
-      // Temporarily override to return worktrees with no prunable ones
-      const originalMock = service.listWorktrees;
-      service.listWorktrees = () =>
-        Effect.succeed([
-          {
-            path: "/path/to/repo",
-            branch: "main",
-            bare: false,
-            detached: false,
-            locked: undefined,
-            prunable: undefined,
-          },
-        ]);
+    test.serial(
+      "should show message when no prunable worktrees in dry-run",
+      async () => {
+        // Temporarily override to return worktrees with no prunable ones
+        const originalMock = service.listWorktrees;
+        service.listWorktrees = () =>
+          Effect.succeed([
+            {
+              path: "/path/to/repo",
+              branch: "main",
+              bare: false,
+              detached: false,
+              locked: undefined,
+              prunable: undefined,
+            },
+          ]);
 
-      const options: PruneGitWorktreeOptions = {
-        dryRun: true,
-      };
+        const options: PruneGitWorktreeOptions = {
+          dryRun: true,
+        };
 
-      const result = await Effect.runPromise(
-        service.prune(options).pipe(Effect.provide(GitLive)),
-      );
+        const result = await Effect.runPromise(
+          service.prune(options).pipe(Effect.provide(GitLive)),
+        );
 
-      expect(result).toBeUndefined();
+        expect(result).toBeUndefined();
 
-      // Restore original mock
-      service.listWorktrees = originalMock;
-    });
+        // Restore original mock
+        service.listWorktrees = originalMock;
+      },
+    );
 
     test.serial("should actually prune worktrees", async () => {
       const options: PruneGitWorktreeOptions = {

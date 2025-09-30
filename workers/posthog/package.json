@@ -1,8 +1,16 @@
 {
   "name": "@open-composer/posthog-worker",
-  "version": "1.0.2",
-  "description": "Cloudflare Worker for anonymous PostHog logging with IP-based rate limiting",
+  "version": "1.0.3",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "main": "src/index.ts",
+  "module": "src/index.ts",
+  "files": [
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
@@ -13,15 +21,18 @@
     "type-check": "bun run tsc --noEmit"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
-    "@cloudflare/vitest-pool-workers": "^0.9.7",
-    "@cloudflare/workers-types": "^4.20250926.0",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^2.1.0",
-    "wrangler": "^4.40.2"
+    "@biomejs/biome": "^2.2.4",
+    "@cloudflare/vitest-pool-workers": "^0.9.8",
+    "@cloudflare/workers-types": "^4.20250927.0",
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.40.3"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

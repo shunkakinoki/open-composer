@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import { TmuxService } from "../src/core.js";
 
-
 describe("TmuxService", () => {
   test.serial("should create a service instance", async () => {
     const result = await Effect.runPromise(TmuxService.make());

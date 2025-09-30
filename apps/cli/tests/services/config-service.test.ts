@@ -1,13 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { UserConfig } from "@open-composer/config";
 
-// Mock file system operations for testing
-const mockConfigDir = join(homedir(), ".config", "open-composer-test");
-const mockConfigPath = join(mockConfigDir, "config.json");
-
+// Test isolation variables
+let mockConfigDir: string;
+let mockConfigPath: string;
 
 // Helper functions to test config operations directly
 async function testGetConfig(): Promise<UserConfig> {
@@ -103,6 +102,11 @@ async function testGetTelemetryConsent(): Promise<boolean> {
 
 describe("Config Operations", () => {
   beforeEach(async () => {
+    // Create unique test directory for each test
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    mockConfigDir = join(tmpdir(), `open-composer-config-test-${testId}`);
+    mockConfigPath = join(mockConfigDir, "config.json");
+
     // Create test directory
     await mkdir(mockConfigDir, { recursive: true });
   });
@@ -117,15 +121,18 @@ describe("Config Operations", () => {
   });
 
   describe("getConfig", () => {
-    test.serial("should return default config when no file exists", async () => {
-      const result = await testGetConfig();
+    test.serial(
+      "should return default config when no file exists",
+      async () => {
+        const result = await testGetConfig();
 
-      expect(result).toEqual({
-        version: "1.0.0",
-        createdAt: "2024-01-01T00:00:00.000Z",
-        updatedAt: expect.any(String),
-      });
-    });
+        expect(result).toEqual({
+          version: "1.0.0",
+          createdAt: "2024-01-01T00:00:00.000Z",
+          updatedAt: expect.any(String),
+        });
+      },
+    );
 
     test.serial("should read existing config file", async () => {
       const testConfig = {
@@ -218,11 +225,14 @@ describe("Config Operations", () => {
   });
 
   describe("getTelemetryConsent", () => {
-    test.serial("should return false when telemetry is not configured", async () => {
-      const result = await testGetTelemetryConsent();
+    test.serial(
+      "should return false when telemetry is not configured",
+      async () => {
+        const result = await testGetTelemetryConsent();
 
-      expect(result).toBe(false);
-    });
+        expect(result).toBe(false);
+      },
+    );
 
     test.serial("should return true when telemetry is enabled", async () => {
       // First set telemetry consent

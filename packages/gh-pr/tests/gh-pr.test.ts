@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { createPR, getPRStatus } from "../src/index.js";
 
-
 describe.concurrent("GitHub PR Package", () => {
   describe.concurrent("createPR", () => {
     test.concurrent("should export createPR function", () => {

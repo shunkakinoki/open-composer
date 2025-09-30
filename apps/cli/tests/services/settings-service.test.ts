@@ -4,7 +4,6 @@ import {
   SettingsService,
 } from "../../src/services/settings-service.js";
 
-
 describe.concurrent("SettingsService", () => {
   // TODO: Implement proper database mocking for comprehensive tests
   // The database mocking is complex and requires deep understanding of Drizzle ORM internals

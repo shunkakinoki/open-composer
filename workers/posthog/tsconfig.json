@@ -1,19 +1,9 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": false,
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "types": ["@cloudflare/workers-types"]
-  },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "extends": "../../tsconfig.base.json",
+  "include": [],
+  "references": [
+    {
+      "path": "tsconfig.src.json"
+    }
+  ]
 }

@@ -7,7 +7,6 @@ import {
   buildSettingsCommand,
 } from "../../src/commands/settings-command.js";
 
-
 describe.concurrent("settings command", () => {
   describe.concurrent("buildSettingsCommand", () => {
     test.concurrent("should build settings command successfully", () => {

@@ -4,7 +4,6 @@ import * as Effect from "effect/Effect";
 import { add, list, lock, move, remove } from "../src/worktrees.js";
 import { createGitStub, success } from "./utils.js";
 
-
 describe.concurrent("git worktrees", () => {
   test.concurrent("parses porcelain worktree listings", async () => {
     const porcelain = [

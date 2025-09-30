@@ -1,5 +1,76 @@
 # open-composer
 
+## 0.8.0
+
+### Minor Changes
+
+- [#182](https://github.com/shunkakinoki/open-composer/pull/182) [`64d01c8`](https://github.com/shunkakinoki/open-composer/commit/64d01c89ab9e0dc323d6e57b7152dd0067e60185) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - feat: implement command builder pattern for CLI architecture
+
+  - Refactored all CLI commands to use new CommandBuilder pattern with proper TypeScript interfaces
+  - Added CommandMetadata interface for standardized command documentation
+  - Created CommandBuilder interface that provides both command and metadata
+  - Updated all command files (agents, cache, composer, config, gh-pr, git-worktree, sessions, settings, spawn, stack, status, telemetry, tui) to use the new pattern
+  - Enhanced main index.ts with better organization and global error handlers
+  - Improved type safety and code organization across the CLI
+  - Fixed formatting and linting issues in workers/posthog test setup
+
+  This update modernizes the CLI architecture by introducing a consistent command builder pattern that improves type safety, code organization, and maintainability while maintaining backward compatibility.
+
+- [#173](https://github.com/shunkakinoki/open-composer/pull/173) [`22aecb4`](https://github.com/shunkakinoki/open-composer/commit/22aecb4eedb36be8b6f08ff6a4e74baed95ea2f8) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - feat: implement dynamic help text generation for CLI
+
+  - Added dynamic help text generation that automatically displays available commands
+  - Improved config clear functionality to properly reset to default state
+  - Enhanced CLI user experience with better command discovery
+  - Fixed telemetry consent prompt to skip during config clear operations
+  - Added comprehensive test coverage for new functionality
+
+  This update makes the CLI more user-friendly by automatically generating help text based on available commands, while also improving the configuration management experience.
+
+- [#165](https://github.com/shunkakinoki/open-composer/pull/165) [`0734ad1`](https://github.com/shunkakinoki/open-composer/commit/0734ad16f52410c687b0be44bb786a56f94d832a) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - feat: add spawn command with tmux integration for multi-agent development
+
+  Added a new `spawn` command that enables developers to launch multiple AI agents in separate git worktrees with dedicated tmux sessions. This feature supports parallel development workflows with different AI agents including codex, claude-code, and opencode.
+
+  **Key Features:**
+
+  - Interactive agent selection and configuration via SpawnPrompt component
+  - Automatic worktree creation for each agent with base branch selection
+  - Tmux session management for isolated development environments
+  - Optional PR creation for spawned worktrees
+  - Comprehensive status reporting and error handling
+  - Support for both interactive and non-interactive modes
+
+  **Usage:**
+
+  ```bash
+  open-composer spawn                    # Interactive mode
+  open-composer spawn my-session --agents codex,claude-code --base main --create-pr
+  ```
+
+  This enhancement significantly improves the multi-agent development experience by providing isolated environments for each AI agent while maintaining organized project structure.
+
+- [#187](https://github.com/shunkakinoki/open-composer/pull/187) [`52f212e`](https://github.com/shunkakinoki/open-composer/commit/52f212ee582c25080eb2a921631f136df176e586) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - feat: add test mode support and enhance session management
+
+  - Added test mode support to avoid interactive prompts in session commands
+  - Enhanced session management with improved logging and error handling
+  - Implemented command builder pattern for better CLI architecture
+  - Added comprehensive test coverage for process runner functionality
+  - Improved user experience with better command discovery and session handling
+
+  This update makes the CLI more robust for automated testing scenarios while improving the overall session management experience.
+
+### Patch Changes
+
+- [#191](https://github.com/shunkakinoki/open-composer/pull/191) [`2c3a779`](https://github.com/shunkakinoki/open-composer/commit/2c3a7794c2a0529b13b48dfc3705e69101a3de23) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - chore: remove unused node-pty dependency
+
+  - Removed node-pty package from root package.json dependencies
+  - Updated bun.lock to reflect dependency removal
+  - This dependency was no longer needed and has been cleaned up
+
+- Updated dependencies [[`22aecb4`](https://github.com/shunkakinoki/open-composer/commit/22aecb4eedb36be8b6f08ff6a4e74baed95ea2f8), [`0734ad1`](https://github.com/shunkakinoki/open-composer/commit/0734ad16f52410c687b0be44bb786a56f94d832a), [`52f212e`](https://github.com/shunkakinoki/open-composer/commit/52f212ee582c25080eb2a921631f136df176e586)]:
+  - @open-composer/config@0.2.0
+  - @open-composer/tmux@0.2.0
+  - @open-composer/process-runner@0.2.0
+
 ## 0.7.1
 
 ### Patch Changes

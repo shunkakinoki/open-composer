@@ -1,4 +1,4 @@
-import { describe, expect, test, mock, spyOn } from "bun:test";
+import { describe, expect, mock, spyOn, test } from "bun:test";
 import {
   ConfigService,
   type ConfigServiceInterface,
@@ -87,7 +87,6 @@ const MockCacheLive = Layer.succeed(CacheService, mockCacheService);
 // Mock console.log to capture output
 const mockConsoleLog = spyOn(console, "log");
 
-
 describe("AgentService", () => {
   describe("list", () => {
     test.serial("should list all agents when activeOnly is false", async () => {
@@ -113,30 +112,35 @@ describe("AgentService", () => {
       expect(calls).toContain("* test            Test agent");
     });
 
-    test.serial("should list only active agents when activeOnly is true", async () => {
-      mockConsoleLog.mockClear();
-      const service = new AgentService(["open-composer"]);
+    test.serial(
+      "should list only active agents when activeOnly is true",
+      async () => {
+        mockConsoleLog.mockClear();
+        const service = new AgentService(["open-composer"]);
 
-      const result = await Effect.runPromise(
-        service
-          .list({ activeOnly: true })
-          .pipe(Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive))),
-      );
+        const result = await Effect.runPromise(
+          service
+            .list({ activeOnly: true })
+            .pipe(
+              Effect.provide(Layer.mergeAll(MockConfigLive, MockCacheLive)),
+            ),
+        );
 
-      // The effect should complete without error
-      expect(result).toBeUndefined();
+        // The effect should complete without error
+        expect(result).toBeUndefined();
 
-      // Verify the output contains only active agents
-      const calls = mockConsoleLog.mock.calls.map((call) => call[0]);
-      expect(calls).toContain("Active agents:");
-      expect(calls).toContain(
-        "* claude-code     Code assistant powered by Claude",
-      );
-      expect(calls).toContain("* test            Test agent");
-      expect(calls).not.toContain(
-        "  codex           Code generation specialist",
-      );
-    });
+        // Verify the output contains only active agents
+        const calls = mockConsoleLog.mock.calls.map((call) => call[0]);
+        expect(calls).toContain("Active agents:");
+        expect(calls).toContain(
+          "* claude-code     Code assistant powered by Claude",
+        );
+        expect(calls).toContain("* test            Test agent");
+        expect(calls).not.toContain(
+          "  codex           Code generation specialist",
+        );
+      },
+    );
   });
 
   describe("activate", () => {

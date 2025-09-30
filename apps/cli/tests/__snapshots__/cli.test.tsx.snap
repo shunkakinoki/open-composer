@@ -10,6 +10,8 @@ COMMANDS
   agents            Manage AI agents
   pr                Manage GitHub Pull Requests with comprehensive workflow
   gw                Manage git worktrees
+  run               Run AI agents with a task description to create stack branches and PRs
+  session           Manage persistent process sessions
   sessions          Manage development sessions
   settings          Manage application settings
   spawn             Spawn multiple AI agents in separate worktrees with tmux sessions

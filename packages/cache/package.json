@@ -1,28 +1,40 @@
 {
   "name": "@open-composer/cache",
   "version": "0.1.0",
-  "description": "Caching functionality for Open Composer",
-  "main": "src/index.ts",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "build": "tsc",
-    "test": "bun test",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "effect": "^3.0.0"
+    "effect": "^3.18.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.0",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
-  },
-  "optionalDependencies": {
-    "@types/node": "^20.0.0"
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.2"
   },
   "peerDependencies": {
     "effect": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "@types/node": "^24.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

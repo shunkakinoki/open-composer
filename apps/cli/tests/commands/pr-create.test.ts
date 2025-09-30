@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { buildGHPRCommand } from "../../src/commands/gh-pr-command.js";
 
-
 describe.concurrent("pr-create command", () => {
   describe.concurrent("Command Structure", () => {
     test.concurrent("should build pr-create command successfully", () => {
@@ -24,11 +23,14 @@ describe.concurrent("pr-create command", () => {
   });
 
   describe.concurrent("Create Subcommand", () => {
-    test.concurrent("should handle create subcommand with required arguments", () => {
-      const command = buildGHPRCommand();
-      expect(command).toBeDefined();
-      // Should accept title argument
-    });
+    test.concurrent(
+      "should handle create subcommand with required arguments",
+      () => {
+        const command = buildGHPRCommand();
+        expect(command).toBeDefined();
+        // Should accept title argument
+      },
+    );
 
     test.concurrent("should handle optional body argument", () => {
       const command = buildGHPRCommand();
@@ -68,11 +70,14 @@ describe.concurrent("pr-create command", () => {
   });
 
   describe.concurrent("Auto Subcommand", () => {
-    test.concurrent("should handle auto subcommand with required arguments", () => {
-      const command = buildGHPRCommand();
-      expect(command).toBeDefined();
-      // Should accept title argument
-    });
+    test.concurrent(
+      "should handle auto subcommand with required arguments",
+      () => {
+        const command = buildGHPRCommand();
+        expect(command).toBeDefined();
+        // Should accept title argument
+      },
+    );
 
     test.concurrent("should handle auto subcommand optional arguments", () => {
       const command = buildGHPRCommand();
@@ -80,11 +85,14 @@ describe.concurrent("pr-create command", () => {
       // Should handle optional arguments like create subcommand
     });
 
-    test.concurrent("should enable auto-merge by default for auto subcommand", () => {
-      // The auto subcommand should set draft: false and auto: true
-      const command = buildGHPRCommand();
-      expect(command).toBeDefined();
-    });
+    test.concurrent(
+      "should enable auto-merge by default for auto subcommand",
+      () => {
+        // The auto subcommand should set draft: false and auto: true
+        const command = buildGHPRCommand();
+        expect(command).toBeDefined();
+      },
+    );
   });
 
   describe.concurrent("Integration Tests", () => {

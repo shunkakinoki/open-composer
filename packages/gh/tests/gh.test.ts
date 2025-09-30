@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { run } from "../src/index.js";
 
-
 describe.concurrent("GitHub CLI Package", () => {
   describe.concurrent("run", () => {
     test.concurrent("should export run function", async () => {

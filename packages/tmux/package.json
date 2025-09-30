@@ -1,27 +1,37 @@
 {
   "name": "@open-composer/tmux",
-  "version": "0.1.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "src/index.ts",
+  "version": "0.2.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
-    "type-check": "tsc -b tsconfig.json",
     "test": "bun test",
-    "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
-    "test:update-snapshot": "bun test --updateSnapshot"
+    "test:update-snapshot": "bun test --updateSnapshot",
+    "test:watch": "bun test --watch",
+    "type-check": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "effect": "^3.17.14"
+    "effect": "^3.18.0"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.41.0",
-    "@types/bun": "^1.2.22",
-    "@types/node": "^24.5.2",
+    "@effect/language-service": "^0.41.1",
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.0",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

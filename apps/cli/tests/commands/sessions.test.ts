@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { buildSessionsCommand } from "../../src/commands/sessions-command.js";
 
-
 describe.concurrent("sessions command", () => {
   describe.concurrent("Command Structure", () => {
     test.concurrent("should build sessions command successfully", () => {
@@ -24,17 +23,23 @@ describe.concurrent("sessions command", () => {
   });
 
   describe.concurrent("Create Subcommand", () => {
-    test.concurrent("should handle create subcommand with optional name argument", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should accept optional name argument
-    });
+    test.concurrent(
+      "should handle create subcommand with optional name argument",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should accept optional name argument
+      },
+    );
 
-    test.concurrent("should handle create subcommand without name argument", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should work without name (will prompt)
-    });
+    test.concurrent(
+      "should handle create subcommand without name argument",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should work without name (will prompt)
+      },
+    );
 
     test.concurrent("should track telemetry for create command", () => {
       const command = buildSessionsCommand();
@@ -58,11 +63,14 @@ describe.concurrent("sessions command", () => {
   });
 
   describe.concurrent("Switch Subcommand", () => {
-    test.concurrent("should handle switch subcommand with required session-id argument", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should accept integer session-id argument
-    });
+    test.concurrent(
+      "should handle switch subcommand with required session-id argument",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should accept integer session-id argument
+      },
+    );
 
     test.concurrent("should validate session-id is an integer", () => {
       const command = buildSessionsCommand();
@@ -78,11 +86,14 @@ describe.concurrent("sessions command", () => {
   });
 
   describe.concurrent("Archive Subcommand", () => {
-    test.concurrent("should handle archive subcommand with required session-id argument", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should accept integer session-id argument
-    });
+    test.concurrent(
+      "should handle archive subcommand with required session-id argument",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should accept integer session-id argument
+      },
+    );
 
     test.concurrent("should validate session-id for archive", () => {
       const command = buildSessionsCommand();
@@ -98,11 +109,14 @@ describe.concurrent("sessions command", () => {
   });
 
   describe.concurrent("Delete Subcommand", () => {
-    test.concurrent("should handle delete subcommand with required session-id argument", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should accept integer session-id argument
-    });
+    test.concurrent(
+      "should handle delete subcommand with required session-id argument",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should accept integer session-id argument
+      },
+    );
 
     test.concurrent("should validate session-id for delete", () => {
       const command = buildSessionsCommand();
@@ -124,11 +138,14 @@ describe.concurrent("sessions command", () => {
       // Should properly instantiate and use SessionsCli
     });
 
-    test.concurrent("should handle telemetry tracking for all subcommands", () => {
-      const command = buildSessionsCommand();
-      expect(command).toBeDefined();
-      // Should track command and feature usage for all operations
-    });
+    test.concurrent(
+      "should handle telemetry tracking for all subcommands",
+      () => {
+        const command = buildSessionsCommand();
+        expect(command).toBeDefined();
+        // Should track command and feature usage for all operations
+      },
+    );
 
     test.concurrent("should handle session operations correctly", () => {
       // Should delegate to appropriate SessionsCli methods
