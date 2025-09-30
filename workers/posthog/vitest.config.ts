@@ -10,5 +10,12 @@ export default defineWorkersConfig({
         isolatedStorage: true,
       },
     },
+    server: {
+      deps: {
+        optimizeDeps: {
+          include: [],
+        },
+      },
+    },
   },
 });
