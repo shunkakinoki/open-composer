@@ -7,6 +7,7 @@ import { SqlClient } from "@effect/sql";
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
 import { SqliteClient } from "@effect/sql-sqlite-bun";
 import { Effect, Layer } from "effect";
+import type { Setting } from "./schema.js";
 import * as schema from "./schema.js";
 
 const getDatabaseFile = () => {
@@ -157,12 +158,14 @@ export const createSettingsSnapshot = Effect.gen(function* () {
   const db = yield* SqliteDrizzle.SqliteDrizzle;
   const settings = yield* db
     .select()
+    // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
     .from(schema.settings as any)
+    // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
     .orderBy(schema.settings.key as any);
 
   return {
     timestamp: new Date().toISOString(),
-    settings: settings.map((setting: any) => ({
+    settings: (settings as Setting[]).map((setting) => ({
       key: setting.key,
       value: setting.value,
       updatedAt: setting.updatedAt,
@@ -180,10 +183,12 @@ export const restoreSettingsSnapshot = (snapshot: {
     const db = yield* SqliteDrizzle.SqliteDrizzle;
 
     // Clear existing settings
+    // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
     yield* db.delete(schema.settings as any);
 
     // Insert snapshot settings
     if (snapshot.settings.length > 0) {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       yield* db.insert(schema.settings as any).values(
         snapshot.settings.map((setting) => ({
           key: setting.key,

@@ -11,6 +11,7 @@ import { existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { Effect } from "effect";
+import type { Setting } from "../src/index.js";
 
 let dbModule: typeof import("../src/index.js");
 let tempDir: string;
@@ -59,10 +60,13 @@ describe("Database layer", () => {
       yield* dbModule.initializeDatabase;
       const db = yield* dbModule.SqliteDrizzle;
       // Ensure clean state
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       yield* db.delete(dbModule.settings as any);
       yield* db
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .insert(dbModule.settings as any)
         .values({ key: "theme", value: "dark" });
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       return yield* db.select().from(dbModule.settings as any);
     });
 
@@ -86,11 +90,11 @@ describe("Database layer", () => {
   });
 
   test.serial("creates database snapshot", async () => {
-    const snapshot = (await Effect.runPromise(
+    const snapshot = await Effect.runPromise(
       dbModule.createDatabaseSnapshot.pipe(
         Effect.provide(dbModule.DatabaseLive),
       ),
-    )) as any;
+    );
 
     expect(snapshot).toHaveProperty("timestamp");
     expect(snapshot).toHaveProperty("schema");
@@ -107,9 +111,11 @@ describe("Database layer", () => {
 
       // First clear any existing data
       const db = yield* dbModule.SqliteDrizzle;
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       yield* db.delete(dbModule.settings as any);
 
       // Add some test data
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       yield* db.insert(dbModule.settings as any).values([
         { key: "test1", value: "value1" },
         { key: "test2", value: "value2" },
@@ -123,6 +129,7 @@ describe("Database layer", () => {
       expect(snapshot.settings).toHaveLength(2);
 
       // Clear existing data again before restore
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       yield* db.delete(dbModule.settings as any);
 
       // Restore from snapshot
@@ -131,16 +138,18 @@ describe("Database layer", () => {
       // Verify data was restored
       const restoredData = yield* db
         .select()
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .from(dbModule.settings as any)
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .orderBy(dbModule.settings.key as any);
 
       expect(restoredData).toHaveLength(2);
-      expect(restoredData.find((s: any) => s.key === "test1")?.value).toBe(
-        "value1",
-      );
-      expect(restoredData.find((s: any) => s.key === "test2")?.value).toBe(
-        "value2",
-      );
+      expect(
+        (restoredData as Setting[]).find((s) => s.key === "test1")?.value,
+      ).toBe("value1");
+      expect(
+        (restoredData as Setting[]).find((s) => s.key === "test2")?.value,
+      ).toBe("value2");
     });
 
     await (
@@ -157,9 +166,9 @@ describe("Database layer", () => {
   });
 
   test.serial("gets migration status", async () => {
-    const status = (await Effect.runPromise(
+    const status = await Effect.runPromise(
       dbModule.getMigrationStatus.pipe(Effect.provide(dbModule.DatabaseLive)),
-    )) as any;
+    );
 
     expect(status).toHaveProperty("initialized");
     expect(status).toHaveProperty("migrations");
@@ -167,7 +176,7 @@ describe("Database layer", () => {
 
     if (status.initialized) {
       expect(status.migrations.length).toBeGreaterThan(0);
-      status.migrations.forEach((migration: any) => {
+      status.migrations.forEach((migration) => {
         expect(migration).toHaveProperty("id");
         expect(migration).toHaveProperty("name");
         expect(migration).toHaveProperty("createdAt");
