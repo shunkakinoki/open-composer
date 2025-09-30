@@ -2,22 +2,17 @@
   "name": "@open-composer/agent-types",
   "version": "0.1.0",
   "description": "OpenCode agent for open-source coding assistance",
-  "main": "src/index.ts",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
-    "test": "bun test",
     "lint": "biome check .",
-    "lint:fix": "tsc"
+    "lint:fix": "tsc",
+    "test": "bun test"
   },
-  "keywords": [
-    "agent",
-    "opencode",
-    "open-source",
-    "coding"
-  ],
-  "author": "Open Composer",
-  "license": "MIT",
   "dependencies": {
     "effect": "^3.0.0"
   },

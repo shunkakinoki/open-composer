@@ -2,10 +2,13 @@
   "name": "open-composer-landing",
   "version": "0.1.1",
   "private": true,
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "scripts": {
+    "build": "next build --turbopack",
     "dev": "next dev --turbopack --port $(microfrontends port)",
     "dev:proxy": "microfrontends proxy --local-apps landing",
-    "build": "next build --turbopack",
     "start": "next start",
     "type-check": "tsc --noEmit"
   },
@@ -17,11 +20,11 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "@tailwindcss/postcss": "^4.1.13",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2"
   }
 }

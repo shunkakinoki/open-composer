@@ -2,13 +2,16 @@
   "name": "@open-composer/cache",
   "version": "0.1.0",
   "description": "Caching functionality for Open Composer",
-  "main": "src/index.ts",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
-    "test": "bun test",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,10 +22,10 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   },
-  "optionalDependencies": {
-    "@types/node": "^20.0.0"
-  },
   "peerDependencies": {
     "effect": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "@types/node": "^20.0.0"
   }
 }

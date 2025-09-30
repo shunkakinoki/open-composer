@@ -1,14 +1,14 @@
 {
   "name": "open-composer",
   "version": "0.8.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
   "type": "module",
-  "publishConfig": {
-    "access": "public"
-  },
   "main": "src/index.ts",
   "bin": {
-    "open-composer": "./src/index.ts",
-    "oc": "./src/index.ts"
+    "oc": "./src/index.ts",
+    "open-composer": "./src/index.ts"
   },
   "files": [
     "src/**/*",
@@ -20,13 +20,13 @@
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "dev": "bun run ./src/index.ts",
-    "publish": "bun publish --tag ${TAG}",
     "prepublishOnly": "bun run scripts/prepublish.ts",
-    "type-check": "tsc --noEmit",
+    "publish": "bun publish --tag ${TAG}",
     "test": "bun test",
-    "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
-    "test:update-snapshot": "bun test --updateSnapshot"
+    "test:update-snapshot": "bun test --updateSnapshot",
+    "test:watch": "bun test --watch",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@effect/cli": "^0.69.0",
@@ -59,5 +59,8 @@
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.13",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
