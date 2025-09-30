@@ -15,17 +15,17 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "effect": "^3.0.0"
+    "effect": "^3.18.0"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.2"
   },
   "peerDependencies": {
     "effect": "^3.0.0"
   },
   "optionalDependencies": {
-    "@types/node": "^20.0.0"
+    "@types/node": "^24.6.0"
   }
 }

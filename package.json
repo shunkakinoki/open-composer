@@ -28,6 +28,8 @@
     "fix": "turbo run __fix__",
     "format": "turbo run __format__",
     "lint": "turbo run __lint__",
+    "npm-check-updates:check": "npm-check-updates --workspaces",
+    "npm-check-updates:fix": "npm-check-updates --workspaces --upgrade",
     "npm-package-json:check": "npmPkgJsonLint . --quiet",
     "npm-package-json:fix": "npmPkgJsonLint .",
     "prepublishOnly": "turbo run prepublishOnly",
@@ -43,9 +45,10 @@
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "lefthook": "^1.13.6",
+    "npm-check-updates": "^19.0.0",
     "npm-package-json-lint": "^9.0.0",
     "sort-package-json": "^3.4.0",
     "turbo": "^2.5.8"
   },
-  "packageManager": "bun@1.0.0"
+  "packageManager": "bun@1.2.23"
 }
