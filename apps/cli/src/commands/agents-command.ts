@@ -1,5 +1,5 @@
 import { Args, Command, Options } from "@effect/cli";
-import { refreshAgentCache } from "agents/agent-router/src/index.js";
+import { refreshAgentCache } from "@open-composer/agent-router";
 import { type AgentCache, updateAgentCache } from "@open-composer/cache";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -174,15 +174,28 @@ export function buildRouteCommand() {
         });
 
         const cli = yield* AgentService.make();
-        yield* cli.route({
+        const routeOptions: {
+          query: string;
+          cliPath?: readonly string[];
+          agent?: string;
+        } = {
           query: config.query,
-          cliPath: Option.getOrUndefined(
-            Option.map(config.path, (path) =>
-              path.split(",").map((part: string) => part.trim()),
-            ),
-          ),
-          agent: Option.getOrUndefined(config.agent),
-        });
+        };
+
+        const cliPath = Option.map(config.path, (path) =>
+          path.split(",").map((part: string) => part.trim())
+        );
+
+        if (Option.isSome(cliPath)) {
+          routeOptions.cliPath = cliPath.value;
+        }
+
+        const agent = Option.getOrUndefined(config.agent);
+        if (agent !== undefined) {
+          routeOptions.agent = agent;
+        }
+
+        yield* cli.route(routeOptions);
       }),
     ),
   );
