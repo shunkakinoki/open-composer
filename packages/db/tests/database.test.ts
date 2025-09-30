@@ -11,6 +11,7 @@ import { existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { Effect } from "effect";
+import type { Setting } from "../src/index.js";
 
 let dbModule: typeof import("../src/index.js");
 let tempDir: string;
@@ -63,7 +64,9 @@ describe("Database layer", () => {
       yield* db
         .insert(dbModule.settings as any)
         .values({ key: "theme", value: "dark" });
-      return yield* db.select().from(dbModule.settings as any);
+      return yield* db
+        .select()
+        .from(dbModule.settings as any);
     });
 
     const result = await (
@@ -86,11 +89,11 @@ describe("Database layer", () => {
   });
 
   test.serial("creates database snapshot", async () => {
-    const snapshot = (await Effect.runPromise(
+    const snapshot = await Effect.runPromise(
       dbModule.createDatabaseSnapshot.pipe(
         Effect.provide(dbModule.DatabaseLive),
       ),
-    )) as any;
+    );
 
     expect(snapshot).toHaveProperty("timestamp");
     expect(snapshot).toHaveProperty("schema");
@@ -135,12 +138,12 @@ describe("Database layer", () => {
         .orderBy(dbModule.settings.key as any);
 
       expect(restoredData).toHaveLength(2);
-      expect(restoredData.find((s: any) => s.key === "test1")?.value).toBe(
-        "value1",
-      );
-      expect(restoredData.find((s: any) => s.key === "test2")?.value).toBe(
-        "value2",
-      );
+      expect(
+        (restoredData as Setting[]).find((s) => s.key === "test1")?.value,
+      ).toBe("value1");
+      expect(
+        (restoredData as Setting[]).find((s) => s.key === "test2")?.value,
+      ).toBe("value2");
     });
 
     await (
@@ -157,9 +160,9 @@ describe("Database layer", () => {
   });
 
   test.serial("gets migration status", async () => {
-    const status = (await Effect.runPromise(
+    const status = await Effect.runPromise(
       dbModule.getMigrationStatus.pipe(Effect.provide(dbModule.DatabaseLive)),
-    )) as any;
+    );
 
     expect(status).toHaveProperty("initialized");
     expect(status).toHaveProperty("migrations");
@@ -167,7 +170,7 @@ describe("Database layer", () => {
 
     if (status.initialized) {
       expect(status.migrations.length).toBeGreaterThan(0);
-      status.migrations.forEach((migration: any) => {
+      status.migrations.forEach((migration) => {
         expect(migration).toHaveProperty("id");
         expect(migration).toHaveProperty("name");
         expect(migration).toHaveProperty("createdAt");

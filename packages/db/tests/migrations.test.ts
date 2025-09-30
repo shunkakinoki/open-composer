@@ -121,7 +121,7 @@ describe("Migration Functionality", () => {
 
         // Verify migration details
         expect(afterStatus.migrations.length).toBeGreaterThan(0);
-        afterStatus.migrations.forEach((migration: any) => {
+        afterStatus.migrations.forEach((migration) => {
           expect(migration).toHaveProperty("id");
           expect(migration).toHaveProperty("name");
           expect(migration).toHaveProperty("createdAt");
