@@ -5,6 +5,13 @@
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",
+  "main": "./index.js",
+  "module": "./index.js",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "workspaces": [
     "apps/*",
     "agents/*",
@@ -50,5 +57,8 @@
     "sort-package-json": "^3.4.0",
     "turbo": "^2.5.8"
   },
-  "packageManager": "bun@1.2.23"
+  "packageManager": "bun@1.2.23",
+  "publishConfig": {
+    "access": "public"
+  }
 }

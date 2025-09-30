@@ -56,33 +56,5 @@
     "valid-values-author": ["error", ["Shun Kakinoki"]],
     "name-format": "error",
     "version-format": "error"
-  },
-  "overrides": [
-    {
-      "patterns": ["./package.json"],
-      "rules": {
-        "require-files": "off",
-        "require-main": "off",
-        "require-module": "off",
-        "require-publishConfig": "off"
-      }
-    },
-    {
-      "patterns": ["./apps/docs/package.json", "./apps/landing/package.json"],
-      "rules": {
-        "require-files": "off",
-        "require-main": "off",
-        "require-module": "off",
-        "require-publishConfig": "off"
-      }
-    },
-    {
-      "patterns": ["./workers/**/package.json"],
-      "rules": {
-        "require-files": "off",
-        "require-module": "off",
-        "require-publishConfig": "off"
-      }
-    }
-  ]
+  }
 }
