@@ -28,3 +28,6 @@ jobs:
         REPO: ${{ github.repository }}
         SHA: ${{ github.sha }}
         REF: ${{ github.ref }}
+        EXTENDED_LABELS: 0
+        LABEL: ""
+
