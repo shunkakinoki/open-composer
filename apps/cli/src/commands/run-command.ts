@@ -92,6 +92,7 @@ function buildRunCommandInternal() {
   );
 
   const createPROption = Options.boolean("create-pr").pipe(
+    Options.withDefault(true),
     Options.withDescription(
       "Create PRs for the spawned worktrees (default: true)",
     ),
