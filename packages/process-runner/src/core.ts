@@ -317,9 +317,9 @@ export class ProcessRunnerService {
                   // Use already imported childSpawn from top of file
 
                   // Parse command to determine best execution strategy
-                  const cmdParts = validCommand.trim().split(/\s+/);
-                  const _mainCmd = cmdParts[0];
-                  const _cmdArgs = cmdParts.slice(1);
+                  // const cmdParts = validCommand.trim().split(/\s+/);
+                  // const _mainCmd = cmdParts[0];
+                  // const _cmdArgs = cmdParts.slice(1);
 
                   // Always use PTY for true interactivity - this ensures all sessions support input/output
                   let term: PtyProcess;

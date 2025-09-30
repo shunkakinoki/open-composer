@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
-import path from "node:path";
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BunContext } from "@effect/platform-bun";
 import { SqlClient } from "@effect/sql";
@@ -157,12 +157,12 @@ export const createSettingsSnapshot = Effect.gen(function* () {
   const db = yield* SqliteDrizzle.SqliteDrizzle;
   const settings = yield* db
     .select()
-    .from(schema.settings)
-    .orderBy(schema.settings.key);
+    .from(schema.settings as any)
+    .orderBy(schema.settings.key as any);
 
   return {
     timestamp: new Date().toISOString(),
-    settings: settings.map((setting: schema.Setting) => ({
+    settings: settings.map((setting: any) => ({
       key: setting.key,
       value: setting.value,
       updatedAt: setting.updatedAt,
@@ -180,11 +180,11 @@ export const restoreSettingsSnapshot = (snapshot: {
     const db = yield* SqliteDrizzle.SqliteDrizzle;
 
     // Clear existing settings
-    yield* db.delete(schema.settings);
+    yield* db.delete(schema.settings as any);
 
     // Insert snapshot settings
     if (snapshot.settings.length > 0) {
-      yield* db.insert(schema.settings).values(
+      yield* db.insert(schema.settings as any).values(
         snapshot.settings.map((setting) => ({
           key: setting.key,
           value: setting.value,
@@ -280,4 +280,4 @@ export const validateDatabaseSchema = Effect.gen(function* () {
 
 export { SqliteClientLive, DrizzleLive, MigrationsLive };
 export { SqliteDrizzle } from "@effect/sql-drizzle/Sqlite";
-export * from "./schema";
+export * from "./schema.js";

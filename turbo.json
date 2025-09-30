@@ -41,12 +41,11 @@
         "type-check",
         "test",
         "//#__format__",
-        "//#__check__",
         "//#__lint__"
       ]
     },
     "//#__lint__": {
-      "dependsOn": ["//#__check__"]
+      "dependsOn": ["//#__check__", "//#__fix__"]
     },
     "//#__format__": {
       "dependsOn": ["//#__fix__"]

@@ -29,8 +29,8 @@ export const ProcessRunnerError = (
 ): ProcessRunnerError => ({
   _tag: "ProcessRunnerError",
   message,
-  exitCode,
-  stderr,
+  ...(exitCode !== undefined && { exitCode }),
+  ...(stderr !== undefined && { stderr }),
 });
 
 // PTY interface for bun-pty

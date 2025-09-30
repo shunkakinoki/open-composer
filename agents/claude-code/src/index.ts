@@ -63,7 +63,10 @@ const checkCommand = (
             Effect.map((result) => {
               const versionMatch = result.match(/(\d+\.\d+\.\d+)/);
               const version = versionMatch ? versionMatch[0] : undefined;
-              return { version, path: command };
+              return {
+                path: command,
+                ...(version !== undefined && { version }),
+              };
             }),
           )
         : Effect.fail(new Error(`Command not found: ${command}`)),
@@ -86,8 +89,8 @@ const checkInstallation = (): Effect.Effect<AgentStatus> =>
         ({
           name: "claude-code",
           available: true,
-          version,
           path,
+          ...(version !== undefined && { version }),
         }) satisfies AgentStatus,
     ),
     Effect.catchAll(() =>

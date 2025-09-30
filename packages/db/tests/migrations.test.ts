@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import { existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
-import path from "node:path";
+import * as path from "node:path";
 import { Effect } from "effect";
 
 let tempDir: string;
@@ -43,11 +43,11 @@ afterEach(() => {
 });
 
 describe("Migration Functionality", () => {
-  let dbModule: typeof import("../src/index");
+  let dbModule: typeof import("../src/index.js");
 
   beforeAll(async () => {
     // Import the module once for all tests
-    dbModule = await import("../src/index");
+    dbModule = await import("../src/index.js");
   });
 
   describe("Database Initialization", () => {
@@ -121,7 +121,7 @@ describe("Migration Functionality", () => {
 
         // Verify migration details
         expect(afterStatus.migrations.length).toBeGreaterThan(0);
-        afterStatus.migrations.forEach((migration) => {
+        afterStatus.migrations.forEach((migration: any) => {
           expect(migration).toHaveProperty("id");
           expect(migration).toHaveProperty("name");
           expect(migration).toHaveProperty("createdAt");

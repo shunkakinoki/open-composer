@@ -1,0 +1,57 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [],
+  "references": [
+    {
+      "path": "agents/claude-code"
+    },
+    {
+      "path": "agents/codex"
+    },
+    {
+      "path": "agents/opencode"
+    },
+    {
+      "path": "agents/types"
+    },
+    {
+      "path": "apps/cli"
+    },
+    {
+      "path": "packages/agent-router"
+    },
+    {
+      "path": "packages/cache"
+    },
+    {
+      "path": "packages/config"
+    },
+    {
+      "path": "packages/db"
+    },
+    {
+      "path": "packages/gh"
+    },
+    {
+      "path": "packages/gh-pr"
+    },
+    {
+      "path": "packages/git"
+    },
+    {
+      "path": "packages/git-stack"
+    },
+    {
+      "path": "packages/git-worktrees"
+    },
+    {
+      "path": "packages/process-runner"
+    },
+    {
+      "path": "packages/tmux"
+    },
+    {
+      "path": "workers/posthog"
+    }
+  ]
+}
