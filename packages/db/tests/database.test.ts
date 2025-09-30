@@ -64,9 +64,7 @@ describe("Database layer", () => {
       yield* db
         .insert(dbModule.settings as any)
         .values({ key: "theme", value: "dark" });
-      return yield* db
-        .select()
-        .from(dbModule.settings as any);
+      return yield* db.select().from(dbModule.settings as any);
     });
 
     const result = await (
