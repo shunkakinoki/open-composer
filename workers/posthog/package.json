@@ -1,7 +1,6 @@
 {
   "name": "@open-composer/posthog-worker",
   "version": "1.0.3",
-  "description": "Cloudflare Worker for anonymous PostHog logging with IP-based rate limiting",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",

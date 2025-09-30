@@ -1,7 +1,6 @@
 {
   "name": "@open-composer/agent-opencode",
   "version": "0.1.0",
-  "description": "OpenCode agent for open-source coding assistance",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
   "author": "Shun Kakinoki",
