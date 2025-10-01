@@ -1,12 +1,14 @@
 import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { BunContext } from "@effect/platform-bun";
 import { SqlClient } from "@effect/sql";
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
 import { SqliteClient } from "@effect/sql-sqlite-bun";
 import { Effect, Layer } from "effect";
+import migration0000 from "../migrations/0000_create_settings.js";
+import migration0001 from "../migrations/0001_add_user_table.js";
+import migration0002 from "../migrations/0002_add_sessions_table.js";
 import type { Setting } from "./schema.js";
 import * as schema from "./schema.js";
 
@@ -27,9 +29,13 @@ export const databaseDirectory = {
     return path.dirname(getDatabaseFile());
   },
 };
-export const migrationsDirectory = fileURLToPath(
-  new URL("../migrations", import.meta.url),
-);
+
+// Static list of migrations to avoid filesystem reads in compiled binaries
+const MIGRATIONS = [
+  { id: 0, name: "0000_create_settings", effect: migration0000 },
+  { id: 1, name: "0001_add_user_table", effect: migration0001 },
+  { id: 2, name: "0002_add_sessions_table", effect: migration0002 },
+];
 
 const SqliteClientLive = Layer.unwrapEffect(
   Effect.gen(function* () {
@@ -57,39 +63,21 @@ export const initializeDatabase = Effect.gen(function* () {
     )
   `;
 
-  // Read all migration files from the migrations directory
-  const migrationFiles = yield* Effect.promise(async () => {
-    const fs = await import("node:fs/promises");
-    const entries = await fs.readdir(migrationsDirectory);
-    return entries
-      .filter(
-        (file) =>
-          (file.endsWith(".ts") || file.endsWith(".js")) &&
-          !file.startsWith("_"),
-      )
-      .sort(); // Sort by filename (should be numbered)
-  });
-
-  // Import and run each migration in order, tracking them
-  for (const file of migrationFiles) {
-    const migrationId = parseInt(file.split("_")[0], 10); // Extract ID from filename like "0000_create_settings.ts"
-    const migrationName = file.replace(".ts", "");
-
+  // Run each migration in order, tracking them
+  for (const migration of MIGRATIONS) {
     // Check if migration already ran
     const existing = yield* sql`
-      SELECT migration_id FROM effect_sql_migrations WHERE migration_id = ${migrationId}
+      SELECT migration_id FROM effect_sql_migrations WHERE migration_id = ${migration.id}
     `;
 
     if (existing.length === 0) {
       // Run the migration
-      const migrationPath = `../migrations/${file.replace(".ts", "")}`;
-      const migration = yield* Effect.promise(() => import(migrationPath));
-      yield* migration.default;
+      yield* migration.effect;
 
       // Record the migration
       yield* sql`
         INSERT INTO effect_sql_migrations (migration_id, name, created_at)
-        VALUES (${migrationId}, ${migrationName}, ${new Date().toISOString()})
+        VALUES (${migration.id}, ${migration.name}, ${new Date().toISOString()})
       `;
     }
   }
