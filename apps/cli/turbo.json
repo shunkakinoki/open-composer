@@ -3,13 +3,7 @@
   "tasks": {
     "prepublishOnly": {
       "dependsOn": ["^build"],
-      "env": [
-        "PUBLISH_PACKAGES",
-        "RELEASE_ZIP_FILES",
-        "GITHUB_SHA",
-        "CHANGESET_RELEASE",
-        "TAG"
-      ]
+      "env": ["PUBLISH_PACKAGES", "RELEASE_ZIP_FILES", "GITHUB_SHA"]
     }
   }
 }

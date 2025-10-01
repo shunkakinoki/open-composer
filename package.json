@@ -25,7 +25,7 @@
     "biome:format:check": "biome format --error-on-warnings .",
     "biome:format:fix": "biome format --write .",
     "build": "turbo run build",
-    "changeset:publish": "changeset publish --tag ${TAG}",
+    "changeset:publish": "changeset publish",
     "changeset:status": "changeset status --verbose --since origin/main",
     "changeset:version": "changeset version",
     "check": "turbo run __check__",
