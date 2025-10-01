@@ -1,0 +1,3 @@
+[submodule "charts/temporalio"]
+	path = charts/temporalio
+	url = https://github.com/temporalio/helm-charts.git
