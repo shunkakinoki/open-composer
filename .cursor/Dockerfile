@@ -4,5 +4,5 @@ FROM ghcr.io/shunkakinoki/dotfiles:sha-d655c4a
 SHELL ["/bin/bash", "-c"]
 
 # Fix git config permissions issue
-RUN chown -R runner:runner /home/runner && \
-    mkdir -p /home/runner/.config/git
+RUN mkdir -p /home/runner/.config/git && \
+    chown -R runner:runner /home/runner
