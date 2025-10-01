@@ -6,9 +6,7 @@
       "env": [
         "PUBLISH_PACKAGES",
         "RELEASE_ZIP_FILES",
-        "GITHUB_SHA",
-        "CHANGESET_RELEASE",
-        "TAG"
+        "GITHUB_SHA"
       ]
     }
   }

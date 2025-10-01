@@ -11,35 +11,21 @@ import { CLI_VERSION } from "../src/lib/version.js";
 console.log(`CI: ${process.env.CI}`);
 console.log(`PUBLISH_PACKAGES: ${process.env.PUBLISH_PACKAGES}`);
 console.log(`RELEASE_ZIP_FILES: ${process.env.RELEASE_ZIP_FILES}`);
-console.log(`TAG: ${process.env.TAG}`);
 console.log(`GITHUB_SHA: ${process.env.GITHUB_SHA}`);
-console.log(`CHANGESET_RELEASE: ${process.env.CHANGESET_RELEASE}`);
 
 // Use snapshot tag for changeset releases (Version Packages PR merges)
 const isRelease =
   process.env.CI === "true" &&
   process.env.PUBLISH_PACKAGES === "true" &&
   process.env.GITHUB_SHA !== undefined;
-const isChangesetRelease =
-  isRelease && process.env.CHANGESET_RELEASE === "true";
-const isSnapshotRelease = isRelease && !isChangesetRelease;
 
 console.log(`isRelease: ${isRelease}`);
-console.log(`isChangesetRelease: ${isChangesetRelease}`);
-console.log(`isSnapshotRelease: ${isSnapshotRelease}`);
 
 // -----------------------------------------------------------------------------
 // Set the metadata
 // -----------------------------------------------------------------------------
 
-const VERSION = isChangesetRelease
-  ? CLI_VERSION
-  : `${CLI_VERSION}-canary.${process.env.GITHUB_SHA?.slice(0, 7)}`;
-const TAG = process.env.TAG || "latest";
-
 console.log(`CLI_VERSION: ${CLI_VERSION}`);
-console.log(`VERSION: ${VERSION}`);
-console.log(`TAG: ${TAG}`);
 
 // -----------------------------------------------------------------------------
 // Set the targets
@@ -127,7 +113,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name: packageName,
-        version: VERSION,
+        version: CLI_VERSION,
         main: "bin/opencomposer",
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
@@ -144,7 +130,7 @@ for (const [os, arch] of targets) {
   // Add the package to the binaries object
   // ---------------------------------------------------------------------------
 
-  binaries[packageName] = VERSION;
+  binaries[packageName] = CLI_VERSION;
 }
 
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
@@ -199,7 +185,7 @@ if (isRelease) {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
         },
-        version: VERSION,
+        version: CLI_VERSION,
         optionalDependencies: binaries,
       },
       null,
@@ -216,19 +202,10 @@ if (isRelease) {
   console.log("Publishing binaries");
 
   for (const [name] of Object.entries(binaries)) {
-    await $`cd dist/${name} && bun publish --access public --tag ${TAG}`;
+    await $`cd dist/${name} && bun publish --access public --tag latest`;
   }
 
   console.log("Binaries published:", binaries);
-
-  // ---------------------------------------------------------------------------
-  // Clean the package if `isChangesetRelease` is set
-  // ---------------------------------------------------------------------------
-
-  if (isChangesetRelease) {
-    // Remove the `CHANGELOG.md` file
-    await $`rm CHANGELOG.md`;
-  }
 }
 
 export { binaries };

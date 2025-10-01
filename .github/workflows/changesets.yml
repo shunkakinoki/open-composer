@@ -32,18 +32,6 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@9506b99db7f595bd28dc7e27d22d7f3f6297334a
-      - name: Detect if Changeset Release
-        run: |
-          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
-          if [[ "$LAST_COMMIT_MESSAGE" == *"Version Packages"* ]] || [[ "$LAST_COMMIT_MESSAGE" == *"Release Version"* ]]; then
-            echo "CHANGESET_RELEASE=true" >> $GITHUB_ENV
-            echo "TAG=latest" >> $GITHUB_ENV
-            echo "Release commit from changesets action detected."
-          else
-            echo "CHANGESET_RELEASE=false" >> $GITHUB_ENV
-            echo "TAG=canary" >> $GITHUB_ENV
-            echo "No changeset release detected."
-          fi
       - name: Set Environment Variables
         run: |
           echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
@@ -62,10 +50,7 @@ jobs:
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
-          version-command: 'bun run version'
-          publish-command: 'bun run publish'
           create-github-releases: 'true'
-          commit-mode: 'git-cli'
   changesets-pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

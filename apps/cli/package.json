@@ -22,7 +22,7 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run scripts/prepublish.ts",
-    "publish": "bun publish --tag ${TAG}",
+    "publish": "bun run prepublishOnly",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
