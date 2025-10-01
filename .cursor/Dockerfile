@@ -1,1 +1,1 @@
-FROM ghcr.io/shunkakinoki/dotfiles:sha-2bddb42
+FROM ghcr.io/shunkakinoki/dotfiles:sha-d655c4a
