@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.1
+
+### Patch Changes
+
+- [#213](https://github.com/shunkakinoki/open-composer/pull/213) [`e0cd540`](https://github.com/shunkakinoki/open-composer/commit/e0cd540c904f1967509ed168c65c370da84369cb) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Fix Docker container git configuration permissions issue by ensuring proper directory ownership for the runner user and setting bash as the default shell for RUN commands.
+
 ## 0.8.0
 
 ### Minor Changes
