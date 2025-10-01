@@ -5,4 +5,4 @@ SHELL ["/bin/bash", "-c"]
 
 # Fix git config permissions issue
 RUN mkdir -p /home/runner/.config/git && \
-    chown -R runner:runner /home/runner/.config
+    chown -R runner:runner /home/runner
