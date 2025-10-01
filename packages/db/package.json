@@ -10,6 +10,7 @@
   "files": [
     "dist/**/*",
     "src/**/*",
+    "migrations/**/*",
     "README.md",
     "CHANGELOG.md"
   ],
