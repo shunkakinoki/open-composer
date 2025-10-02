@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { AgentCache } from "../../src/services/cache-service";
+import type { AgentCache } from "../../src/services/cache-service.js";
 
 // Test isolation variables
 let mockCacheDir: string;

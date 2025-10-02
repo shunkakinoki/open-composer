@@ -501,10 +501,13 @@ function buildViewCommand() {
 
         // View PR
         console.log(`\n👁️  Viewing Pull Request #${config.number}...`);
-        const options = {
-          json: Option.getOrUndefined(config.json),
-          web: config.web,
-        };
+        const options: { json?: string; web?: boolean } = {};
+        if (config.json._tag === "Some") {
+          options.json = config.json.value;
+        }
+        if (config.web) {
+          options.web = config.web;
+        }
 
         const result = yield* service.viewPR(config.number, options);
         console.log(result);
@@ -654,17 +657,28 @@ function buildListCommand() {
 
         // List PRs
         console.log("\n📋 Listing Pull Requests...");
-        const options = {
+        const options: {
+          state?: "open" | "closed" | "merged" | "all";
+          author?: string;
+          assignee?: string;
+          limit?: number;
+          json?: boolean;
+        } = {
           state: Option.getOrElse(config.state, () => "open") as
             | "open"
             | "closed"
             | "merged"
             | "all",
-          author: Option.getOrUndefined(config.author),
-          assignee: Option.getOrUndefined(config.assignee),
           limit: Option.getOrElse(config.limit, () => 10),
           json: config.json,
         };
+
+        if (config.author._tag === "Some") {
+          options.author = config.author.value;
+        }
+        if (config.assignee._tag === "Some") {
+          options.assignee = config.assignee.value;
+        }
 
         const result = yield* service.listPRs(options);
 

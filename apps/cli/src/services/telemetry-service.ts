@@ -33,12 +33,12 @@ function getOrCreateAnonymousId(): Effect.Effect<
     // Update config with the new anonymous ID while preserving existing fields
     const updatedTelemetry: TelemetryConfig = {
       enabled: telemetry?.enabled ?? false,
-      apiKey: telemetry?.apiKey,
-      host: telemetry?.host,
-      distinctId: telemetry?.distinctId,
-      consentedAt: telemetry?.consentedAt,
       version: telemetry?.version ?? "1.0.0",
       anonymousId: newId,
+      ...(telemetry?.apiKey && { apiKey: telemetry.apiKey }),
+      ...(telemetry?.host && { host: telemetry.host }),
+      ...(telemetry?.distinctId && { distinctId: telemetry.distinctId }),
+      ...(telemetry?.consentedAt && { consentedAt: telemetry.consentedAt }),
     };
 
     yield* _(
@@ -54,7 +54,6 @@ function getOrCreateAnonymousId(): Effect.Effect<
 const defaultConfig: TelemetryConfig = {
   enabled: false, // Disable telemetry by default - enable via environment variable
   host: "https://posthog-worker.shunkakinoki.workers.dev",
-  distinctId: undefined,
 };
 
 // Create the PostHog client
@@ -64,7 +63,7 @@ function createPostHogClient(config: TelemetryConfig) {
   }
 
   return new PostHog(config.apiKey, {
-    host: config.host,
+    ...(config.host && { host: config.host }),
     requestTimeout: 10000, // 10 seconds timeout
     maxCacheSize: 1000,
     flushAt: 1, // Flush immediately for CLI usage

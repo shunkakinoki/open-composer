@@ -1,4 +1,4 @@
-import { describe, expect, mock, spyOn, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import * as Effect from "effect/Effect";
 
 // Mock the git-stack package functions
@@ -45,9 +45,7 @@ const mockConfigureStack = mock(() => Effect.void);
 
 // TODO: Add MockGitCommandError when implementing error testing
 
-// Mock console methods
-const _mockConsoleLog = spyOn(console, "log");
-const _mockConsoleError = spyOn(console, "error");
+// Mock console methods could be added here if needed for future tests
 
 // Import StackService after mocks are set up
 import { StackService } from "../../src/services/stack-service.js";

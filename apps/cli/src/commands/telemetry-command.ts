@@ -118,7 +118,7 @@ export function buildResetCommand() {
         const configService = yield* _(ConfigService);
         yield* _(
           configService.updateConfig({
-            telemetry: undefined, // Remove telemetry config to trigger re-prompt
+            // Remove telemetry config to trigger re-prompt by not including it in updates
           }),
         );
         console.log("✅ Telemetry consent reset.");

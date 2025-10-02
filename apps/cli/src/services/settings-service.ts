@@ -1,4 +1,9 @@
-import { type NewSetting, SqliteDrizzle, settings } from "@open-composer/db";
+import {
+  type NewSetting,
+  type Setting,
+  SqliteDrizzle,
+  settings,
+} from "@open-composer/db";
 import { count, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 
@@ -55,32 +60,35 @@ function createSettingsService(): SettingsServiceInterface {
   return {
     getSetting: (key: string) =>
       Effect.gen(function* () {
-        const db = yield* SqliteDrizzle;
-        const result = yield* db
+        const db = yield* SqliteDrizzle as any;
+        const result = (yield* db
           .select()
-          .from(settings)
-          .where(eq(settings.key, key))
-          .limit(1);
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+          .from(settings as any)
+          .where(eq((settings as any).key, key))
+          .limit(1)) as Setting[] | undefined;
 
-        return result.length > 0 ? result[0].value : null;
+        return result && result.length > 0 ? result[0].value : null;
       }).pipe(
         Effect.mapError((error) =>
           error instanceof Error ? error : new Error(String(error)),
         ),
-      ),
+      ) as Effect.Effect<string | null, Error, SqliteDrizzle>,
 
     setSetting: (key: string, value: string) =>
       Effect.gen(function* () {
-        const db = yield* SqliteDrizzle;
+        const db = yield* SqliteDrizzle as any;
         yield* db
-          .insert(settings)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+          .insert(settings as any)
           .values({
             key,
             value,
             updatedAt: new Date().toISOString(),
           } as NewSetting)
           .onConflictDoUpdate({
-            target: settings.key,
+            // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+            target: (settings as any).key,
             set: {
               value,
               updatedAt: new Date().toISOString(),
@@ -90,31 +98,42 @@ function createSettingsService(): SettingsServiceInterface {
         Effect.mapError((error) =>
           error instanceof Error ? error : new Error(String(error)),
         ),
-      ),
+      ) as Effect.Effect<void, Error, SqliteDrizzle>,
 
     getAllSettings: () =>
       Effect.gen(function* () {
-        const db = yield* SqliteDrizzle;
-        return yield* db.select().from(settings).orderBy(settings.key);
+        const db = yield* SqliteDrizzle as any;
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+        const result = yield* db
+          .select()
+          .from(settings as any)
+          .orderBy((settings as any).key) as Setting[];
+        return result || [];
       }).pipe(
         Effect.mapError((error) =>
           error instanceof Error ? error : new Error(String(error)),
         ),
-      ),
+      ) as Effect.Effect<
+        Array<{ key: string; value: string; updatedAt: string }>,
+        Error,
+        SqliteDrizzle
+      >,
 
     deleteSetting: (key: string) =>
       Effect.gen(function* () {
-        const db = yield* SqliteDrizzle;
-        yield* db.delete(settings).where(eq(settings.key, key));
+        const db = yield* SqliteDrizzle as any;
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
+        yield* db.delete(settings as any).where(eq((settings as any).key, key));
 
         // Check if the setting was actually deleted by trying to get it
         const existsAfter = yield* Effect.tryPromise(async () => {
-          const result = await db
+          const result = (await db
             .select({ count: count() })
-            .from(settings)
-            .where(eq(settings.key, key))
-            .limit(1);
-          return (result[0]?.count ?? 0) > 0;
+            // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+            .from(settings as any)
+            .where(eq((settings as any).key, key))
+            .limit(1)) as { count: number }[];
+          return ((result as any)[0]?.count ?? 0) > 0;
         });
 
         return !existsAfter;
@@ -122,23 +141,24 @@ function createSettingsService(): SettingsServiceInterface {
         Effect.mapError((error) =>
           error instanceof Error ? error : new Error(String(error)),
         ),
-      ),
+      ) as Effect.Effect<boolean, Error, SqliteDrizzle>,
 
     hasSetting: (key: string) =>
       Effect.gen(function* () {
-        const db = yield* SqliteDrizzle;
+        const db = yield* SqliteDrizzle as any;
         const result = yield* db
           .select({ count: count() })
-          .from(settings)
-          .where(eq(settings.key, key))
-          .limit(1);
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
+          .from(settings as any)
+          .where(eq((settings as any).key, key))
+          .limit(1) as { count: number }[];
 
-        return (result[0]?.count ?? 0) > 0;
+        return ((result as any)[0]?.count ?? 0) > 0;
       }).pipe(
         Effect.mapError((error) =>
           error instanceof Error ? error : new Error(String(error)),
         ),
-      ),
+      ) as Effect.Effect<boolean, Error, SqliteDrizzle>,
   };
 }
 
