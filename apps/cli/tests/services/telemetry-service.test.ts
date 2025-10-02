@@ -1,15 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { TelemetryConfig } from "@open-composer/config";
 
-// Mock PostHog client
-const _mockPostHogClient = {
-  capture: () => {},
-  captureException: () => {},
-  identify: () => {},
-  flush: () => {},
-  shutdown: () => {},
-};
-
 // Note: In a real implementation, we would mock the PostHog constructor
 // For this test, we're testing the service interface directly
 

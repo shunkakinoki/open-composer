@@ -12,7 +12,6 @@ import {
 
 // Mock config directory for testing
 const mockConfigDir = join(homedir(), ".config", "open-composer-test");
-const _mockConfigPath = join(mockConfigDir, "config.json");
 
 describe("config command", () => {
   beforeEach(async () => {

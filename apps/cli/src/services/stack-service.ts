@@ -13,12 +13,11 @@ import {
   trackStackBranch,
   untrackStackBranch,
 } from "@open-composer/git-stack";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
-    discard: true,
-  });
+  Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
 const provideStack = <A, E>(effectFn: () => Effect.Effect<A, E>) => {
   // In test environment, run the effect and wrap the result in a new Effect
@@ -29,10 +28,10 @@ const provideStack = <A, E>(effectFn: () => Effect.Effect<A, E>) => {
 };
 
 const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
-  Effect.sync(() => {
-    console.error(`Git command failed: ${error.message}`);
+  Effect.gen(function* () {
+    yield* Console.error(`Git command failed: ${error.message}`);
     if (error.stderr) {
-      console.error(error.stderr);
+      yield* Console.error(error.stderr);
     }
   });
 
@@ -107,11 +106,11 @@ export class StackService {
   }
 
   log(): Effect.Effect<void> {
-    return provideStack(this.logStack).pipe(Effect.flatMap(printLines));
+    return provideStack(() => this.logStack()).pipe(Effect.flatMap(printLines));
   }
 
   status(): Effect.Effect<void> {
-    return provideStack(this.statusStack).pipe(
+    return provideStack(() => this.statusStack()).pipe(
       Effect.flatMap((status) =>
         printLines([
           `Current branch: ${status.currentBranch}`,
@@ -126,7 +125,11 @@ export class StackService {
   }
 
   create(name: string, base?: string): Effect.Effect<void> {
-    return provideStack(() => this.createStackBranch({ name, base })).pipe(
+    const createOptions: { name: string; base?: string } = { name };
+    if (base !== undefined) {
+      createOptions.base = base;
+    }
+    return provideStack(() => this.createStackBranch(createOptions)).pipe(
       Effect.flatMap((result) =>
         printLines([
           `Created branch ${result.branch} on top of ${result.base}.`,

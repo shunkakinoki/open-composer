@@ -10,7 +10,7 @@ import { AgentService } from "../../src/services/agent-service.js";
 import {
   CacheService,
   type CacheServiceInterface,
-} from "../../src/services/cache-service";
+} from "../../src/services/cache-service.js";
 
 // Mock agent router to return some test agents
 mock.module("@open-composer/agent-router", () => {

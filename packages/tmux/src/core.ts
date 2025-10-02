@@ -191,9 +191,7 @@ export class TmuxService {
    * Kill a tmux session
    */
   killSession(sessionName: string): Effect.Effect<void, TmuxCommandError> {
-    return this.run(["kill-session", "-t", sessionName]).pipe(
-      Effect.map(() => void 0),
-    );
+    return this.run(["kill-session", "-t", sessionName]).pipe(Effect.asVoid);
   }
 
   /**

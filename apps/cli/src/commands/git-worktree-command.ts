@@ -282,16 +282,19 @@ function buildCreateCommand() {
 
           // Create the worktree using the selected options
           const cli = yield* _(GitWorktreeService.make());
-          const createOpts = {
-            path: options.path,
-            force: options.force,
-            detach: options.detach,
-            branchForce: options.branchForce,
-            ...(options.noCheckout ? { checkout: false } : {}),
-            ...(options.ref && { ref: options.ref }),
-            ...(options.branch && { branch: options.branch }),
-          };
-          yield* _(cli.create(createOpts));
+          yield* _(
+            cli.create({
+              path: options.path,
+              ...(options.ref && { ref: options.ref }),
+              ...(options.branch && { branch: options.branch }),
+              force: options.force,
+              detach: options.detach,
+              ...(options.noCheckout !== undefined && {
+                checkout: !options.noCheckout,
+              }),
+              branchForce: options.branchForce,
+            }),
+          );
 
           // Exit cleanly after interactive creation
           process.exit(0);
@@ -311,20 +314,21 @@ function buildCreateCommand() {
         );
 
         const cli = yield* _(GitWorktreeService.make());
-        const createOptsCli = {
-          path: Option.getOrElse(config.path, () => ""),
-          force: config.force,
-          detach: config.detach,
-          branchForce: config.branchForce,
-          ...(config.noCheckout ? { checkout: false } : {}),
-          ...(config.ref && Option.isSome(config.ref)
-            ? { ref: Option.getOrThrow(config.ref) }
-            : {}),
-          ...(config.branch && Option.isSome(config.branch)
-            ? { branch: Option.getOrThrow(config.branch) }
-            : {}),
-        };
-        yield* _(cli.create(createOptsCli));
+        yield* _(
+          cli.create({
+            path: Option.getOrElse(config.path, () => ""),
+            ...(Option.isSome(config.ref) && {
+              ref: Option.getOrThrow(config.ref),
+            }),
+            ...(Option.isSome(config.branch) && {
+              branch: Option.getOrThrow(config.branch),
+            }),
+            force: config.force,
+            detach: config.detach,
+            ...(config.noCheckout && { checkout: false }),
+            branchForce: config.branchForce,
+          }),
+        );
 
         // Exit cleanly after CLI creation
         process.exit(0);
@@ -414,7 +418,9 @@ function buildPruneCommand() {
           cli.prune({
             dryRun: config.dryRun,
             verbose: config.verbose,
-            ...(config.expire && { expire: Option.getOrThrow(config.expire) }),
+            ...(Option.isSome(config.expire) && {
+              expire: Option.getOrThrow(config.expire),
+            }),
           }),
         );
 

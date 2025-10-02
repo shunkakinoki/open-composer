@@ -3,6 +3,7 @@ import {
   type GitHubCommandResult,
   run,
 } from "@open-composer/gh";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 // Types
@@ -75,7 +76,7 @@ export const createPR = (options: PRCreateOptions) =>
         yield* run(["pr", "merge", prNumber.toString(), "--squash", "--auto"]);
         autoMergeEnabled = true;
       } catch (error) {
-        console.warn(`Warning: Could not enable auto-merge: ${error}`);
+        yield* Console.warn(`Warning: Could not enable auto-merge: ${error}`);
       }
     }
 

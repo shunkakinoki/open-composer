@@ -47,7 +47,11 @@ export class GhPRService {
         }
 
         if (!cliAvailable) {
-          return { cliAvailable: false, authenticated: false };
+          return {
+            cliAvailable: false,
+            authenticated: false,
+            repository: undefined,
+          };
         }
 
         // Check authentication status

@@ -4,7 +4,6 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
-import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import {
@@ -27,12 +26,6 @@ interface WorktreeStatus {
   prNumber?: number;
   changes?: string;
   baseBranch: string;
-}
-
-interface GitHubPR {
-  number: number;
-  headRefName: string;
-  // Add other fields as needed
 }
 
 // -----------------------------------------------------------------------------
@@ -140,15 +133,16 @@ function gatherStatus(): Effect.Effect<
           // Get base branch (assume main for now)
           const baseBranch = "main";
 
-          statusResults.push({
+          const status: WorktreeStatus = {
             agent,
             branchName,
             worktreePath,
-            processPid,
-            prNumber,
-            changes,
             baseBranch,
-          });
+            ...(processPid !== undefined && { processPid }),
+            ...(prNumber !== undefined && { prNumber }),
+            ...(changes !== undefined && { changes }),
+          };
+          statusResults.push(status);
         } catch (_err) {
           // Skip worktrees that can't be processed
         }
@@ -197,29 +191,6 @@ function calculateChangeStats(
       return "0+ 0-";
     }
   });
-}
-
-function _getPRNumber(
-  branchName: string,
-): Effect.Effect<number | undefined, never> {
-  return Effect.gen(function* () {
-    // List open PRs in JSON format
-    const result = yield* listPRs({
-      state: "open",
-      json: true,
-      limit: 100, // Increase limit to ensure we find the PR
-    });
-
-    // Parse the JSON response
-    const prs = JSON.parse(result.stdout);
-
-    // Find PR where headRefName matches the branch name
-    const matchingPR = prs.find(
-      (pr: GitHubPR) => pr.headRefName === branchName,
-    );
-
-    return matchingPR ? matchingPR.number : undefined;
-  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 }
 
 function displayStatus(

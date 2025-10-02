@@ -27,7 +27,7 @@
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --build"
   },
   "dependencies": {
     "@effect/cli": "^0.71.0",

@@ -113,9 +113,6 @@ export const GitWorktreeCreatePrompt: React.FC<
             "branchForce",
           ];
           const currentIndex = optionOrder.indexOf("force"); // Start with force
-          const _nextIndex = key.upArrow
-            ? (currentIndex - 1 + optionOrder.length) % optionOrder.length
-            : (currentIndex + 1) % optionOrder.length;
           toggleOption(
             optionOrder[currentIndex] as keyof Pick<
               GitWorktreeCreateOptions,

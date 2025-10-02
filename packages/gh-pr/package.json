@@ -20,7 +20,7 @@
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
-    "type-check": "tsc -b tsconfig.json"
+    "type-check": "tsc --build"
   },
   "dependencies": {
     "@open-composer/gh": "workspace:*",

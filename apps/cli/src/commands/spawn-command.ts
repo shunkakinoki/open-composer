@@ -231,14 +231,19 @@ function createWorktreeAndSpawnSession(
       prNumber = yield* createPR(branchName, config.baseBranch);
     }
 
-    return {
+    const result: WorktreeResult = {
       agent,
       branchName,
       worktreePath,
       tmuxPid,
-      prNumber,
       changes,
     };
+
+    if (prNumber !== undefined) {
+      result.prNumber = prNumber;
+    }
+
+    return result;
   });
 }
 
