@@ -19,6 +19,7 @@ COMMANDS
   status            Show current status of agents, worktrees, and PRs
   telemetry         Manage telemetry and privacy settings
   tui               Launch the interactive TUI
+  upgrade           Upgrade to the latest version
 
 Run 'open-composer <command> --help' for more information on a specific command.
 "

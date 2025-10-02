@@ -44,6 +44,8 @@
     "sort-package-json:check": "sort-package-json package.json */*/package.json --check",
     "sort-package-json:fix": "sort-package-json package.json */*/package.json",
     "test": "turbo run test",
+    "test:coverage": "turbo run test -- --coverage",
+    "test:update": "turbo run test -- --update-snapshots",
     "type-check": "turbo run type-check",
     "version": "bun run changeset:version"
   },
