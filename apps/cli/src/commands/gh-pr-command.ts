@@ -38,7 +38,7 @@ export const buildGHPRCommand = (): CommandBuilder<"pr"> => ({
 // -----------------------------------------------------------------------------
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => Console.log(line)), {
+  Effect.forEach(lines, (line) => Console.log(line), {
     discard: true,
   });
 

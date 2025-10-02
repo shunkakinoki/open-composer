@@ -268,11 +268,9 @@ export class GitWorktreeService {
   private printGitWorktreeLines(
     lines: ReadonlyArray<string>,
   ): Effect.Effect<void, never> {
-    return Effect.forEach(
-      lines,
-      (line) => Effect.sync(() => Console.log(line)),
-      { discard: true },
-    );
+    return Effect.forEach(lines, (line) => Console.log(line), {
+      discard: true,
+    });
   }
 
   switch(worktreePath: string): Effect.Effect<void, Error, GitService> {

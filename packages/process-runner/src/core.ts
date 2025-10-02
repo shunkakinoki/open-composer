@@ -129,15 +129,19 @@ export class ProcessRunnerService {
           try {
             parsed = JSON.parse(data);
           } catch (parseError) {
-            Console.warn(
-              `Corrupted sessions.json file, attempting recovery: ${parseError}`,
+            await Effect.runPromise(
+              Console.warn(
+                `Corrupted sessions.json file, attempting recovery: ${parseError}`,
+              ),
             );
 
             // Try to recover by finding valid JSON objects
             const recovered = this.recoverCorruptedSessions(data);
             if (recovered.length > 0) {
-              Console.log(
-                `Recovered ${recovered.length} sessions from corrupted file`,
+              await Effect.runPromise(
+                Console.log(
+                  `Recovered ${recovered.length} sessions from corrupted file`,
+                ),
               );
               // Save the recovered data
               await this.writeSessions(recovered);
@@ -147,8 +151,10 @@ export class ProcessRunnerService {
             // If recovery fails, backup the corrupted file and start fresh
             const backupFile = `${sessionFile}.corrupted.${Date.now()}`;
             await fs.writeFile(backupFile, data);
-            Console.warn(
-              `Backed up corrupted sessions to ${backupFile}, starting with empty sessions`,
+            await Effect.runPromise(
+              Console.warn(
+                `Backed up corrupted sessions to ${backupFile}, starting with empty sessions`,
+              ),
             );
             return [];
           }
@@ -164,8 +170,10 @@ export class ProcessRunnerService {
             if (this.isValidSessionInfo(session)) {
               validSessions.push(session);
             } else {
-              Console.warn(
-                `Skipping invalid session: ${JSON.stringify(session)}`,
+              await Effect.runPromise(
+                Console.warn(
+                  `Skipping invalid session: ${JSON.stringify(session)}`,
+                ),
               );
             }
           }
@@ -508,14 +516,22 @@ export class ProcessRunnerService {
 
       // Since PTY is not available in current instance, we'll stream the log file
       // and provide a message to the user
-      Console.log(`Attaching to session: ${sessionName} (Ctrl+C to detach)`);
-      Console.log(`Following log output from: ${session.logFile}`);
-      Console.log(`Original PID: ${session.pid}`);
-      Console.log(
-        "Note: You can see live output but cannot send input to the original process.",
+      await Effect.runPromise(
+        Console.log(`Attaching to session: ${sessionName} (Ctrl+C to detach)`),
       );
-      Console.log(
-        "To fully interact with the session, restart it or use a different terminal multiplexer.\n",
+      await Effect.runPromise(
+        Console.log(`Following log output from: ${session.logFile}`),
+      );
+      await Effect.runPromise(Console.log(`Original PID: ${session.pid}`));
+      await Effect.runPromise(
+        Console.log(
+          "Note: You can see live output but cannot send input to the original process.",
+        ),
+      );
+      await Effect.runPromise(
+        Console.log(
+          "To fully interact with the session, restart it or use a different terminal multiplexer.\n",
+        ),
       );
 
       let position = await fs
@@ -551,8 +567,10 @@ export class ProcessRunnerService {
             await handle.close();
           }
         } catch (error) {
-          Console.warn(
-            `Failed to read live log updates for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+          await Effect.runPromise(
+            Console.warn(
+              `Failed to read live log updates for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+            ),
           );
         } finally {
           reading = false;
@@ -573,10 +591,12 @@ export class ProcessRunnerService {
         },
       );
 
-      watcher.on("error", (error) => {
+      watcher.on("error", async (error) => {
         if (!watcherClosed) {
-          Console.warn(
-            `File watcher error for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+          await Effect.runPromise(
+            Console.warn(
+              `File watcher error for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+            ),
           );
         }
       });
@@ -604,10 +624,10 @@ export class ProcessRunnerService {
       };
 
       // Handle Ctrl+C to detach
-      detachHandler = () => {
+      detachHandler = async () => {
         if (!isExiting) {
           isExiting = true;
-          Console.log("\nDetaching from session...");
+          await Effect.runPromise(Console.log("\nDetaching from session..."));
           cleanup(true);
           resume(Effect.succeed(true));
         }
@@ -662,7 +682,9 @@ export class ProcessRunnerService {
         this.resources.delete(sessionName);
       } catch (error) {
         // Log cleanup errors but don't throw
-        Console.warn(`Failed to cleanup session ${sessionName}:`, error);
+        Effect.runSync(
+          Console.warn(`Failed to cleanup session ${sessionName}:`, error),
+        );
       }
     }
   }
@@ -683,10 +705,12 @@ export class ProcessRunnerService {
 
     const { pty: term } = resources;
 
-    Console.log(`🔗 Connected to session: ${sessionName}`);
-    Console.log("💡 Press Ctrl+C to detach (session will continue running)");
-    Console.log("💡 Type 'exit' to end the session");
-    Console.log(`${"─".repeat(60)}\n`);
+    Effect.runSync(Console.log(`🔗 Connected to session: ${sessionName}`));
+    Effect.runSync(
+      Console.log("💡 Press Ctrl+C to detach (session will continue running)"),
+    );
+    Effect.runSync(Console.log("💡 Type 'exit' to end the session"));
+    Effect.runSync(Console.log(`${"─".repeat(60)}\n`));
 
     // Set up raw mode for proper terminal interaction
     if (process.stdin.isTTY) {
@@ -730,8 +754,8 @@ export class ProcessRunnerService {
       process.removeListener("SIGINT", interruptHandler);
       process.removeListener("SIGTERM", interruptHandler);
 
-      Console.log(`\n${"─".repeat(60)}`);
-      Console.log(`📤 Detached from session: ${sessionName}`);
+      Effect.runSync(Console.log(`\n${"─".repeat(60)}`));
+      Effect.runSync(Console.log(`📤 Detached from session: ${sessionName}`));
     };
 
     // Handle session exit
@@ -969,10 +993,12 @@ export class ProcessRunnerService {
   ): Effect.Effect<void, ProcessRunnerError> {
     return Effect.tryPromise({
       try: async () => {
-        Console.log(
-          `Session ${sessionName} is not running (last PID ${session.pid}).`,
+        await Effect.runPromise(
+          Console.log(
+            `Session ${sessionName} is not running (last PID ${session.pid}).`,
+          ),
         );
-        Console.log(`Command was: ${session.command}`);
+        await Effect.runPromise(Console.log(`Command was: ${session.command}`));
 
         const logExists = await fs
           .access(session.logFile)
@@ -980,9 +1006,13 @@ export class ProcessRunnerService {
           .catch(() => false);
 
         if (!logExists) {
-          Console.log("No log output is available for this session.");
-          Console.log(
-            "The session may have failed to start or exited immediately.",
+          await Effect.runPromise(
+            Console.log("No log output is available for this session."),
+          );
+          await Effect.runPromise(
+            Console.log(
+              "The session may have failed to start or exited immediately.",
+            ),
           );
           return;
         }
@@ -992,7 +1022,7 @@ export class ProcessRunnerService {
           session.logFile,
         ]);
 
-        Console.log("\n--- end of session log ---\n");
+        await Effect.runPromise(Console.log("\n--- end of session log ---\n"));
       },
       catch: (error) =>
         ProcessRunnerErrorValue(

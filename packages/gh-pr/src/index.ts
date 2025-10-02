@@ -76,7 +76,7 @@ export const createPR = (options: PRCreateOptions) =>
         yield* run(["pr", "merge", prNumber.toString(), "--squash", "--auto"]);
         autoMergeEnabled = true;
       } catch (error) {
-        Console.warn(`Warning: Could not enable auto-merge: ${error}`);
+        yield* Console.warn(`Warning: Could not enable auto-merge: ${error}`);
       }
     }
 

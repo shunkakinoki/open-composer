@@ -21,14 +21,7 @@ interface RouteOptions {
 }
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(
-    lines,
-    (line) =>
-      Effect.sync(() => {
-        Console.log(line);
-      }),
-    { discard: true },
-  );
+  Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
 const defaultCliPath = () => ["open-composer"] as const;
 
