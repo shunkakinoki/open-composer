@@ -1,14 +1,131 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as Effect from "effect/Effect";
 import { GitHubReleases, makeGitHubReleasesLive } from "../src/core.js";
 
+// Mock the global fetch function
+const originalFetch = global.fetch;
+
 describe("GitHubReleases service", () => {
-  // Use a real public repository for testing
   const testConfig = {
     owner: "shunkakinoki",
     repo: "open-composer",
     packageName: "open-composer",
   };
+
+  // Mock data for GitHub API responses
+  const mockLatestReleaseResponse = {
+    tag_name: "open-composer@0.8.3",
+    name: "Release 0.8.3",
+    body: "Release notes for 0.8.3",
+    html_url:
+      "https://github.com/shunkakinoki/open-composer/releases/tag/open-composer@0.8.3",
+    published_at: "2024-01-01T00:00:00Z",
+    assets: [
+      {
+        name: "opencomposer-cli-linux-x64.zip",
+        browser_download_url:
+          "https://github.com/shunkakinoki/open-composer/releases/download/open-composer@0.8.3/opencomposer-cli-linux-x64.zip",
+        size: 123456,
+        content_type: "application/zip",
+      },
+    ],
+  };
+
+  const mockReleasesResponse = [
+    mockLatestReleaseResponse,
+    {
+      tag_name: "open-composer@0.8.2",
+      name: "Release 0.8.2",
+      body: "Release notes for 0.8.2",
+      html_url:
+        "https://github.com/shunkakinoki/open-composer/releases/tag/open-composer@0.8.2",
+      published_at: "2024-01-01T00:00:00Z",
+      assets: [],
+    },
+    {
+      tag_name: "open-composer@0.8.1",
+      name: "Release 0.8.1",
+      body: "Release notes for 0.8.1",
+      html_url:
+        "https://github.com/shunkakinoki/open-composer/releases/tag/open-composer@0.8.1",
+      published_at: "2024-01-01T00:00:00Z",
+      assets: [],
+    },
+  ];
+
+  beforeEach(() => {
+    // Mock fetch to return our test data
+    const mockFetch = mock(async (url: string | URL | Request) => {
+      const urlString = typeof url === "string" ? url : url.toString();
+
+      // Handle invalid repositories
+      if (urlString.includes("nonexistent")) {
+        return {
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
+        } as Response;
+      }
+
+      if (urlString.includes("/releases/latest")) {
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockLatestReleaseResponse),
+        } as Response;
+      }
+
+      if (urlString.includes("/releases?")) {
+        // Handle pagination
+        const urlObj = new URL(urlString);
+        const page = parseInt(urlObj.searchParams.get("page") || "1", 10);
+        const perPage = parseInt(
+          urlObj.searchParams.get("per_page") || "30",
+          10,
+        );
+
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedReleases = mockReleasesResponse.slice(
+          startIndex,
+          endIndex,
+        );
+
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(paginatedReleases),
+        } as Response;
+      }
+
+      if (urlString.includes("/releases/tags/")) {
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: () => Promise.resolve(mockLatestReleaseResponse),
+        } as Response;
+      }
+
+      // Return 404 for unknown URLs
+      return {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+      } as Response;
+    });
+
+    global.fetch = Object.assign(mockFetch, {
+      preconnect: () => {},
+    });
+  });
+
+  afterEach(() => {
+    // Restore original fetch
+    global.fetch = originalFetch;
+  });
 
   describe("getLatestRelease", () => {
     test("should fetch the latest release", async () => {

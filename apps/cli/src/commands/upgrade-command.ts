@@ -1,4 +1,11 @@
-import { chmod, mkdir, realpath, rename, rm } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  realpath,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { arch, homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 import { Args, Command, Options } from "@effect/cli";
@@ -175,6 +182,8 @@ function getBinaryName(platformStr: string): string {
       return "opencomposer-cli-darwin-arm64";
     case "windows-x64":
       return "opencomposer-cli-win32-x64";
+    case "windows-arm64":
+      return "opencomposer-cli-win32-arm64";
     default:
       throw new Error(`Unsupported platform: ${platformStr}`);
   }
@@ -190,21 +199,28 @@ function getBinaryName(platformStr: string): string {
 const upgradeViaNpm = (version: string): Effect.Effect<void, UpgradeError> =>
   Effect.tryPromise({
     try: async () => {
-      const { spawn } = await import("bun");
+      const { spawn } = await import("node:child_process");
       const packageSpec = `${PACKAGE_NAME}@${version}`;
 
       console.log(`Upgrading via npm to ${packageSpec}...`);
 
-      const proc = spawn(["npm", "install", "-g", packageSpec], {
-        stdout: "inherit",
-        stderr: "inherit",
+      await new Promise<void>((resolve, reject) => {
+        const proc = spawn("npm", ["install", "-g", packageSpec], {
+          stdio: "inherit",
+        });
+        proc.on("error", reject);
+        proc.on("close", (code) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(
+              new Error(
+                `npm install failed with exit code ${code ?? "unknown"}`,
+              ),
+            );
+          }
+        });
       });
-
-      const exitCode = await proc.exited;
-
-      if (exitCode !== 0) {
-        throw new Error(`npm install failed with exit code ${exitCode}`);
-      }
 
       console.log(`✓ Successfully upgraded via npm`);
     },
@@ -256,26 +272,42 @@ const upgradeFromGitHub = (
       const buffer = Buffer.from(arrayBuffer);
 
       // Write to file
-      await Bun.write(zipPath, buffer);
+      await writeFile(zipPath, buffer);
 
       console.log("Extracting files...");
 
       // Extract using unzip
-      const { spawn } = await import("bun");
-      const proc = spawn(["unzip", "-q", "-o", zipPath, "-d", INSTALL_DIR], {
-        stdout: "inherit",
-        stderr: "inherit",
+      const { spawn } = await import("node:child_process");
+      await new Promise<void>((resolve, reject) => {
+        const proc = spawn("unzip", ["-q", "-o", zipPath, "-d", INSTALL_DIR], {
+          stdio: "inherit",
+        });
+        proc.on("error", reject);
+        proc.on("close", (code) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(
+              new Error(
+                `Failed to extract binary: unzip exited with code ${code ?? "unknown"}`,
+              ),
+            );
+          }
+        });
       });
 
-      const exitCode = await proc.exited;
-      if (exitCode !== 0) {
-        throw new Error(
-          `Failed to extract binary: unzip exited with code ${exitCode}`,
-        );
-      }
-
       // Move binary to target location (overwriting existing)
-      const extractedBinary = join(INSTALL_DIR, "open-composer");
+      // The binary is extracted to a nested path in the zip: @open-composer/cli-${platformStr}/bin/opencomposer[.exe]
+      const packageDir = `@open-composer/cli-${platformStr}`;
+      const extractedBinaryName = platformStr.startsWith("windows")
+        ? "opencomposer.exe"
+        : "opencomposer";
+      const extractedBinary = join(
+        INSTALL_DIR,
+        packageDir,
+        "bin",
+        extractedBinaryName,
+      );
 
       // Remove old binary if it exists
       try {

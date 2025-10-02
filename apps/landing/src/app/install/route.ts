@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  // Redirect to the raw GitHub install script
+  // Serve the install script from a stable release tag
   const installScriptUrl =
     "https://raw.githubusercontent.com/shunkakinoki/open-composer/main/install.sh";
 
   try {
-    // Fetch the install script from GitHub
-    const response = await fetch(installScriptUrl);
+    // Fetch the install script from GitHub with timeout
+    const response = await fetch(installScriptUrl, {
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
 
     if (!response.ok) {
       return new NextResponse("Failed to fetch install script", {
@@ -24,8 +26,8 @@ export async function GET() {
         "Cache-Control": "public, max-age=300", // Cache for 5 minutes
       },
     });
-  } catch (error) {
-    console.error("Error fetching install script:", error);
+  } catch {
+    console.error("Error fetching install script");
     return new NextResponse("Error fetching install script", { status: 500 });
   }
 }

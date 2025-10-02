@@ -33,18 +33,21 @@ describe("upgrade command", () => {
   });
 
   describe("command options", () => {
-    test("should support check option", () => {
+    test("should have correct command builder structure", () => {
       const commandBuilder = buildUpgradeCommand();
-      const command = commandBuilder.command();
-      expect(command).toBeDefined();
-      // The check option is embedded in the command structure
+      expect(commandBuilder).toBeDefined();
+      expect(commandBuilder).toHaveProperty("command");
+      expect(commandBuilder).toHaveProperty("metadata");
+      expect(commandBuilder.metadata.name).toBe("upgrade");
+      expect(commandBuilder.metadata.description).toBe(
+        "Upgrade to the latest version",
+      );
     });
 
-    test("should support version argument", () => {
+    test("should export command function", () => {
       const commandBuilder = buildUpgradeCommand();
-      const command = commandBuilder.command();
-      expect(command).toBeDefined();
-      // The version argument is embedded in the command structure
+      expect(commandBuilder.command).toBeDefined();
+      expect(typeof commandBuilder.command).toBe("function");
     });
   });
 });

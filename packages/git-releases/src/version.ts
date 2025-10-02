@@ -18,8 +18,24 @@ export function compareVersions(
   current: string,
   target: string,
 ): VersionComparison {
-  const currentParts = current.split(".").map(Number);
-  const targetParts = target.split(".").map(Number);
+  // Remove 'v' prefix if present
+  const normalizeVersion = (version: string) =>
+    version.startsWith("v") ? version.slice(1) : version;
+
+  const currentNormalized = normalizeVersion(current);
+  const targetNormalized = normalizeVersion(target);
+
+  // Basic semver regex validation (major.minor.patch)
+  const semverRegex = /^\d+(\.\d+)*(\.\d+)*$/;
+  if (
+    !semverRegex.test(currentNormalized) ||
+    !semverRegex.test(targetNormalized)
+  ) {
+    throw new Error(`Invalid version format. Expected format: X.Y.Z or vX.Y.Z`);
+  }
+
+  const currentParts = currentNormalized.split(".").map(Number);
+  const targetParts = targetNormalized.split(".").map(Number);
 
   for (let i = 0; i < Math.max(currentParts.length, targetParts.length); i++) {
     const currentPart = currentParts[i] || 0;
