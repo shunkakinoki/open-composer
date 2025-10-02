@@ -1,4 +1,5 @@
 import { Args, Command, Options } from "@effect/cli";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { GhPRService } from "../services/gh-pr-service.js";
@@ -37,7 +38,7 @@ export const buildGHPRCommand = (): CommandBuilder<"pr"> => ({
 // -----------------------------------------------------------------------------
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
+  Effect.forEach(lines, (line) => Console.log(line), {
     discard: true,
   });
 

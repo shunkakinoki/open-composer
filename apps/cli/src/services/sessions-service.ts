@@ -1,12 +1,11 @@
 import { type Session, SqliteDrizzle, sessions } from "@open-composer/db";
 import { desc, eq } from "drizzle-orm";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import { StackService } from "./stack-service.js";
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
-    discard: true,
-  });
+  Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
 export class SessionsService {
   /**

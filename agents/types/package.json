@@ -17,7 +17,8 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "lint": "biome check .",
     "lint:fix": "tsc",
-    "test": "bun test"
+    "test": "bun test",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "effect": "^3.18.0"

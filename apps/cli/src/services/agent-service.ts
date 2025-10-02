@@ -7,6 +7,7 @@ import {
   routeQuery,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 interface ListOptions {
@@ -20,14 +21,7 @@ interface RouteOptions {
 }
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(
-    lines,
-    (line) =>
-      Effect.sync(() => {
-        console.log(line);
-      }),
-    { discard: true },
-  );
+  Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
 const defaultCliPath = () => ["open-composer"] as const;
 

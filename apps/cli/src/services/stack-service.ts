@@ -13,12 +13,11 @@ import {
   trackStackBranch,
   untrackStackBranch,
 } from "@open-composer/git-stack";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
-    discard: true,
-  });
+  Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
 const provideStack = <A, E>(effectFn: () => Effect.Effect<A, E>) => {
   // In test environment, run the effect and wrap the result in a new Effect
@@ -29,10 +28,10 @@ const provideStack = <A, E>(effectFn: () => Effect.Effect<A, E>) => {
 };
 
 const handleGitError = (error: GitCommandError): Effect.Effect<void> =>
-  Effect.sync(() => {
-    console.error(`Git command failed: ${error.message}`);
+  Effect.gen(function* () {
+    yield* Console.error(`Git command failed: ${error.message}`);
     if (error.stderr) {
-      console.error(error.stderr);
+      yield* Console.error(error.stderr);
     }
   });
 
