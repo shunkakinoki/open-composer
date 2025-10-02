@@ -81,7 +81,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.8.0",
+      "version": "0.8.3",
       "bin": {
         "oc": "./src/index.ts",
         "open-composer": "./src/index.ts",
@@ -99,6 +99,7 @@
         "@open-composer/gh": "workspace:*",
         "@open-composer/gh-pr": "workspace:*",
         "@open-composer/git": "workspace:*",
+        "@open-composer/git-releases": "workspace:*",
         "@open-composer/git-stack": "workspace:*",
         "@open-composer/git-worktrees": "workspace:*",
         "@open-composer/process-runner": "workspace:*",
@@ -238,6 +239,19 @@
     "packages/git": {
       "name": "@open-composer/git",
       "version": "0.1.1",
+      "dependencies": {
+        "effect": "^3.18.0",
+      },
+      "devDependencies": {
+        "@effect/language-service": "^0.41.1",
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.0",
+        "typescript": "^5.9.2",
+      },
+    },
+    "packages/git-releases": {
+      "name": "@open-composer/git-releases",
+      "version": "0.1.0",
       "dependencies": {
         "effect": "^3.18.0",
       },
@@ -608,6 +622,8 @@
     "@open-composer/gh-pr": ["@open-composer/gh-pr@workspace:packages/gh-pr"],
 
     "@open-composer/git": ["@open-composer/git@workspace:packages/git"],
+
+    "@open-composer/git-releases": ["@open-composer/git-releases@workspace:packages/git-releases"],
 
     "@open-composer/git-stack": ["@open-composer/git-stack@workspace:packages/git-stack"],
 

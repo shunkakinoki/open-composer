@@ -1,4 +1,4 @@
-import path from "node:path";
+import * as path from "node:path";
 import { Args, Command, Options } from "@effect/cli";
 import {
   type AgentChecker,
@@ -275,7 +275,7 @@ function createWorktreeAndRunAgent(
       branchName,
       worktreePath,
       sessionName,
-      prNumber,
+      ...(prNumber !== undefined && { prNumber }),
       changes,
     };
   });

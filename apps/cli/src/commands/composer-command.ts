@@ -40,6 +40,7 @@ import { buildStackCommand } from "./stack-command.js";
 import { buildStatusCommand } from "./status-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
 import { buildTUICommand } from "./tui-command.js";
+import { buildUpgradeCommand } from "./upgrade-command.js";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -93,6 +94,7 @@ const ALL_COMMAND_BUILDERS = [
   buildStatusCommand,
   buildTelemetryCommand,
   buildTUICommand,
+  buildUpgradeCommand,
 ];
 
 const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];

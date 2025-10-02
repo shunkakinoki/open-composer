@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import path from "node:path";
+import * as path from "node:path";
 import { promisify } from "node:util";
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
@@ -282,17 +282,16 @@ function buildCreateCommand() {
 
           // Create the worktree using the selected options
           const cli = yield* _(GitWorktreeService.make());
-          yield* _(
-            cli.create({
-              path: options.path,
-              ref: options.ref || undefined,
-              branch: options.branch || undefined,
-              force: options.force,
-              detach: options.detach,
-              checkout: options.noCheckout ? false : undefined,
-              branchForce: options.branchForce,
-            }),
-          );
+          const createOpts = {
+            path: options.path,
+            force: options.force,
+            detach: options.detach,
+            branchForce: options.branchForce,
+            ...(options.noCheckout ? { checkout: false } : {}),
+            ...(options.ref && { ref: options.ref }),
+            ...(options.branch && { branch: options.branch }),
+          };
+          yield* _(cli.create(createOpts));
 
           // Exit cleanly after interactive creation
           process.exit(0);
@@ -312,17 +311,20 @@ function buildCreateCommand() {
         );
 
         const cli = yield* _(GitWorktreeService.make());
-        yield* _(
-          cli.create({
-            path: Option.getOrElse(config.path, () => ""),
-            ref: config.ref.pipe(Option.getOrUndefined),
-            branch: config.branch.pipe(Option.getOrUndefined),
-            force: config.force,
-            detach: config.detach,
-            checkout: config.noCheckout ? false : undefined,
-            branchForce: config.branchForce,
-          }),
-        );
+        const createOptsCli = {
+          path: Option.getOrElse(config.path, () => ""),
+          force: config.force,
+          detach: config.detach,
+          branchForce: config.branchForce,
+          ...(config.noCheckout ? { checkout: false } : {}),
+          ...(config.ref && Option.isSome(config.ref)
+            ? { ref: Option.getOrThrow(config.ref) }
+            : {}),
+          ...(config.branch && Option.isSome(config.branch)
+            ? { branch: Option.getOrThrow(config.branch) }
+            : {}),
+        };
+        yield* _(cli.create(createOptsCli));
 
         // Exit cleanly after CLI creation
         process.exit(0);
@@ -412,7 +414,7 @@ function buildPruneCommand() {
           cli.prune({
             dryRun: config.dryRun,
             verbose: config.verbose,
-            expire: config.expire.pipe(Option.getOrUndefined),
+            ...(config.expire && { expire: Option.getOrThrow(config.expire) }),
           }),
         );
 
@@ -455,7 +457,7 @@ function buildSwitchCommand() {
                 const { render } = await import("ink");
                 const React = await import("react");
                 const { GitWorktreeSwitchPrompt } = await import(
-                  "../components/GitWorktreeSwitchPrompt"
+                  "../components/GitWorktreeSwitchPrompt.js"
                 );
 
                 return new Promise<string | null>((resolve, reject) => {
@@ -463,7 +465,7 @@ function buildSwitchCommand() {
                     const { waitUntilExit } = render(
                       React.createElement(GitWorktreeSwitchPrompt, {
                         worktrees: worktrees,
-                        onSubmit: (worktreePath) => {
+                        onSubmit: (worktreePath: string) => {
                           // Clean up the Ink app and resolve
                           waitUntilExit()
                             .then(() => resolve(worktreePath))
