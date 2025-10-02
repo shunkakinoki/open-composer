@@ -18,7 +18,7 @@
     "tail": "wrangler tail",
     "test": "bun vitest --run",
     "test:watch": "bun vitest --watch",
-    "type-check": "bun run tsc --noEmit"
+    "type-check": "tsc --build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",

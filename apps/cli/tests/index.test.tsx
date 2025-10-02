@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import React from "react";
-import { ComposerApp as App } from "../src/index";
+import { ComposerApp as App } from "../src/index.js";
 
 describe("CLI App", () => {
   it("App component is properly exported", () => {

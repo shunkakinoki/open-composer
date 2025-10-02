@@ -106,11 +106,11 @@ export class StackService {
   }
 
   log(): Effect.Effect<void> {
-    return provideStack(this.logStack).pipe(Effect.flatMap(printLines));
+    return provideStack(() => this.logStack()).pipe(Effect.flatMap(printLines));
   }
 
   status(): Effect.Effect<void> {
-    return provideStack(this.statusStack).pipe(
+    return provideStack(() => this.statusStack()).pipe(
       Effect.flatMap((status) =>
         printLines([
           `Current branch: ${status.currentBranch}`,
@@ -125,7 +125,11 @@ export class StackService {
   }
 
   create(name: string, base?: string): Effect.Effect<void> {
-    return provideStack(() => this.createStackBranch({ name, base })).pipe(
+    const createOptions: { name: string; base?: string } = { name };
+    if (base !== undefined) {
+      createOptions.base = base;
+    }
+    return provideStack(() => this.createStackBranch(createOptions)).pipe(
       Effect.flatMap((result) =>
         printLines([
           `Created branch ${result.branch} on top of ${result.base}.`,

@@ -463,7 +463,7 @@ function buildSwitchCommand() {
                 const { render } = await import("ink");
                 const React = await import("react");
                 const { GitWorktreeSwitchPrompt } = await import(
-                  "../components/GitWorktreeSwitchPrompt"
+                  "../components/GitWorktreeSwitchPrompt.js"
                 );
 
                 return new Promise<string | null>((resolve, reject) => {

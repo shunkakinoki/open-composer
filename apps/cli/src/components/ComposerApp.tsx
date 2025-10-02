@@ -98,7 +98,9 @@ export const ComposerApp: React.FC = () => {
         </Box>
 
         <Box width="30%" borderStyle="single" borderColor="gray">
-          <CodeEditor currentFile={state.currentFile} />
+          <CodeEditor
+            {...(state.currentFile && { currentFile: state.currentFile })}
+          />
         </Box>
       </Box>
     </Layout>

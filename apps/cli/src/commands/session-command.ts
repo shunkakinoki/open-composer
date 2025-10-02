@@ -1,7 +1,7 @@
 import { Args, Command, Options } from "@effect/cli";
 import { ProcessRunnerService } from "@open-composer/process-runner";
 import { Effect } from "effect";
-import type { CommandBuilder } from "../types/commands";
+import type { CommandBuilder } from "../types/commands.js";
 
 // -----------------------------------------------------------------------------
 // Command Builder
@@ -54,10 +54,17 @@ function buildAttachSubcommand() {
     Command.withHandler(({ sessionName, lines, search }) =>
       Effect.gen(function* () {
         const runnerService = yield* ProcessRunnerService.make();
-        const attached = yield* runnerService.attachSession(sessionName, {
-          lines: lines._tag === "Some" ? lines.value : undefined,
-          search: search._tag === "Some" ? search.value : undefined,
-        });
+        const attachOptions: { lines?: number; search?: string } = {};
+        if (lines._tag === "Some") {
+          attachOptions.lines = lines.value;
+        }
+        if (search._tag === "Some") {
+          attachOptions.search = search.value;
+        }
+        const attached = yield* runnerService.attachSession(
+          sessionName,
+          attachOptions,
+        );
         if (attached) {
           console.log(`Attached to session: ${sessionName} (Ctrl+C to detach)`);
         } else {
@@ -137,9 +144,11 @@ function buildSpawnSubcommand() {
     ),
     Command.withHandler(({ sessionName, command, logDir }) =>
       Effect.gen(function* () {
-        const runnerService = yield* ProcessRunnerService.make({
-          logDir: logDir._tag === "Some" ? logDir.value : undefined,
-        });
+        const runnerOptions: { logDir?: string } = {};
+        if (logDir._tag === "Some") {
+          runnerOptions.logDir = logDir.value;
+        }
+        const runnerService = yield* ProcessRunnerService.make(runnerOptions);
 
         // Spawn the session and immediately detach
         const sessionInfo = yield* runnerService.newSession(
