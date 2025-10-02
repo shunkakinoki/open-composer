@@ -275,7 +275,27 @@ const upgradeFromGitHub = (
       }
 
       // Move binary to target location (overwriting existing)
-      const extractedBinary = join(INSTALL_DIR, "open-composer");
+      // The extracted binary is inside @open-composer/cli-${os}-${arch}/bin/opencomposer
+      // Map platform string to the directory name format used in prepublish.ts targets
+      function getDirectoryName(platformStr: string): string {
+        switch (platformStr) {
+          case "linux-x64":
+            return "cli-linux-x64";
+          case "linux-arm64":
+            return "cli-linux-aarch64-musl";
+          case "macos-x64":
+            return "cli-darwin-x64";
+          case "macos-arm64":
+            return "cli-darwin-arm64";
+          case "windows-x64":
+            return "cli-win32-x64";
+          default:
+            throw new Error(`Unsupported platform: ${platformStr}`);
+        }
+      }
+      
+      const dirName = `@open-composer/${getDirectoryName(platformStr)}`;
+      const extractedBinary = join(INSTALL_DIR, `${dirName}/bin/opencomposer`);
 
       // Remove old binary if it exists
       try {
@@ -289,6 +309,8 @@ const upgradeFromGitHub = (
 
       // Cleanup
       await rm(zipPath, { force: true });
+      // Clean up the extracted directory structure
+      await rm(join(INSTALL_DIR, dirName), { recursive: true, force: true });
 
       console.log(`✓ Installed to ${targetBinary}`);
     },
