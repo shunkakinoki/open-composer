@@ -42,6 +42,7 @@
     "@open-composer/gh": "workspace:*",
     "@open-composer/gh-pr": "workspace:*",
     "@open-composer/git": "workspace:*",
+    "@open-composer/git-releases": "workspace:*",
     "@open-composer/git-stack": "workspace:*",
     "@open-composer/git-worktrees": "workspace:*",
     "@open-composer/process-runner": "workspace:*",

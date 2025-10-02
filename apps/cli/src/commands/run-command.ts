@@ -275,7 +275,7 @@ function createWorktreeAndRunAgent(
       branchName,
       worktreePath,
       sessionName,
-      prNumber,
+      ...(prNumber !== undefined && { prNumber }),
       changes,
     };
   });

@@ -58,10 +58,40 @@ jobs:
         continue-on-error: true
         run: open-composer --version
         shell: cmd
+  install-e2e-script:
+    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        arch:
+          - x64
+          - arm64
+      fail-fast: false
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Test install.sh script
+        run: bash install.sh
+        shell: bash
+      - name: Verify open-composer command after script install
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          open-composer --version
+        shell: bash
   install-check:
     if: always()
     needs:
       - install-e2e-cli
+      - install-e2e-script
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -69,4 +99,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: install-e2e-cli
+          allowed-skips: install-e2e-cli,install-e2e-script

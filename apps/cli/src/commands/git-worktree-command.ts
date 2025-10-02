@@ -471,7 +471,7 @@ function buildSwitchCommand() {
                     const { waitUntilExit } = render(
                       React.createElement(GitWorktreeSwitchPrompt, {
                         worktrees: worktrees,
-                        onSubmit: (worktreePath) => {
+                        onSubmit: (worktreePath: string) => {
                           // Clean up the Ink app and resolve
                           waitUntilExit()
                             .then(() => resolve(worktreePath))
