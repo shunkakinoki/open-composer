@@ -17,6 +17,7 @@ export class SessionsService {
     workspacePath?: string,
   ): Effect.Effect<number, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       let finalWorkspacePath: string | undefined;
@@ -60,6 +61,7 @@ export class SessionsService {
           status: "active",
         })
         .returning();
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
       const newSession = (result as any)[0] as Session;
 
       // Automatically create a stack branch for this session if we have a workspace
@@ -76,6 +78,7 @@ export class SessionsService {
    */
   create(name?: string): Effect.Effect<void, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       // If no name provided, prompt for it
@@ -243,12 +246,14 @@ export class SessionsService {
    */
   list(): Effect.Effect<void, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       const allSessions = (yield* db
         .select()
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .from(sessions as any)
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .orderBy(desc((sessions as any).createdAt))) as Session[] | undefined;
 
       if (!allSessions || allSessions.length === 0) {
@@ -287,6 +292,7 @@ export class SessionsService {
    */
   switch(sessionId: number): Effect.Effect<void, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       // First, set all sessions to inactive
@@ -294,6 +300,7 @@ export class SessionsService {
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .update(sessions as any)
         .set({ status: "inactive", updatedAt: new Date().toISOString() })
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .where(eq((sessions as any).status, "active"));
 
       // Then set the target session as active
@@ -301,6 +308,7 @@ export class SessionsService {
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .update(sessions as any)
         .set({ status: "active", updatedAt: new Date().toISOString() })
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .where(eq((sessions as any).id, sessionId))
         .returning()) as Session[] | undefined;
 
@@ -322,12 +330,14 @@ export class SessionsService {
    */
   archive(sessionId: number): Effect.Effect<void, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       const result = (yield* db
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .update(sessions as any)
         .set({ status: "archived", updatedAt: new Date().toISOString() })
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .where(eq((sessions as any).id, sessionId))
         .returning()) as Session[] | undefined;
 
@@ -345,11 +355,13 @@ export class SessionsService {
    */
   delete(sessionId: number): Effect.Effect<void, Error, SqliteDrizzle> {
     return Effect.gen(function* () {
+      // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
       const db = yield* SqliteDrizzle as any;
 
       const result = (yield* db
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .delete(sessions as any)
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         .where(eq((sessions as any).id, sessionId))
         .returning()) as Session[] | undefined;
 

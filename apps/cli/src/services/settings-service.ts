@@ -60,11 +60,13 @@ function createSettingsService(): SettingsServiceInterface {
   return {
     getSetting: (key: string) =>
       Effect.gen(function* () {
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         const db = yield* SqliteDrizzle as any;
         const result = (yield* db
           .select()
           // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .from(settings as any)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .where(eq((settings as any).key, key))
           .limit(1)) as Setting[] | undefined;
 
@@ -77,6 +79,7 @@ function createSettingsService(): SettingsServiceInterface {
 
     setSetting: (key: string, value: string) =>
       Effect.gen(function* () {
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         const db = yield* SqliteDrizzle as any;
         yield* db
           // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
@@ -102,11 +105,13 @@ function createSettingsService(): SettingsServiceInterface {
 
     getAllSettings: () =>
       Effect.gen(function* () {
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         const db = yield* SqliteDrizzle as any;
-        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         const result = yield* db
           .select()
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .from(settings as any)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .orderBy((settings as any).key) as Setting[];
         return result || [];
       }).pipe(
@@ -121,6 +126,7 @@ function createSettingsService(): SettingsServiceInterface {
 
     deleteSetting: (key: string) =>
       Effect.gen(function* () {
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         const db = yield* SqliteDrizzle as any;
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         yield* db.delete(settings as any).where(eq((settings as any).key, key));
@@ -131,8 +137,10 @@ function createSettingsService(): SettingsServiceInterface {
             .select({ count: count() })
             // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
             .from(settings as any)
+            // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
             .where(eq((settings as any).key, key))
             .limit(1)) as { count: number }[];
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           return ((result as any)[0]?.count ?? 0) > 0;
         });
 
@@ -145,14 +153,17 @@ function createSettingsService(): SettingsServiceInterface {
 
     hasSetting: (key: string) =>
       Effect.gen(function* () {
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility with exactOptionalPropertyTypes
         const db = yield* SqliteDrizzle as any;
         const result = yield* db
           .select({ count: count() })
           // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .from(settings as any)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
           .where(eq((settings as any).key, key))
           .limit(1) as { count: number }[];
 
+        // biome-ignore lint/suspicious/noExplicitAny: Drizzle type incompatibility
         return ((result as any)[0]?.count ?? 0) > 0;
       }).pipe(
         Effect.mapError((error) =>
