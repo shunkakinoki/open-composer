@@ -7,6 +7,7 @@ import {
   routeQuery,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 interface ListOptions {
@@ -24,7 +25,7 @@ const printLines = (lines: ReadonlyArray<string>) =>
     lines,
     (line) =>
       Effect.sync(() => {
-        console.log(line);
+        Console.log(line);
       }),
     { discard: true },
   );

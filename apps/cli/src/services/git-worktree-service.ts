@@ -1,4 +1,4 @@
-import path from "node:path";
+import * as path from "node:path";
 import {
   add as addWorktree,
   type GitService,
@@ -7,6 +7,7 @@ import {
   prune as pruneWorktrees,
   type Worktree,
 } from "@open-composer/git-worktrees";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 
 export interface CreateGitWorktreeOptions {
@@ -75,20 +76,22 @@ export class GitWorktreeService {
       branchForce,
     } = options;
 
-    return this.addWorktree({
+    const addOptions = {
       cwd: this.cwd,
       path: worktreePath,
-      ref,
-      branch: branch
-        ? {
-            name: branch,
-            force: branchForce || force,
-          }
-        : undefined,
+      ...(ref && { ref }),
+      ...(branch && {
+        branch: {
+          name: branch,
+          force: branchForce || force,
+        },
+      }),
       force,
       detach,
-      checkout,
-    }).pipe(
+      ...(checkout !== undefined && { checkout }),
+    } as const;
+
+    return this.addWorktree(addOptions).pipe(
       Effect.flatMap((worktree) =>
         this.printGitWorktreeLines([
           `Created worktree at ${worktree.path} tracking ${
@@ -171,8 +174,8 @@ export class GitWorktreeService {
         this.pruneWorktrees({
           cwd: this.cwd,
           dryRun: false,
-          verbose,
-          expire,
+          ...(verbose !== undefined && { verbose }),
+          ...(expire && { expire }),
         }).pipe(
           Effect.flatMap(() =>
             listWorktrees({ cwd: this.cwd }).pipe(
@@ -267,7 +270,7 @@ export class GitWorktreeService {
   ): Effect.Effect<void, never> {
     return Effect.forEach(
       lines,
-      (line) => Effect.sync(() => console.log(line)),
+      (line) => Effect.sync(() => Console.log(line)),
       { discard: true },
     );
   }

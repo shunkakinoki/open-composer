@@ -1,10 +1,11 @@
 import { type Session, SqliteDrizzle, sessions } from "@open-composer/db";
 import { desc, eq } from "drizzle-orm";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import { StackService } from "./stack-service.js";
 
 const printLines = (lines: ReadonlyArray<string>) =>
-  Effect.forEach(lines, (line) => Effect.sync(() => console.log(line)), {
+  Effect.forEach(lines, (line) => Effect.sync(() => Console.log(line)), {
     discard: true,
   });
 
@@ -112,10 +113,10 @@ export class SessionsService {
               output: process.stdout,
             });
 
-            console.log("\nChoose workspace option:");
-            console.log("1. Use existing git workspace");
-            console.log("2. Create new workspace");
-            console.log("3. No workspace (just session tracking)");
+            Console.log("\nChoose workspace option:");
+            Console.log("1. Use existing git workspace");
+            Console.log("2. Create new workspace");
+            Console.log("3. No workspace (just session tracking)");
 
             rl.question("Enter choice (1-3): ", (choice) => {
               rl.close();
@@ -166,7 +167,7 @@ export class SessionsService {
                       rl.close();
                       resolve(resolvedPath);
                     } catch {
-                      console.log(
+                      Console.log(
                         `❌ "${resolvedPath}" is not a valid git repository.`,
                       );
                       promptPath();

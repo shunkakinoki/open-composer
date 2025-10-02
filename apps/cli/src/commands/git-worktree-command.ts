@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import path from "node:path";
+import * as path from "node:path";
 import { promisify } from "node:util";
 import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
@@ -285,11 +285,13 @@ function buildCreateCommand() {
           yield* _(
             cli.create({
               path: options.path,
-              ref: options.ref || undefined,
-              branch: options.branch || undefined,
+              ...(options.ref && { ref: options.ref }),
+              ...(options.branch && { branch: options.branch }),
               force: options.force,
               detach: options.detach,
-              checkout: options.noCheckout ? false : undefined,
+              ...(options.noCheckout !== undefined && {
+                checkout: !options.noCheckout,
+              }),
               branchForce: options.branchForce,
             }),
           );
@@ -315,11 +317,15 @@ function buildCreateCommand() {
         yield* _(
           cli.create({
             path: Option.getOrElse(config.path, () => ""),
-            ref: config.ref.pipe(Option.getOrUndefined),
-            branch: config.branch.pipe(Option.getOrUndefined),
+            ...(Option.isSome(config.ref) && {
+              ref: Option.getOrThrow(config.ref),
+            }),
+            ...(Option.isSome(config.branch) && {
+              branch: Option.getOrThrow(config.branch),
+            }),
             force: config.force,
             detach: config.detach,
-            checkout: config.noCheckout ? false : undefined,
+            ...(config.noCheckout && { checkout: false }),
             branchForce: config.branchForce,
           }),
         );
@@ -412,7 +418,9 @@ function buildPruneCommand() {
           cli.prune({
             dryRun: config.dryRun,
             verbose: config.verbose,
-            expire: config.expire.pipe(Option.getOrUndefined),
+            ...(Option.isSome(config.expire) && {
+              expire: Option.getOrThrow(config.expire),
+            }),
           }),
         );
 

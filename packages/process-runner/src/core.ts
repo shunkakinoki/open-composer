@@ -3,6 +3,7 @@ import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import { DEFAULT_TIMEOUTS } from "./constants.js";
 import { createLogWriter, rotateLogFile } from "./log-manager.js";
@@ -128,14 +129,14 @@ export class ProcessRunnerService {
           try {
             parsed = JSON.parse(data);
           } catch (parseError) {
-            console.warn(
+            Console.warn(
               `Corrupted sessions.json file, attempting recovery: ${parseError}`,
             );
 
             // Try to recover by finding valid JSON objects
             const recovered = this.recoverCorruptedSessions(data);
             if (recovered.length > 0) {
-              console.log(
+              Console.log(
                 `Recovered ${recovered.length} sessions from corrupted file`,
               );
               // Save the recovered data
@@ -146,7 +147,7 @@ export class ProcessRunnerService {
             // If recovery fails, backup the corrupted file and start fresh
             const backupFile = `${sessionFile}.corrupted.${Date.now()}`;
             await fs.writeFile(backupFile, data);
-            console.warn(
+            Console.warn(
               `Backed up corrupted sessions to ${backupFile}, starting with empty sessions`,
             );
             return [];
@@ -163,7 +164,7 @@ export class ProcessRunnerService {
             if (this.isValidSessionInfo(session)) {
               validSessions.push(session);
             } else {
-              console.warn(
+              Console.warn(
                 `Skipping invalid session: ${JSON.stringify(session)}`,
               );
             }
@@ -507,13 +508,13 @@ export class ProcessRunnerService {
 
       // Since PTY is not available in current instance, we'll stream the log file
       // and provide a message to the user
-      console.log(`Attaching to session: ${sessionName} (Ctrl+C to detach)`);
-      console.log(`Following log output from: ${session.logFile}`);
-      console.log(`Original PID: ${session.pid}`);
-      console.log(
+      Console.log(`Attaching to session: ${sessionName} (Ctrl+C to detach)`);
+      Console.log(`Following log output from: ${session.logFile}`);
+      Console.log(`Original PID: ${session.pid}`);
+      Console.log(
         "Note: You can see live output but cannot send input to the original process.",
       );
-      console.log(
+      Console.log(
         "To fully interact with the session, restart it or use a different terminal multiplexer.\n",
       );
 
@@ -550,7 +551,7 @@ export class ProcessRunnerService {
             await handle.close();
           }
         } catch (error) {
-          console.warn(
+          Console.warn(
             `Failed to read live log updates for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
           );
         } finally {
@@ -574,7 +575,7 @@ export class ProcessRunnerService {
 
       watcher.on("error", (error) => {
         if (!watcherClosed) {
-          console.warn(
+          Console.warn(
             `File watcher error for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
           );
         }
@@ -606,7 +607,7 @@ export class ProcessRunnerService {
       detachHandler = () => {
         if (!isExiting) {
           isExiting = true;
-          console.log("\nDetaching from session...");
+          Console.log("\nDetaching from session...");
           cleanup(true);
           resume(Effect.succeed(true));
         }
@@ -661,7 +662,7 @@ export class ProcessRunnerService {
         this.resources.delete(sessionName);
       } catch (error) {
         // Log cleanup errors but don't throw
-        console.warn(`Failed to cleanup session ${sessionName}:`, error);
+        Console.warn(`Failed to cleanup session ${sessionName}:`, error);
       }
     }
   }
@@ -682,10 +683,10 @@ export class ProcessRunnerService {
 
     const { pty: term } = resources;
 
-    console.log(`🔗 Connected to session: ${sessionName}`);
-    console.log("💡 Press Ctrl+C to detach (session will continue running)");
-    console.log("💡 Type 'exit' to end the session");
-    console.log(`${"─".repeat(60)}\n`);
+    Console.log(`🔗 Connected to session: ${sessionName}`);
+    Console.log("💡 Press Ctrl+C to detach (session will continue running)");
+    Console.log("💡 Type 'exit' to end the session");
+    Console.log(`${"─".repeat(60)}\n`);
 
     // Set up raw mode for proper terminal interaction
     if (process.stdin.isTTY) {
@@ -729,8 +730,8 @@ export class ProcessRunnerService {
       process.removeListener("SIGINT", interruptHandler);
       process.removeListener("SIGTERM", interruptHandler);
 
-      console.log(`\n${"─".repeat(60)}`);
-      console.log(`📤 Detached from session: ${sessionName}`);
+      Console.log(`\n${"─".repeat(60)}`);
+      Console.log(`📤 Detached from session: ${sessionName}`);
     };
 
     // Handle session exit
@@ -968,10 +969,10 @@ export class ProcessRunnerService {
   ): Effect.Effect<void, ProcessRunnerError> {
     return Effect.tryPromise({
       try: async () => {
-        console.log(
+        Console.log(
           `Session ${sessionName} is not running (last PID ${session.pid}).`,
         );
-        console.log(`Command was: ${session.command}`);
+        Console.log(`Command was: ${session.command}`);
 
         const logExists = await fs
           .access(session.logFile)
@@ -979,8 +980,8 @@ export class ProcessRunnerService {
           .catch(() => false);
 
         if (!logExists) {
-          console.log("No log output is available for this session.");
-          console.log(
+          Console.log("No log output is available for this session.");
+          Console.log(
             "The session may have failed to start or exited immediately.",
           );
           return;
@@ -991,7 +992,7 @@ export class ProcessRunnerService {
           session.logFile,
         ]);
 
-        console.log("\n--- end of session log ---\n");
+        Console.log("\n--- end of session log ---\n");
       },
       catch: (error) =>
         ProcessRunnerErrorValue(

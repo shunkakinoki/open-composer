@@ -8,7 +8,7 @@ import {
   test,
 } from "bun:test";
 import { existsSync } from "node:fs";
-import path from "node:path";
+import * as path from "node:path";
 import * as Effect from "effect/Effect";
 
 // Mock external dependencies before importing the service
