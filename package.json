@@ -44,7 +44,7 @@
     "sort-package-json:check": "sort-package-json package.json */*/package.json --check",
     "sort-package-json:fix": "sort-package-json package.json */*/package.json",
     "test": "turbo run test",
-    "type-check": "turbo type-check",
+    "type-check": "turbo run type-check",
     "version": "bun run changeset:version"
   },
   "devDependencies": {
