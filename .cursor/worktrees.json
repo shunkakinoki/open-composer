@@ -1,5 +1,3 @@
 {
-  "setup-worktree": [
-    "make setup"
-  ]
+  "setup-worktree": ["make setup"]
 }
