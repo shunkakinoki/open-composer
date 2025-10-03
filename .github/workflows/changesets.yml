@@ -32,19 +32,14 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@83febae34a6e97704047144dd36b0681c5759d79
-      - name: Set Environment Variables
+      - name: Detect if Changeset Release
         run: |
-          echo "PUBLISH_PACKAGES=${PUBLISH_PACKAGES}" >> $GITHUB_ENV
-          echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
-          echo "GITHUB_REF=${{ github.ref }}" >> $GITHUB_ENV
-          echo "GITHUB_HEAD_REF=${{ github.head_ref }}" >> $GITHUB_ENV
-          echo "GITHUB_BASE_REF=${{ github.base_ref }}" >> $GITHUB_ENV
-          echo "GITHUB_EVENT_NAME=${{ github.event_name }}" >> $GITHUB_ENV
-          echo "GITHUB_EVENT_PATH=${{ github.event_path }}" >> $GITHUB_ENV
-          echo "GITHUB_EVENT_NUMBER=${{ github.event_number }}" >> $GITHUB_ENV
-          echo "GITHUB_REF_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-        env:
-          PUBLISH_PACKAGES: true
+          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          if [[ "$LAST_COMMIT_MESSAGE" == *"Version Packages"* ]] || [[ "$LAST_COMMIT_MESSAGE" == *"Release Version"* ]]; then
+            echo "PUBLISH_PACKAGES=true" >> $GITHUB_ENV
+          else
+            echo "PUBLISH_PACKAGES=false" >> $GITHUB_ENV
+          fi
       - name: Run Changesets
         uses: shunkakinoki/actions/.github/actions/changesets@83febae34a6e97704047144dd36b0681c5759d79
         with:
