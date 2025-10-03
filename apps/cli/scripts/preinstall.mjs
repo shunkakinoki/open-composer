@@ -18,13 +18,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function main() {
   if (os.platform() !== "win32") {
     console.log(
-      "Non-Windows platform detected, skipping preinstall opencomposer.cmd",
+      "Non-Windows platform detected, skipping preinstall open-composer.cmd",
     );
     return;
   }
 
-  console.log("Windows detected: Setting up opencomposer.cmd");
-  const cmdScriptPath = path.join(__dirname, "bin", "opencomposer.cmd");
+  console.log("Windows detected: Setting up open-composer.cmd");
+  const cmdScriptPath = path.join(__dirname, "bin", "open-composer.cmd");
 
   // ---------------------------------------------------------------------------
   // Ensure the .cmd wrapper exists (create a minimal one if needed)
@@ -34,7 +34,7 @@ function main() {
   const cmdContent = `@ECHO OFF\nREM Placeholder - will be updated by postinstall.mjs\n`;
   fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
   console.log(
-    "Created placeholder opencomposer.cmd wrapper for Windows (will be updated by postinstall)",
+    "Created placeholder open-composer.cmd wrapper for Windows (will be updated by postinstall)",
   );
 }
 
