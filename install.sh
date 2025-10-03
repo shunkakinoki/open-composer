@@ -79,7 +79,7 @@ check_npm() {
   fi
 }
 
-# Install via npm (preferred method)
+# Install via npm
 install_via_npm() {
   info "Installing ${PACKAGE_NAME} via npm..."
 
@@ -131,7 +131,7 @@ get_binary_name() {
   esac
 }
 
-# Download and install from GitHub release
+# Install from GitHub release
 install_from_github() {
   local version="$1"
   local platform="$2"
@@ -240,23 +240,26 @@ main() {
   platform=$(detect_platform)
   info "Detected platform: $platform"
 
-  # Check installation method
-  if check_npm; then
-    info "Found npm, using npm for installation (recommended)"
-    install_via_npm
-  else
-    warn "npm not found, falling back to manual installation"
+  # Get latest version
+  local version
+  version=$(get_latest_version)
+  info "Latest version: $version"
 
-    # Get latest version
-    local version
-    version=$(get_latest_version)
-    info "Latest version: $version"
-
-    # Install from GitHub releases
-    install_from_github "$version" "$platform"
-
-    # Update PATH
+  # Prioritize GitHub releases installation
+  info "Installing from GitHub releases..."
+  if install_from_github "$version" "$platform"; then
+    # Update PATH for GitHub releases installation
     update_path
+  else
+    warn "GitHub releases installation failed, falling back to npm"
+
+    # Fallback to npm installation
+    if check_npm; then
+      info "Installing via npm..."
+      install_via_npm
+    else
+      error "Both GitHub releases and npm installation failed. Please check your internet connection and try again."
+    fi
   fi
 
   echo ""
