@@ -151,9 +151,9 @@ install_from_github() {
   info "Downloading from ${download_url}..."
 
   if command_exists curl; then
-    curl -fsSL "$download_url" -o "$zip_path" || error "Failed to download binary"
+    curl -fsSL "$download_url" -o "$zip_path" || return 1
   elif command_exists wget; then
-    wget -q "$download_url" -O "$zip_path" || error "Failed to download binary"
+    wget -q "$download_url" -O "$zip_path" || return 1
   else
     error "Neither curl nor wget is available"
   fi
@@ -161,21 +161,27 @@ install_from_github() {
   # Extract binary
   info "Extracting files..."
   if command_exists unzip; then
-    unzip -q -o "$zip_path" -d "$INSTALL_DIR" || error "Failed to extract binary"
+    unzip -q -o "$zip_path" -d "$INSTALL_DIR" || return 1
   else
     error "unzip is not available. Please install unzip."
   fi
 
-  # Find and move the binary
-  local extracted_binary="${INSTALL_DIR}/open-composer"
+  # Find and move the binary (it's in a subdirectory structure)
+  local extracted_dir
+  extracted_dir=$(find "$INSTALL_DIR" -name "bin" -type d | head -1)
+  if [ -z "$extracted_dir" ]; then
+    return 1
+  fi
+
+  local extracted_binary="${extracted_dir}/open-composer"
   local target_binary="${BIN_DIR}/open-composer"
 
   if [ -f "$extracted_binary" ]; then
-    mv "$extracted_binary" "$target_binary" || error "Failed to move binary"
-    chmod +x "$target_binary" || error "Failed to make binary executable"
+    mv "$extracted_binary" "$target_binary" || return 1
+    chmod +x "$target_binary" || return 1
     success "Installed ${PACKAGE_NAME} to ${target_binary}"
   else
-    error "Binary not found in extracted package"
+    return 1
   fi
 
   # Cleanup

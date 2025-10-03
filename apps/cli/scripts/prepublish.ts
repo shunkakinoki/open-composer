@@ -101,11 +101,11 @@ for (const [os, arch] of targets) {
   // Use bun build with cross-compilation
   // ---------------------------------------------------------------------------
 
-  await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/opencomposer`;
+  await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/open-composer`;
 
   // Make executable on Unix systems
   if (os !== "win32") {
-    await $`chmod +x dist/${packageName}/bin/opencomposer`;
+    await $`chmod +x dist/${packageName}/bin/open-composer`;
   }
 
   await Bun.write(
@@ -114,11 +114,11 @@ for (const [os, arch] of targets) {
       {
         name: packageName,
         version: CLI_VERSION,
-        main: "bin/opencomposer",
+        main: "bin/open-composer",
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
         bin: {
-          opencomposer: "bin/opencomposer",
+          opencomposer: "bin/open-composer",
         },
       },
       null,
@@ -143,7 +143,7 @@ if (process.env.RELEASE_ZIP_FILES) {
   for (const [packageName] of Object.entries(binaries)) {
     console.log(`Creating zip for ${packageName}`);
 
-    const zipName = `opencomposer-${packageName.split("/")[1]}.zip`;
+    const zipName = `open-composer-${packageName.split("/")[1]}.zip`;
     console.log(`Creating zip: ${zipName}`);
 
     // Create zip file containing the entire package directory
@@ -176,9 +176,9 @@ if (isRelease) {
       {
         name: "open-composer",
         bin: {
-          "open-composer": "./bin/opencomposer",
-          opencomposer: "./bin/opencomposer",
-          oc: "./bin/opencomposer",
+          "open-composer": "./bin/open-composer",
+          opencomposer: "./bin/open-composer",
+          oc: "./bin/open-composer",
         },
         files: ["bin/**/*", "preinstall.mjs", "postinstall.mjs"],
         scripts: {
