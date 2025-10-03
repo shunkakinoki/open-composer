@@ -30,7 +30,7 @@ jobs:
           github.actor == 'renovate[bot]' ||
           github.actor == 'renovate' ||
           github.actor == 'github-actions[bot]'
-        uses: shunkakinoki/actions/.github/actions/auto-approve@83febae34a6e97704047144dd36b0681c5759d79
+        uses: shunkakinoki/actions/.github/actions/auto-approve@6f73775a21da47d08675b032253520edf31a4c9f
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
   auto-approve-check:
