@@ -74,7 +74,7 @@ function findBinary() {
 
 function installBinary() {
   const isWindows = os.platform() === "win32";
-  const binaryName = isWindows ? "opencomposer.exe" : "opencomposer";
+  const binaryName = isWindows ? "open-composer.exe" : "open-composer";
   const destinationBinary = path.join(binDir, binaryName);
 
   // Skip if we already have a real binary (helps local development reuse builds)
@@ -115,10 +115,10 @@ function installBinary() {
 
     // On Windows, ensure the .cmd wrapper exists and points to the .exe
     if (isWindows) {
-      const cmdScriptPath = path.join(binDir, "opencomposer.cmd");
+      const cmdScriptPath = path.join(binDir, "open-composer.cmd");
       const cmdContent = `@ECHO OFF\n"${destinationBinary}" %*\n`;
       fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
-      console.log("Updated opencomposer.cmd wrapper for Windows");
+      console.log("Updated open-composer.cmd wrapper for Windows");
     }
   } else {
     console.error(`No binary found at ${binaryPath}`);
