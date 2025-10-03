@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.4
+
+### Patch Changes
+
+- [#230](https://github.com/shunkakinoki/open-composer/pull/230) [`b7b1b60`](https://github.com/shunkakinoki/open-composer/commit/b7b1b60e1ee06f2e529f3340a6f2a506627bd3b7) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Fix CLI binary naming consistency from `opencomposer` to `open-composer` and improve installation script error handling for better reliability.
+
 ## 0.8.3
 
 ### Patch Changes
