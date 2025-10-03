@@ -35,7 +35,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file_glob: true
-          file: ./apps/cli/dist/open-composer-*.zip
+          file: apps/cli/dist/open-composer-*.zip
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
   release-latest:
