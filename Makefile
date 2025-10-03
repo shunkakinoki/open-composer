@@ -1,6 +1,34 @@
 .DEFAULT_GOAL := help
 
 # ====================================================================================
+# Development
+# ====================================================================================
+
+.PHONY: install
+install: bun-install ## Install dependencies
+
+.PHONY: build
+build: bun-build ## Build the project
+
+.PHONY: setup
+setup: install build ## Install dependencies and build the project
+
+# ====================================================================================
+# Bun
+# ====================================================================================
+
+.PHONY: bun-install
+bun-install: ## Install dependencies using bun
+	bun install
+
+.PHONY: bun-build
+bun-build: ## Build the project using bun
+	bun run build
+
+.PHONY: bun-setup
+bun-setup: bun-install bun-build ## Install dependencies and build the project
+
+# ====================================================================================
 # HELP
 # ====================================================================================
 
