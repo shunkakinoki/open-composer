@@ -197,7 +197,7 @@ export function buildRunner() {
     // Check if --help was passed without any command
     // If so, show custom help text instead of default @effect/cli help
     const args = processArgs.slice(2);
-    if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+    if (args.includes("--help") || args.includes("-h")) {
       return Effect.sync(() => {
         console.log(
           generateHelpText(
