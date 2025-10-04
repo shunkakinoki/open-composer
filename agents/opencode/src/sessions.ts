@@ -7,9 +7,9 @@ import * as Effect from "effect/Effect";
 // Types
 // -----------------------------------------------------------------------------
 
-export interface CursorSession {
+export interface OpencodeSession {
   id: string;
-  agent: "cursor" | "cursor-agent";
+  agent: "opencode";
   timestamp: Date;
   cwd?: string;
   repository?: string;
@@ -18,17 +18,43 @@ export interface CursorSession {
   status: "active" | "completed" | "failed";
 }
 
+interface SessionInfo {
+  id?: string;
+  timestamp?: number;
+  cwd?: string;
+  repository?: string;
+  branch?: string;
+  [key: string]: unknown;
+}
+
+interface SessionMessage {
+  role?: string;
+  content?: string;
+  timestamp?: number;
+  [key: string]: unknown;
+}
+
 // -----------------------------------------------------------------------------
-// Cursor Session Parser
+// Opencode Session Parser
 // -----------------------------------------------------------------------------
 
-export const parseCursorSessions = (): Effect.Effect<CursorSession[], Error> =>
+// Get XDG data directory for opencode
+const getOpencodeDataDir = (): string => {
+  const xdgData =
+    process.env.XDG_DATA_HOME || path.join(homedir(), ".local", "share");
+  return path.join(xdgData, "opencode");
+};
+
+export const parseOpencodeSessions = (): Effect.Effect<
+  OpencodeSession[],
+  Error
+> =>
   Effect.gen(function* () {
-    const cursorDir = path.join(homedir(), ".cursor", "worktrees");
+    const opencodeDir = getOpencodeDataDir();
 
     // Check if directory exists
     const dirExists = yield* Effect.tryPromise({
-      try: () => fs.access(cursorDir).then(() => true),
+      try: () => fs.access(opencodeDir).then(() => true),
       catch: () => false,
     }).pipe(Effect.orElse(() => Effect.succeed(false)));
 
@@ -36,57 +62,61 @@ export const parseCursorSessions = (): Effect.Effect<CursorSession[], Error> =>
       return [];
     }
 
-    // List all project directories
-    const projectDirs = yield* Effect.tryPromise({
-      try: () => fs.readdir(cursorDir, { withFileTypes: true }),
+    // List all files in the opencode data directory
+    const files = yield* Effect.tryPromise({
+      try: () => fs.readdir(opencodeDir, { withFileTypes: true }),
       catch: (error) =>
         new Error(
-          `Failed to read cursor directory: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to read opencode directory: ${error instanceof Error ? error.message : String(error)}`,
         ),
     }).pipe(Effect.orElse(() => Effect.succeed([])));
 
-    const sessions: CursorSession[] = [];
+    const sessions: OpencodeSession[] = [];
 
-    for (const projectDir of projectDirs) {
-      if (!projectDir.isDirectory()) continue;
+    // Look for session JSON files
+    for (const file of files) {
+      if (!file.isFile()) continue;
+      if (!file.name.endsWith(".json")) continue;
 
-      const projectPath = path.join(cursorDir, projectDir.name);
-      const worktrees = yield* Effect.tryPromise({
-        try: () => fs.readdir(projectPath, { withFileTypes: true }),
-        catch: () => new Error("Failed to read worktrees"),
-      }).pipe(Effect.orElse(() => Effect.succeed([])));
+      const filePath = path.join(opencodeDir, file.name);
+      const sessionData = yield* Effect.tryPromise({
+        try: async () => {
+          const content = await fs.readFile(filePath, "utf-8");
+          return JSON.parse(content);
+        },
+        catch: () => new Error(`Failed to read session file: ${file.name}`),
+      }).pipe(Effect.orElse(() => Effect.succeed(null)));
 
-      for (const worktree of worktrees) {
-        if (!worktree.isDirectory()) continue;
+      if (!sessionData) continue;
 
-        // Parse timestamp from directory name (e.g., 1759450333833-182a9d)
-        const parts = worktree.name.split("-");
-        const timestamp = parts[0] ? Number.parseInt(parts[0], 10) : Date.now();
+      // Try to extract session info and messages
+      const info = sessionData.info as SessionInfo | undefined;
+      const messages =
+        (sessionData.messages as SessionMessage[] | undefined) || [];
 
-        // Try to get git info from the worktree
-        const worktreePath = path.join(projectPath, worktree.name);
-        const gitHeadPath = path.join(worktreePath, ".git", "HEAD");
-        const branch = yield* Effect.tryPromise({
-          try: async () => {
-            const headContent = await fs.readFile(gitHeadPath, "utf-8");
-            const branchMatch = headContent.match(/ref: refs\/heads\/(.+)/);
-            return branchMatch?.[1];
-          },
-          catch: () => new Error("Failed to read git HEAD"),
-        }).pipe(Effect.orElse(() => Effect.succeed(undefined)));
+      // Extract summary from first user message
+      const firstUserMessage = messages.find((msg) => msg.role === "user");
+      const summary = firstUserMessage?.content
+        ? firstUserMessage.content.substring(0, 100)
+        : undefined;
 
-        sessions.push({
-          id: `cursor-${projectDir.name}-${worktree.name}`,
-          agent: "cursor-agent",
-          timestamp: new Date(timestamp),
-          cwd: worktreePath,
-          repository: projectDir.name.replace(/-/g, "/"),
-          branch,
-          summary: `Cursor worktree: ${projectDir.name}`,
-          status: "active",
-        });
-      }
+      // Determine status (if session has messages, it's active or completed)
+      const status: "active" | "completed" | "failed" =
+        messages.length > 0 ? "completed" : "active";
+
+      sessions.push({
+        id: info?.id || file.name.replace(".json", ""),
+        agent: "opencode",
+        timestamp: new Date(info?.timestamp || 0),
+        cwd: info?.cwd,
+        repository: info?.repository,
+        branch: info?.branch,
+        summary,
+        status,
+      });
     }
 
-    return sessions;
+    return sessions.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
   });

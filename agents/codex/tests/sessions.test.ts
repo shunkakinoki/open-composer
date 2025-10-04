@@ -1,13 +1,11 @@
-import { describe, expect, test, beforeAll, mock } from "bun:test";
-import * as Effect from "effect/Effect";
-import { parseCodexSessions, type CodexSession } from "../src/sessions.js";
-import * as path from "node:path";
-import { homedir } from "node:os";
+import { beforeAll, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs/promises";
+import { homedir } from "node:os";
+import * as path from "node:path";
+import { type CodexSession, parseCodexSessions } from "../src/sessions.js";
 
 describe("Codex Sessions Parser", () => {
   const fixturesDir = path.join(__dirname, "fixtures", "sessions");
-  const mockCodexDir = path.join(homedir(), ".codex", "sessions");
 
   beforeAll(() => {
     // Mock the homedir to point to our fixtures
@@ -23,7 +21,10 @@ describe("Codex Sessions Parser", () => {
 
   test("parses completed session correctly", async () => {
     // Read the test fixture directly to verify parsing
-    const sessionFile = path.join(fixturesDir, "2025/10/04/test-session-completed.jsonl");
+    const sessionFile = path.join(
+      fixturesDir,
+      "2025/10/04/test-session-completed.jsonl",
+    );
     const content = await fs.readFile(sessionFile, "utf-8");
     const lines = content.trim().split("\n");
 
@@ -33,11 +34,16 @@ describe("Codex Sessions Parser", () => {
     expect(firstLine.type).toBe("session_meta");
     expect(firstLine.payload.id).toBe("test-session-completed-123");
     expect(firstLine.payload.git.branch).toBe("feature/add-tests");
-    expect(firstLine.payload.git.repository_url).toBe("https://github.com/test/my-project.git");
+    expect(firstLine.payload.git.repository_url).toBe(
+      "https://github.com/test/my-project.git",
+    );
   });
 
   test("parses failed session correctly", async () => {
-    const sessionFile = path.join(fixturesDir, "2025/10/04/test-session-failed.jsonl");
+    const sessionFile = path.join(
+      fixturesDir,
+      "2025/10/04/test-session-failed.jsonl",
+    );
     const content = await fs.readFile(sessionFile, "utf-8");
     const lines = content.trim().split("\n");
 
@@ -45,7 +51,7 @@ describe("Codex Sessions Parser", () => {
     expect(firstLine.payload.id).toBe("test-session-failed-456");
 
     // Check for error line
-    const hasError = lines.some(line => {
+    const hasError = lines.some((line) => {
       const entry = JSON.parse(line);
       return entry.type === "error";
     });
@@ -53,7 +59,10 @@ describe("Codex Sessions Parser", () => {
   });
 
   test("parses session without git metadata", async () => {
-    const sessionFile = path.join(fixturesDir, "2025/10/04/test-session-no-git.jsonl");
+    const sessionFile = path.join(
+      fixturesDir,
+      "2025/10/04/test-session-no-git.jsonl",
+    );
     const content = await fs.readFile(sessionFile, "utf-8");
     const lines = content.trim().split("\n");
 
@@ -63,18 +72,23 @@ describe("Codex Sessions Parser", () => {
   });
 
   test("extracts user message summary", async () => {
-    const sessionFile = path.join(fixturesDir, "2025/10/04/test-session-completed.jsonl");
+    const sessionFile = path.join(
+      fixturesDir,
+      "2025/10/04/test-session-completed.jsonl",
+    );
     const content = await fs.readFile(sessionFile, "utf-8");
     const lines = content.trim().split("\n");
 
-    const eventMsg = lines.find(line => {
+    const eventMsg = lines.find((line) => {
       const entry = JSON.parse(line);
       return entry.type === "event_msg";
     });
 
     expect(eventMsg).toBeDefined();
     const parsed = JSON.parse(eventMsg!);
-    expect(parsed.payload.message).toContain("Add unit tests for the authentication module");
+    expect(parsed.payload.message).toContain(
+      "Add unit tests for the authentication module",
+    );
   });
 
   test("session type structure is correct", () => {

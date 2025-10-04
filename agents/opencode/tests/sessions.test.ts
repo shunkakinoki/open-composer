@@ -1,86 +1,96 @@
-import { describe, expect, test, beforeAll, mock } from "bun:test";
-import * as Effect from "effect/Effect";
-import { parseCursorSessions, type CursorSession } from "../src/sessions.js";
-import * as path from "node:path";
-import { homedir } from "node:os";
+import { beforeAll, describe, expect, test } from "bun:test";
 import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import * as Effect from "effect/Effect";
+import {
+  type OpencodeSession,
+  parseOpencodeSessions,
+} from "../src/sessions.js";
 
-describe("Cursor Sessions Parser", () => {
-  const fixturesDir = path.join(__dirname, "fixtures", "worktrees");
+describe("Opencode Sessions Parser", () => {
+  const fixturesDir = path.join(__dirname, "fixtures", "opencode");
 
   beforeAll(() => {
-    // Mock homedir to point to our fixtures
-    mock.module("node:os", () => ({
-      homedir: () => path.join(__dirname, "fixtures", ".."),
-    }));
+    // Mock XDG_DATA_HOME to point to our fixtures
+    process.env.XDG_DATA_HOME = path.join(__dirname, "fixtures");
   });
 
-  test("parseCursorSessions returns an Effect", () => {
-    const result = parseCursorSessions();
+  test("parseOpencodeSessions returns an Effect", () => {
+    const result = parseOpencodeSessions();
     expect(result).toBeDefined();
   });
 
-  test("reads git HEAD file from worktree", async () => {
-    const headFile = path.join(
-      fixturesDir,
-      "open-composer/1759450333833-182a9d/git-mock/HEAD"
+  test("reads session JSON files", async () => {
+    const sessionFile = path.join(fixturesDir, "session-1.json");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const data = JSON.parse(content);
+
+    expect(data.info).toBeDefined();
+    expect(data.info.id).toBe("session-1");
+    expect(data.messages).toBeArray();
+    expect(data.messages.length).toBeGreaterThan(0);
+  });
+
+  test("extracts session info from JSON", async () => {
+    const sessionFile = path.join(fixturesDir, "session-2.json");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const data = JSON.parse(content);
+
+    expect(data.info.id).toBe("session-2");
+    expect(data.info.timestamp).toBe(1704153600000);
+    expect(data.info.cwd).toBe("/Users/test/projects/web-app");
+    expect(data.info.repository).toBe("org/web-app");
+    expect(data.info.branch).toBe("feature/new-ui");
+  });
+
+  test("extracts summary from first user message", async () => {
+    const sessionFile = path.join(fixturesDir, "session-2.json");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const data = JSON.parse(content);
+
+    const firstUserMessage = data.messages.find(
+      (msg: any) => msg.role === "user",
     );
-    const content = await fs.readFile(headFile, "utf-8");
-
-    expect(content).toContain("ref: refs/heads/");
-    expect(content.trim()).toBe("ref: refs/heads/feature/ai-sessions-viewer");
+    expect(firstUserMessage).toBeDefined();
+    expect(firstUserMessage.content).toStartWith("Add a new component");
   });
 
-  test("parses branch name from HEAD file", async () => {
-    const headFile = path.join(
-      fixturesDir,
-      "my-project/1759449921935-ddf952/git-mock/HEAD"
+  test("handles sessions with no messages", async () => {
+    const sessionFile = path.join(fixturesDir, "session-3.json");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const data = JSON.parse(content);
+
+    expect(data.messages).toEqual([]);
+    expect(data.info.id).toBe("session-3");
+  });
+
+  test("parses all fixture sessions successfully", async () => {
+    const effect = parseOpencodeSessions();
+    const sessions = await Effect.runPromise(effect);
+
+    expect(sessions).toBeArray();
+    expect(sessions.length).toBe(3);
+
+    // Check sessions are sorted by timestamp (newest first)
+    expect(sessions[0]?.timestamp.getTime()).toBeGreaterThanOrEqual(
+      sessions[1]?.timestamp.getTime() || 0,
     );
-    const content = await fs.readFile(headFile, "utf-8");
-    const branchMatch = content.match(/ref: refs\/heads\/(.+)/);
-
-    expect(branchMatch).not.toBeNull();
-    expect(branchMatch![1].trim()).toBe("main");
-  });
-
-  test("extracts timestamp from worktree directory name", () => {
-    const dirName = "1759450333833-182a9d";
-    const parts = dirName.split("-");
-    const timestamp = parts[0] ? Number.parseInt(parts[0], 10) : 0;
-
-    expect(timestamp).toBe(1759450333833);
-    expect(timestamp).toBeGreaterThan(0);
-
-    const date = new Date(timestamp);
-    expect(date).toBeInstanceOf(Date);
-    expect(date.getTime()).toBe(timestamp);
-  });
-
-  test("fixture directory structure is correct", async () => {
-    const projects = await fs.readdir(fixturesDir, { withFileTypes: true });
-
-    expect(projects.length).toBeGreaterThan(0);
-
-    const projectNames = projects.filter(p => p.isDirectory()).map(p => p.name);
-    expect(projectNames).toContain("open-composer");
-    expect(projectNames).toContain("my-project");
   });
 
   test("session type structure is correct", () => {
-    const mockSession: CursorSession = {
-      id: "cursor-open-composer-1759450333833-182a9d",
-      agent: "cursor-agent",
-      timestamp: new Date(1759450333833),
-      cwd: "/Users/test/.cursor/worktrees/open-composer/1759450333833-182a9d",
-      repository: "open/composer",
-      branch: "feature/ai-sessions-viewer",
-      summary: "Cursor worktree: open-composer",
-      status: "active",
+    const mockSession: OpencodeSession = {
+      id: "test-session",
+      agent: "opencode",
+      timestamp: new Date(1704067200000),
+      cwd: "/Users/test/projects/my-app",
+      repository: "user/my-app",
+      branch: "main",
+      summary: "Fix the bug in the authentication module",
+      status: "completed",
     };
 
-    expect(mockSession.agent).toBe("cursor-agent");
+    expect(mockSession.agent).toBe("opencode");
     expect(mockSession.timestamp).toBeInstanceOf(Date);
-    expect(mockSession.status).toBe("active");
-    expect(["cursor", "cursor-agent"]).toContain(mockSession.agent);
+    expect(mockSession.status).toBe("completed");
   });
 });

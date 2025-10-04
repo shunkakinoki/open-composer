@@ -1,5 +1,5 @@
 {
-  "name": "@open-composer/ai-sessions",
+  "name": "@open-composer/agent-cursor",
   "version": "0.1.0",
   "repository": "https://github.com/shunkakinoki/open-composer",
   "license": "MIT",
@@ -15,18 +15,13 @@
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
-    "dev": "bun run ./src/index.ts",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "test:update-snapshot": "bun test --updateSnapshot",
-    "test:watch": "bun test --watch",
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@open-composer/agent-claude-code": "workspace:*",
-    "@open-composer/agent-codex": "workspace:*",
-    "@open-composer/agent-cursor": "workspace:*",
-    "@open-composer/agent-opencode": "workspace:*",
+    "@open-composer/agent-types": "workspace:*",
     "effect": "^3.18.2"
   },
   "devDependencies": {

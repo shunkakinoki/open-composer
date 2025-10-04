@@ -4,7 +4,13 @@
 
 export interface AISession {
   id: string;
-  agent: "codex" | "cursor" | "cursor-agent" | "claude-code" | "unknown";
+  agent:
+    | "codex"
+    | "opencode"
+    | "cursor"
+    | "cursor-agent"
+    | "claude-code"
+    | "unknown";
   timestamp: Date;
   cwd?: string;
   repository?: string;

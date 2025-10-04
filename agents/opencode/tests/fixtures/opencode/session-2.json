@@ -1,0 +1,26 @@
+{
+  "info": {
+    "id": "session-2",
+    "timestamp": 1704153600000,
+    "cwd": "/Users/test/projects/web-app",
+    "repository": "org/web-app",
+    "branch": "feature/new-ui"
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Add a new component for the user profile page with responsive design",
+      "timestamp": 1704153600000
+    },
+    {
+      "role": "assistant",
+      "content": "I'll create a responsive user profile component for you.",
+      "timestamp": 1704153601000
+    },
+    {
+      "role": "user",
+      "content": "Make sure it works on mobile devices",
+      "timestamp": 1704153700000
+    }
+  ]
+}
