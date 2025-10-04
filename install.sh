@@ -122,11 +122,11 @@ get_binary_name() {
   local platform="$1"
 
   case "$platform" in
-    linux-x64)       echo "opencomposer-cli-linux-x64" ;;
-    linux-arm64)     echo "opencomposer-cli-linux-aarch64-musl" ;;
-    macos-x64)       echo "opencomposer-cli-darwin-x64" ;;
-    macos-arm64)     echo "opencomposer-cli-darwin-arm64" ;;
-    windows-x64)     echo "opencomposer-cli-win32-x64" ;;
+    linux-x64)       echo "open-composer-cli-linux-x64" ;;
+    linux-arm64)     echo "open-composer-cli-linux-aarch64-musl" ;;
+    macos-x64)       echo "open-composer-cli-darwin-x64" ;;
+    macos-arm64)     echo "open-composer-cli-darwin-arm64" ;;
+    windows-x64)     echo "open-composer-cli-win32-x64" ;;
     *)               error "Unsupported platform: $platform" ;;
   esac
 }
@@ -148,7 +148,7 @@ install_from_github() {
   local download_url="https://github.com/${REPO}/releases/download/${PACKAGE_NAME}@${version}/${binary_name}.zip"
   local zip_path="${INSTALL_DIR}/${binary_name}.zip"
 
-  info "Downloading from ${download_url}..."
+  info "Downloading from ${download_url}"
 
   if command_exists curl; then
     curl -fsSL "$download_url" -o "$zip_path" || return 1
