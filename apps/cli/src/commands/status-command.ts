@@ -4,6 +4,8 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
+import type { GitHubCommandError } from "@open-composer/gh";
+import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import {
@@ -62,9 +64,43 @@ export function buildStatusCommand(): CommandBuilder<"status"> {
 // Helper Functions
 // -----------------------------------------------------------------------------
 
+/**
+ * Get PR number for a given branch name
+ */
+function getPRNumber(
+  branchName: string,
+): Effect.Effect<number | undefined, GitHubCommandError | TimeoutException> {
+  return Effect.gen(function* () {
+    try {
+      // List open PRs in JSON format
+      const prsResult = yield* Effect.timeout(
+        listPRs({
+          state: "open",
+          json: true,
+        }),
+        10000, // 10 second timeout
+      );
+
+      const prs = JSON.parse(prsResult.stdout.trim());
+
+      // Find PR where the head branch matches our branch name
+      const matchingPR = prs.find((pr: any) => pr.headRefName === branchName);
+
+      return matchingPR ? matchingPR.number : undefined;
+    } catch (_error) {
+      // If PR lookup fails, return undefined (don't break the status display)
+      return undefined;
+    }
+  });
+}
+
 function gatherStatus(): Effect.Effect<
   WorktreeStatus[],
-  GitCommandError | GitWorktreeError | ProcessRunnerError | TimeoutException,
+  | GitHubCommandError
+  | GitCommandError
+  | GitWorktreeError
+  | ProcessRunnerError
+  | TimeoutException,
   GitService
 > {
   return Effect.gen(function* () {
@@ -126,9 +162,7 @@ function gatherStatus(): Effect.Effect<
           const changes = yield* calculateChangeStats(worktreePath, "main");
 
           // Get PR status
-          // Skip PR check for now as it's hanging
-          // TODO: Fix PR check to not hang
-          const prNumber = undefined;
+          const prNumber = yield* getPRNumber(branchName);
 
           // Get base branch (assume main for now)
           const baseBranch = "main";
