@@ -9,7 +9,8 @@
   "module": "./src/index.ts",
   "bin": {
     "oc": "./src/index.ts",
-    "open-composer": "./src/index.ts"
+    "open-composer": "./src/index.ts",
+    "opencomposer": "./src/index.ts"
   },
   "files": [
     "src/**/*",
