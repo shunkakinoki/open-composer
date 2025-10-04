@@ -39,7 +39,7 @@ jobs:
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
       - name: Update Homebrew Tap
-        uses: goreleaser/goreleaser-action@v7
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
