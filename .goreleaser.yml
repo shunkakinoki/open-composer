@@ -23,21 +23,29 @@ brews:
 
     # Install script to extract and install the binary
     install: |
-      arch = Hardware::CPU.arch.to_s
+      # Get current platform and architecture
       os = OS.mac? ? "darwin" : "linux"
+      arch = Hardware::CPU.arch.to_s
 
-      # Map architecture to match binary naming
-      arch_map = {
-        "x86_64" => "x64",
-        "arm64" => "arm64"
-      }
+      # Handle architecture naming differences
+      arch = case arch
+             when "x86_64" then "x64"
+             when "arm64" then "arm64"
+             else arch
+             end
 
-      binary_arch = arch_map[arch] || arch
-      binary_name = "open-composer-cli-#{os}-#{binary_arch}"
+      # Handle OS naming differences and ARM special case
+      os_suffix = if os == "linux" && arch == "arm64"
+                   "linux-aarch64-musl"
+                 else
+                   "#{os}-#{arch}"
+                 end
+
+      binary_name = "open-composer-cli-#{os_suffix}"
 
       # Download and extract the binary
       system "curl", "-fsSL", "-o", "#{binary_name}.zip",
-        "https://github.com/shunkakinoki/open-composer/releases/download/#{version}/#{binary_name}.zip"
+        "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/#{binary_name}.zip"
       system "unzip", "-q", "#{binary_name}.zip"
 
       # Install the binary
@@ -55,9 +63,3 @@ brews:
     homepage: "https://github.com/shunkakinoki/open-composer"
     description: "Open Composer CLI - AI-powered development workflow tool"
     license: "MIT"
-
-    # Use the package name and version from the release tag
-    url_template: "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/open-composer-cli-darwin-{{ .Arch }}.zip"
-
-    # Only include macOS since Homebrew is primarily for macOS
-    skip_upload: auto

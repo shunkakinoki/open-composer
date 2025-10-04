@@ -11,6 +11,9 @@
       "recommended": true
     }
   },
+  "files": {
+    "includes": ["src/**/*", "!.conductor/**/*"]
+  },
   "vcs": {
     "clientKind": "git",
     "enabled": true,
