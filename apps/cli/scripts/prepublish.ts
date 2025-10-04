@@ -2,6 +2,14 @@
 /// <reference types="bun-types" />
 
 import { $ } from "bun";
+
+// -----------------------------------------------------------------------------
+// Generate version file first
+// -----------------------------------------------------------------------------
+
+console.log("Generating version file...");
+await $`bun run scripts/generate-version.ts`;
+
 import { CLI_VERSION } from "../src/lib/version.js";
 
 // -----------------------------------------------------------------------------
