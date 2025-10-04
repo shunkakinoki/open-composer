@@ -1,4 +1,4 @@
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp, useStdout } from "ink";
 import type React from "react";
 import { useState } from "react";
 import { CLI_VERSION } from "../lib/version.js";
@@ -13,7 +13,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onCommandSelect,
 }) => {
   const { exit } = useApp();
+  const { stdout } = useStdout();
   const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
+
+  // Get terminal dimensions for fullscreen
+  const terminalHeight = stdout?.rows || 24;
+  const terminalWidth = stdout?.columns || 80;
 
   // Define menu items based on available commands
   const menuItems: MenuItem[] = [
@@ -87,7 +92,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   };
 
   return (
-    <Box flexDirection="column" height="100%">
+    <Box flexDirection="column" height={terminalHeight} width={terminalWidth}>
       {/* Header */}
       <Box
         borderStyle="double"
