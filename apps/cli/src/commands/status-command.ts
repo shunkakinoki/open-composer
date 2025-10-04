@@ -4,15 +4,10 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
-import type { GitHubCommandError } from "@open-composer/gh";
 import { listPRs } from "@open-composer/gh-pr";
-import { type GitCommandError, type GitService, run } from "@open-composer/git";
-import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
-import {
-  type ProcessRunnerError,
-  ProcessRunnerService,
-} from "@open-composer/process-runner";
-import type { TimeoutException } from "effect/Cause";
+import { type GitService, run } from "@open-composer/git";
+import { list } from "@open-composer/git-worktrees";
+import { ProcessRunnerService } from "@open-composer/process-runner";
 import * as Effect from "effect/Effect";
 import {
   trackCommand,
@@ -69,22 +64,29 @@ export function buildStatusCommand(): CommandBuilder<"status"> {
  */
 function getPRNumber(
   branchName: string,
-): Effect.Effect<number | undefined, GitHubCommandError | TimeoutException> {
+): Effect.Effect<number | undefined, never> {
   return Effect.gen(function* () {
-    try {
-      // List open PRs in JSON format
-      const prsResult = yield* Effect.timeout(
-        listPRs({
-          state: "open",
-          json: true,
-        }),
-        10000, // 10 second timeout
-      );
+    // List open PRs in JSON format with timeout
+    const prsResult = yield* Effect.timeout(
+      listPRs({
+        state: "open",
+        json: true,
+      }),
+      5000, // 5 second timeout
+    ).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
+    if (!prsResult) {
+      return undefined;
+    }
+
+    try {
       const prs = JSON.parse(prsResult.stdout.trim());
 
       // Find PR where the head branch matches our branch name
-      const matchingPR = prs.find((pr: any) => pr.headRefName === branchName);
+      const matchingPR = prs.find(
+        (pr: { headRefName: string; number: number }) =>
+          pr.headRefName === branchName,
+      );
 
       return matchingPR ? matchingPR.number : undefined;
     } catch (_error) {
@@ -94,116 +96,111 @@ function getPRNumber(
   });
 }
 
-function gatherStatus(): Effect.Effect<
-  WorktreeStatus[],
-  | GitHubCommandError
-  | GitCommandError
-  | GitWorktreeError
-  | ProcessRunnerError
-  | TimeoutException,
-  GitService
-> {
+function gatherStatus(): Effect.Effect<WorktreeStatus[], never, GitService> {
   return Effect.gen(function* () {
-    try {
-      const runnerService = yield* ProcessRunnerService.make();
+    const runnerService = yield* ProcessRunnerService.make().pipe(
+      Effect.catchAll(() =>
+        Effect.die("Failed to create process runner service"),
+      ),
+    );
 
-      // Get all worktrees
-      const worktrees = yield* list();
+    // Get all worktrees
+    const worktrees = yield* list().pipe(
+      Effect.catchAll(() => Effect.succeed([])),
+    );
 
-      // Get all process runner sessions once
-      const allSessions = yield* runnerService.listSessions();
+    // Get all process runner sessions once
+    const allSessions = yield* runnerService
+      .listSessions()
+      .pipe(Effect.catchAll(() => Effect.succeed([])));
 
-      const statusResults: WorktreeStatus[] = [];
+    const statusResults: WorktreeStatus[] = [];
 
-      for (const worktree of worktrees) {
-        try {
-          // Skip the main worktree and bare repositories
-          if (worktree.bare || !worktree.branch) {
-            continue;
-          }
-
-          // Check if worktree path exists (synchronously to avoid hanging)
-          let pathExists = false;
-          try {
-            const fs = require("node:fs");
-            fs.accessSync(worktree.path);
-            pathExists = true;
-          } catch {
-            pathExists = false;
-          }
-
-          if (!pathExists) {
-            continue;
-          }
-
-          // Extract agent name from branch (e.g., "codex-branch" -> "codex" or "codex-run-123" -> "codex")
-          const agentMatch = worktree.branch.match(
-            /^(.+?)(?:-branch|-run-\d+)$/,
-          );
-          if (!agentMatch) {
-            continue;
-          }
-
-          const agent = agentMatch[1];
-          const branchName = worktree.branch;
-          const worktreePath = worktree.path;
-
-          // Check if process runner session is running
-          let processPid: number | undefined;
-          const sessionName = `open-composer-${branchName}`;
-          const session = allSessions.find(
-            (s) => s.sessionName === sessionName,
-          );
-          if (session) {
-            processPid = session.pid;
-          }
-
-          // Calculate change stats
-          const changes = yield* calculateChangeStats(worktreePath, "main");
-
-          // Get PR status
-          const prNumber = yield* getPRNumber(branchName);
-
-          // Get base branch (assume main for now)
-          const baseBranch = "main";
-
-          const status: WorktreeStatus = {
-            agent,
-            branchName,
-            worktreePath,
-            baseBranch,
-            ...(processPid !== undefined && { processPid }),
-            ...(prNumber !== undefined && { prNumber }),
-            ...(changes !== undefined && { changes }),
-          };
-          statusResults.push(status);
-        } catch (_err) {
-          // Skip worktrees that can't be processed
+    for (const worktree of worktrees) {
+      try {
+        // Skip the main worktree and bare repositories
+        if (worktree.bare || !worktree.branch) {
+          continue;
         }
-      }
 
-      return statusResults;
-    } catch (_error) {
-      // If something goes wrong, return empty results
-      return [];
+        // Check if worktree path exists (synchronously to avoid hanging)
+        let pathExists = false;
+        try {
+          const fs = require("node:fs");
+          fs.accessSync(worktree.path);
+          pathExists = true;
+        } catch {
+          pathExists = false;
+        }
+
+        if (!pathExists) {
+          continue;
+        }
+
+        // Extract agent name from branch (e.g., "codex-branch" -> "codex" or "codex-run-123" -> "codex")
+        const agentMatch = worktree.branch.match(/^(.+?)(?:-branch|-run-\d+)$/);
+        if (!agentMatch) {
+          continue;
+        }
+
+        const agent = agentMatch[1];
+        const branchName = worktree.branch;
+        const worktreePath = worktree.path;
+
+        // Check if process runner session is running
+        let processPid: number | undefined;
+        const sessionName = `open-composer-${branchName}`;
+        const session = allSessions.find((s) => s.sessionName === sessionName);
+        if (session) {
+          processPid = session.pid;
+        }
+
+        // Calculate change stats
+        const changes = yield* calculateChangeStats(worktreePath, "main");
+
+        // Get PR status
+        const prNumber = yield* getPRNumber(branchName);
+
+        // Get base branch (assume main for now)
+        const baseBranch = "main";
+
+        const status: WorktreeStatus = {
+          agent,
+          branchName,
+          worktreePath,
+          baseBranch,
+          ...(processPid !== undefined && { processPid }),
+          ...(prNumber !== undefined && { prNumber }),
+          ...(changes !== undefined && { changes }),
+        };
+        statusResults.push(status);
+      } catch (_err) {
+        // Skip worktrees that can't be processed
+      }
     }
+
+    return statusResults;
   });
 }
 
 function calculateChangeStats(
   worktreePath: string,
   baseBranch: string,
-): Effect.Effect<string, GitCommandError | TimeoutException> {
+): Effect.Effect<string, never> {
   return Effect.gen(function* () {
-    try {
-      // Run git diff --stat to get change statistics
-      const gitResult = yield* Effect.timeout(
-        run(["diff", "--stat", `${baseBranch}..HEAD`], {
-          cwd: worktreePath,
-        }),
-        5000, // 5 second timeout
-      );
+    // Run git diff --stat to get change statistics with timeout
+    const gitResult = yield* Effect.timeout(
+      run(["diff", "--stat", `${baseBranch}..HEAD`], {
+        cwd: worktreePath,
+      }),
+      3000, // 3 second timeout
+    ).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
+    if (!gitResult) {
+      return "0+ 0-";
+    }
+
+    try {
       // Parse the output to extract added and removed lines
       const lines = gitResult.stdout.split("\n");
       const statLine = lines[lines.length - 1]; // Last line contains the summary
