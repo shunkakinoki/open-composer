@@ -53,10 +53,10 @@ export class AISessionsService {
   getSessionsByAgent = (
     agent: AISession["agent"],
   ): Effect.Effect<AISession[], Error> =>
-    Effect.gen(function* () {
-      const allSessions = yield* this.getAllSessions();
-      return allSessions.filter((s) => s.agent === agent);
-    });
+    Effect.gen((function* (this: AISessionsService) {
+      const allSessions: AISession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AISession) => s.agent === agent);
+    }).bind(this));
 
   /**
    * Get sessions filtered by status
@@ -64,10 +64,10 @@ export class AISessionsService {
   getSessionsByStatus = (
     status: AISession["status"],
   ): Effect.Effect<AISession[], Error> =>
-    Effect.gen(function* () {
-      const allSessions = yield* this.getAllSessions();
-      return allSessions.filter((s) => s.status === status);
-    });
+    Effect.gen((function* (this: AISessionsService) {
+      const allSessions: AISession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AISession) => s.status === status);
+    }).bind(this));
 
   /**
    * Get sessions for a specific repository
@@ -75,8 +75,8 @@ export class AISessionsService {
   getSessionsByRepository = (
     repository: string,
   ): Effect.Effect<AISession[], Error> =>
-    Effect.gen(function* () {
-      const allSessions = yield* this.getAllSessions();
-      return allSessions.filter((s) => s.repository?.includes(repository));
-    });
+    Effect.gen((function* (this: AISessionsService) {
+      const allSessions: AISession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AISession) => s.repository?.includes(repository));
+    }).bind(this));
 }
