@@ -116,7 +116,7 @@ function installBinary() {
     // On Windows, ensure the .cmd wrapper exists and points to the .exe
     if (isWindows) {
       const cmdScriptPath = path.join(binDir, "open-composer.cmd");
-      const cmdContent = `@ECHO OFF\n"${destinationBinary}" %*\n`;
+      const cmdContent = `@ECHO OFF\r\n"%~dp0\\open-composer.exe" %*\r\n`;
       fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
       console.log("Updated open-composer.cmd wrapper for Windows");
     }

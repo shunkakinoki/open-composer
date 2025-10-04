@@ -50,14 +50,7 @@ jobs:
           max_attempts: 10
           command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
-        if: matrix.os != 'windows-latest'
         run: open-composer --version
-        shell: bash
-      - name: Verify opencomposer command (Windows)
-        if: matrix.os == 'windows-latest'
-        continue-on-error: true
-        run: open-composer --version
-        shell: cmd
   install-e2e-script:
     if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
