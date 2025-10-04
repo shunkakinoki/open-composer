@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.7
+
+### Patch Changes
+
+- [#242](https://github.com/shunkakinoki/open-composer/pull/242) [`0312fe6`](https://github.com/shunkakinoki/open-composer/commit/0312fe65cbdddf5c70052afebeb9598d65e7a3a2) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Update bun dependencies
+
 ## 0.8.6
 
 ### Patch Changes
