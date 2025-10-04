@@ -57,3 +57,8 @@ test("WelcomeScreen calls onCommandSelect when provided", () => {
   // The component is rendered successfully
   expect(selectedCommand).toBe("");
 });
+
+test("WelcomeScreen matches snapshot", () => {
+  const { lastFrame } = render(<WelcomeScreen />);
+  expect(lastFrame()).toMatchSnapshot();
+});

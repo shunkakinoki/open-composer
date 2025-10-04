@@ -56,3 +56,32 @@ test("MainMenu renders with numbered items", () => {
   // Check that item has number label
   expect(output).toContain("[1]");
 });
+
+test("MainMenu matches snapshot", () => {
+  const mockItems: MenuItem[] = [
+    {
+      key: "sessions",
+      label: "Sessions",
+      description: "List all sessions",
+      onSelect: () => {},
+    },
+    {
+      key: "cache",
+      label: "Cache",
+      description: "Manage cache",
+      onSelect: () => {},
+    },
+    {
+      key: "worktree",
+      label: "Worktree",
+      description: "Manage worktrees",
+      onSelect: () => {},
+    },
+  ];
+
+  const { lastFrame } = render(
+    <MainMenu items={mockItems} onExit={() => {}} />,
+  );
+
+  expect(lastFrame()).toMatchSnapshot();
+});

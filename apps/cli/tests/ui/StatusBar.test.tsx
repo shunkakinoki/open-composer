@@ -39,3 +39,20 @@ test("StatusBar renders help text", () => {
   expect(output).toContain("?");
   expect(output).toContain("for help");
 });
+
+test("StatusBar matches snapshot with default props", () => {
+  const { lastFrame } = render(<StatusBar />);
+  expect(lastFrame()).toMatchSnapshot();
+});
+
+test("StatusBar matches snapshot with custom props", () => {
+  const { lastFrame } = render(
+    <StatusBar
+      branch="feature-branch"
+      worktree="feature-123"
+      agent="cursor-agent"
+      status="Building"
+    />,
+  );
+  expect(lastFrame()).toMatchSnapshot();
+});
