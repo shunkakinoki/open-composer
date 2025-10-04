@@ -1,38 +1,28 @@
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+
+// Try to import the generated version first
+let generatedVersion: string | undefined;
+try {
+  // biome-ignore lint/suspicious/noTsIgnore: Not always generated
+  // @ts-ignore - Generated file may not exist in development
+    const gen = require("./version.generated.ts");
+  generatedVersion = gen.CLI_VERSION;
+} catch {
+  // Will use fallback
+}
 
 export const CLI_VERSION = (() => {
+  // If we have a generated version, use it
+  if (generatedVersion) {
+    return generatedVersion;
+  }
+
+  // Otherwise, try to read from package.json (development mode)
   try {
-    // Try multiple paths to find package.json
-    const paths = [
-      // From executable's parent directory (when installed via GitHub releases)
-      join(dirname(process.execPath), "../package.json"),
-      // Relative to executable directory (compiled)
-      join(dirname(fileURLToPath(import.meta.url)), "../../package.json"),
-      // Relative to current file (development)
-      new URL("../../package.json", import.meta.url),
-      // From current working directory
-      join(process.cwd(), "package.json"),
-    ];
-
-    for (const path of paths) {
-      try {
-        const packageJson = JSON.parse(readFileSync(path, "utf8"));
-        // Check if this is the right package.json by verifying the name
-        if (
-          typeof packageJson.version === "string" &&
-          (packageJson.name === "open-composer" ||
-            packageJson.name?.startsWith("@open-composer/cli-"))
-        ) {
-          return packageJson.version;
-        }
-      } catch {
-        // Continue to next path
-      }
-    }
-
-    return "0.0.0";
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    );
+    return packageJson.version || "0.0.0";
   } catch {
     return "0.0.0";
   }
