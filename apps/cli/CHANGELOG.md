@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.9
+
+### Patch Changes
+
+- [#251](https://github.com/shunkakinoki/open-composer/pull/251) [`c7df74d`](https://github.com/shunkakinoki/open-composer/commit/c7df74d233341ab8268d536b979876ef6e104896) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add WelcomeScreen interface
+
 ## 0.8.8
 
 ### Patch Changes
