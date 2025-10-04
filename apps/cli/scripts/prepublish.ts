@@ -118,7 +118,9 @@ for (const [os, arch] of targets) {
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
         bin: {
+          oc: "bin/open-composer",
           opencomposer: "bin/open-composer",
+          "open-composer": "bin/open-composer",
         },
       },
       null,

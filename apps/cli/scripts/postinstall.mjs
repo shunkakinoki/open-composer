@@ -50,7 +50,7 @@ function findBinary() {
   const arch = os.arch();
   const binaryDirName = `cli-${platform}-${arch}`;
   const packageName = `@open-composer/${binaryDirName}`;
-  const binary = platform === "win32" ? "opencomposer.exe" : "opencomposer";
+  const binary = platform === "win32" ? "open-composer.exe" : "open-composer";
 
   try {
     // Use require.resolve to find the package
