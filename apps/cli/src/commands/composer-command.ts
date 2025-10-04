@@ -11,6 +11,9 @@ import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { render } from "ink";
+import React from "react";
+import { WelcomeScreen } from "../components/WelcomeScreen.js";
 import { CLI_VERSION } from "../lib/version.js";
 import { CacheLive } from "../services/cache-service.js";
 import {
@@ -25,7 +28,6 @@ import {
   TelemetryLive,
   type TelemetryService,
 } from "../services/telemetry-service.js";
-import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
@@ -97,39 +99,6 @@ const ALL_COMMAND_BUILDERS = [
   buildUpgradeCommand,
 ];
 
-const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];
-
-const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter((cb) => {
-  const built = cb();
-  return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
-});
-
-// -----------------------------------------------------------------------------
-// Helper Functions
-// -----------------------------------------------------------------------------
-
-// Function to generate help text from command builders with explicit metadata
-function generateHelpText(commandBuilders: CommandBuilder[]): string {
-  let commandsText = "";
-
-  for (const builder of commandBuilders) {
-    const { name, description } = builder.metadata;
-
-    // Format the command line
-    const paddedName = name.padEnd(18);
-    commandsText += `\n  ${paddedName}${description}`;
-  }
-
-  return `Open Composer CLI
-
-USAGE
-  $ open-composer <command>
-
-COMMANDS${commandsText}
-
-Run 'open-composer <command> --help' for more information on a specific command.`;
-}
-
 // -----------------------------------------------------------------------------
 // Command Implmentations
 // -----------------------------------------------------------------------------
@@ -138,12 +107,25 @@ export function buildRootCommand() {
   return Command.make("open-composer").pipe(
     Command.withDescription("Open Composer command line interface"),
     Command.withHandler(() =>
-      Effect.sync(() => {
-        console.log(
-          generateHelpText(
-            HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+      Effect.tryPromise({
+        try: async () => {
+          const { waitUntilExit } = render(
+            React.createElement(WelcomeScreen, {
+              onCommandSelect: (commandName) => {
+                // For now, just log the selected command
+                // In the future, this could trigger actual command execution
+                console.log(`Selected command: ${commandName}`);
+              },
+            }),
+          );
+          await waitUntilExit();
+        },
+        catch: (error) =>
+          new Error(
+            `Failed to start the welcome screen: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
           ),
-        );
       }),
     ),
     Command.withSubcommands(
