@@ -27,9 +27,10 @@ exports[`WelcomeScreen matches snapshot 1`] = `
    [5] Stack           Manage git stack                     │                                      │
    [6] Settings        Configure settings                   │ 🚀 Get Started                       │
    [7] Full TUI        Launch full TUI mode                 │                                      │
-                                                            │ Run 'opencode --help' for CLI usage  │
-                                                            │ Visit docs for more information      │
- Use ↑↓/j/k to navigate, Enter to select, 'q' to quit       │                                      │
+                                                            │ Run 'open-composer --help' for CLI   │
+                                                            │ usage                                │
+ Use ↑↓/j/k to navigate, Enter to select, 'q' to quit       │ Visit docs for more information      │
+                                                            │                                      │
                                                             └──────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Ready | Branch: main | Agent: claude-code                           Press q to quit | ? for help │
