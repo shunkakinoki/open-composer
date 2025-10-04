@@ -1,5 +1,5 @@
 ---
-"@shunkakinoki/open-composer-cli": patch
+"open-composer": patch
 ---
 
 Fix binary naming consistency in CLI installation scripts
