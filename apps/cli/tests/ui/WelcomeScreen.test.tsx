@@ -3,57 +3,57 @@ import { WelcomeScreen } from "../../src/components/WelcomeScreen.js";
 import { render } from "../utils.js";
 
 test("WelcomeScreen renders header", () => {
-	const { lastFrame } = render(<WelcomeScreen />);
-	const output = lastFrame();
+  const { lastFrame } = render(<WelcomeScreen />);
+  const output = lastFrame();
 
-	expect(output).toContain("Open Composer CLI");
+  expect(output).toContain("Open Composer CLI");
 });
 
 test("WelcomeScreen renders welcome message", () => {
-	const { lastFrame } = render(<WelcomeScreen />);
-	const output = lastFrame();
+  const { lastFrame } = render(<WelcomeScreen />);
+  const output = lastFrame();
 
-	expect(output).toContain("Welcome to Open Composer!");
-	expect(output).toContain(
-		"An agent orchestration framework for building with AI",
-	);
+  expect(output).toContain("Welcome to Open Composer!");
+  expect(output).toContain(
+    "An agent orchestration framework for building with AI",
+  );
 });
 
 test("WelcomeScreen renders main menu items", () => {
-	const { lastFrame } = render(<WelcomeScreen />);
-	const output = lastFrame();
+  const { lastFrame } = render(<WelcomeScreen />);
+  const output = lastFrame();
 
-	// Check for some key menu items
-	expect(output).toContain("Sessions");
-	expect(output).toContain("Run");
-	expect(output).toContain("Spawn");
-	expect(output).toContain("Status");
+  // Check for some key menu items
+  expect(output).toContain("Sessions");
+  expect(output).toContain("Run");
+  expect(output).toContain("Spawn");
+  expect(output).toContain("Status");
 });
 
 test("WelcomeScreen renders quick info panel", () => {
-	const { lastFrame } = render(<WelcomeScreen />);
-	const output = lastFrame();
+  const { lastFrame } = render(<WelcomeScreen />);
+  const output = lastFrame();
 
-	expect(output).toContain("Quick Info");
-	expect(output).toContain("Select a command to get started");
-	expect(output).toContain("Use arrow keys or j/k to navigate");
+  expect(output).toContain("Quick Info");
+  expect(output).toContain("Select a command to get started");
+  expect(output).toContain("Use arrow keys or j/k to navigate");
 });
 
 test("WelcomeScreen renders status bar", () => {
-	const { lastFrame } = render(<WelcomeScreen />);
-	const output = lastFrame();
+  const { lastFrame } = render(<WelcomeScreen />);
+  const output = lastFrame();
 
-	expect(output).toContain("Ready");
+  expect(output).toContain("Ready");
 });
 
 test("WelcomeScreen calls onCommandSelect when provided", () => {
-	let selectedCommand = "";
-	const handleCommandSelect = (command: string) => {
-		selectedCommand = command;
-	};
+  let selectedCommand = "";
+  const handleCommandSelect = (command: string) => {
+    selectedCommand = command;
+  };
 
-	render(<WelcomeScreen onCommandSelect={handleCommandSelect} />);
+  render(<WelcomeScreen onCommandSelect={handleCommandSelect} />);
 
-	// The component is rendered successfully
-	expect(selectedCommand).toBe("");
+  // The component is rendered successfully
+  expect(selectedCommand).toBe("");
 });
