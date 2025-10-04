@@ -1,12 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
+import { isatty } from "node:tty";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const cliPath = join(__dirname, "../src/index.ts");
+
+// Check if we're in a CI environment or don't have a TTY
+const isCI = process.env.CI === "true" || !isatty(1);
 
 interface CliResult {
   stdout: string;
@@ -44,7 +48,7 @@ const runCli = (args: string[] = []): Promise<CliResult> =>
   });
 
 describe("CLI Execution", () => {
-  it("launches welcome screen TUI by default", async () => {
+  it.skipIf(isCI)("launches welcome screen TUI by default", async () => {
     await new Promise<void>((resolve, reject) => {
       const child = spawn("bun", ["run", cliPath], {
         stdio: "pipe",
@@ -85,37 +89,40 @@ describe("CLI Execution", () => {
     });
   });
 
-  it("launches welcome screen TUI that matches expected structure", async () => {
-    await new Promise<void>((resolve, reject) => {
-      const child = spawn("bun", ["run", cliPath], {
-        stdio: "pipe",
-        timeout: 5000,
+  it.skipIf(isCI)(
+    "launches welcome screen TUI that matches expected structure",
+    async () => {
+      await new Promise<void>((resolve, reject) => {
+        const child = spawn("bun", ["run", cliPath], {
+          stdio: "pipe",
+          timeout: 5000,
+        });
+
+        let stdout = "";
+
+        child.stdout?.on("data", (data) => {
+          stdout += data.toString();
+        });
+
+        setTimeout(() => {
+          child.kill("SIGINT");
+        }, 1000);
+
+        child.on("close", (_code) => {
+          const strippedStdout = stripAnsi(stdout);
+          // Verify key TUI components are present
+          expect(strippedStdout).toContain("Main Menu");
+          expect(strippedStdout).toContain("Sessions");
+          expect(strippedStdout).toContain("Quick Info");
+          resolve();
+        });
+
+        child.on("error", (error) => {
+          reject(error);
+        });
       });
-
-      let stdout = "";
-
-      child.stdout?.on("data", (data) => {
-        stdout += data.toString();
-      });
-
-      setTimeout(() => {
-        child.kill("SIGINT");
-      }, 1000);
-
-      child.on("close", (_code) => {
-        const strippedStdout = stripAnsi(stdout);
-        // Verify key TUI components are present
-        expect(strippedStdout).toContain("Main Menu");
-        expect(strippedStdout).toContain("Sessions");
-        expect(strippedStdout).toContain("Quick Info");
-        resolve();
-      });
-
-      child.on("error", (error) => {
-        reject(error);
-      });
-    });
-  });
+    },
+  );
 
   it("launches the TUI when requested", async () => {
     await new Promise<void>((resolve, reject) => {
