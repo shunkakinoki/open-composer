@@ -94,6 +94,7 @@
         "@effect/printer": "^0.46.0",
         "@effect/printer-ansi": "^0.46.0",
         "@open-composer/agent-router": "workspace:*",
+        "@open-composer/ai-sessions": "workspace:*",
         "@open-composer/cache": "workspace:*",
         "@open-composer/config": "workspace:*",
         "@open-composer/db": "workspace:*",
@@ -156,6 +157,21 @@
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "tailwindcss": "^4.1.14",
+        "typescript": "^5.9.3",
+      },
+    },
+    "packages/ai-sessions": {
+      "name": "@open-composer/ai-sessions",
+      "version": "0.1.0",
+      "dependencies": {
+        "@open-composer/agent-claude-code": "workspace:*",
+        "@open-composer/agent-codex": "workspace:*",
+        "@open-composer/agent-opencode": "workspace:*",
+        "effect": "^3.18.2",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.2",
         "typescript": "^5.9.3",
       },
     },
@@ -655,6 +671,8 @@
     "@open-composer/agent-router": ["@open-composer/agent-router@workspace:agents/router"],
 
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
+
+    "@open-composer/ai-sessions": ["@open-composer/ai-sessions@workspace:packages/ai-sessions"],
 
     "@open-composer/cache": ["@open-composer/cache@workspace:packages/cache"],
 
