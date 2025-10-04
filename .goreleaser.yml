@@ -57,7 +57,7 @@ brews:
     license: "MIT"
 
     # Use the package name and version from the release tag
-    url_template: "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/open-composer-cli-darwin-{{ .Arch }}.zip"
+    url_template: "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/open-composer-cli-{{ .Os }}-{{ .Arch }}.zip"
 
     # Only include macOS since Homebrew is primarily for macOS
     skip_upload: auto
