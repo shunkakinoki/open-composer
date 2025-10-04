@@ -32,6 +32,7 @@ import {
 import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildAISessionsCommand } from "./ai-sessions-command.js";
+import { buildAISessionsViewerCommand } from "./ai-sessions-viewer-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
@@ -89,6 +90,7 @@ export const ROOT_LAYER = BASE_LAYER.pipe(
 const ALL_COMMAND_BUILDERS = [
   buildAgentsCommand,
   buildAISessionsCommand,
+  buildAISessionsViewerCommand,
   buildCacheCommand,
   buildConfigCommand,
   buildGHPRCommand,

@@ -94,7 +94,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.8.9",
+      "version": "0.8.10",
       "bin": {
         "oc": "./src/index.ts",
         "open-composer": "./src/index.ts",
@@ -178,10 +178,13 @@
       "name": "@open-composer/ai-sessions",
       "version": "0.1.0",
       "dependencies": {
+        "@ai-sdk/openai": "^2.0.42",
+        "@ai-sdk/provider": "^2.0.0",
         "@open-composer/agent-claude-code": "workspace:*",
         "@open-composer/agent-codex": "workspace:*",
         "@open-composer/agent-cursor": "workspace:*",
         "@open-composer/agent-opencode": "workspace:*",
+        "ai": "^4.1.7",
         "effect": "^3.18.2",
       },
       "devDependencies": {
