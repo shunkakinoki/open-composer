@@ -1,4 +1,4 @@
-import { Command } from "@effect/cli";
+import { Command, Options } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
 import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
 import * as CliConfig from "@effect/cli/CliConfig";
@@ -11,6 +11,9 @@ import { GitLive } from "@open-composer/git";
 import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { render } from "ink";
+import React from "react";
+import { WelcomeScreen } from "../components/WelcomeScreen.js";
 import { CLI_VERSION } from "../lib/version.js";
 import { CacheLive } from "../services/cache-service.js";
 import {
@@ -135,17 +138,45 @@ Run 'open-composer <command> --help' for more information on a specific command.
 // -----------------------------------------------------------------------------
 
 export function buildRootCommand() {
-  return Command.make("open-composer").pipe(
+  const helpOption = Options.boolean("help").pipe(
+    Options.withDescription("Show help text instead of TUI"),
+  );
+
+  return Command.make("open-composer", { help: helpOption }).pipe(
     Command.withDescription("Open Composer command line interface"),
-    Command.withHandler(() =>
-      Effect.sync(() => {
-        console.log(
-          generateHelpText(
-            HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+    Command.withHandler(({ help }) => {
+      if (help) {
+        // Show help text
+        return Effect.sync(() => {
+          console.log(
+            generateHelpText(
+              HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+            ),
+          );
+        });
+      }
+      // Launch TUI
+      return Effect.tryPromise({
+        try: async () => {
+          const { waitUntilExit } = render(
+            React.createElement(WelcomeScreen, {
+              onCommandSelect: (commandName) => {
+                // For now, just log the selected command
+                // In the future, this could trigger actual command execution
+                console.log(`Selected command: ${commandName}`);
+              },
+            }),
+          );
+          await waitUntilExit();
+        },
+        catch: (error) =>
+          new Error(
+            `Failed to start the welcome screen: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
           ),
-        );
-      }),
-    ),
+      });
+    }),
     Command.withSubcommands(
       // biome-ignore lint/suspicious/noExplicitAny: Command union types incompatible with generic Command type
       ALL_COMMAND_BUILDERS.map((cb) => cb().command()) as any,
