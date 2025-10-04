@@ -19,12 +19,12 @@
   },
   "dependencies": {
     "bun-pty": "^0.3.2",
-    "effect": "^3.18.0"
+    "effect": "^3.18.2"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"

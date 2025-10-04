@@ -21,18 +21,18 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "effect": "^3.18.0"
+    "effect": "^3.18.2"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "effect": "^3.0.0"
   },
   "optionalDependencies": {
-    "@types/node": "^24.6.0"
+    "@types/node": "^24.6.2"
   },
   "publishConfig": {
     "access": "public"
