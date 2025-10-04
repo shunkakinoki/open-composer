@@ -37,7 +37,7 @@ brews:
 
       # Download and extract the binary
       system "curl", "-fsSL", "-o", "#{binary_name}.zip",
-        "https://github.com/shunkakinoki/open-composer/releases/download/#{version}/#{binary_name}.zip"
+        "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/#{binary_name}.zip"
       system "unzip", "-q", "#{binary_name}.zip"
 
       # Install the binary
