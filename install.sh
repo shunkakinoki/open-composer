@@ -111,7 +111,7 @@ get_latest_version() {
   fi
 
   if [ -z "$version" ]; then
-    error "Failed to fetch the latest version"
+    return 1
   fi
 
   echo "$version"
@@ -246,26 +246,38 @@ main() {
   platform=$(detect_platform)
   info "Detected platform: $platform"
 
-  # Get latest version
+  # Try to get latest version from GitHub
   local version
   version=$(get_latest_version)
-  info "Latest version: $version"
 
-  # Prioritize GitHub releases installation
-  info "Installing from GitHub releases..."
-  if install_from_github "$version" "$platform"; then
-    # Update PATH for GitHub releases installation
-    update_path
-  else
-    warn "GitHub releases installation failed, falling back to npm"
+  if [ -n "$version" ]; then
+    info "Latest version: $version"
 
-    # Fallback to npm installation
-    if check_npm; then
-      info "Installing via npm..."
-      install_via_npm
+    # Prioritize GitHub releases installation
+    info "Installing from GitHub releases..."
+    if install_from_github "$version" "$platform"; then
+      # Update PATH for GitHub releases installation
+      update_path
+      echo ""
+      verify_installation
+      echo ""
+      success "Installation complete!"
+      info "Run 'open-composer --help' to get started"
+      echo ""
+      return 0
     else
-      error "Both GitHub releases and npm installation failed. Please check your internet connection and try again."
+      warn "GitHub releases installation failed, falling back to npm"
     fi
+  else
+    warn "Could not fetch version from GitHub, falling back to npm"
+  fi
+
+  # Fallback to npm installation
+  if check_npm; then
+    info "Installing via npm..."
+    install_via_npm
+  else
+    error "Both GitHub releases and npm installation failed. Please check your internet connection and try again."
   fi
 
   echo ""
