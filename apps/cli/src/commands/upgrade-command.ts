@@ -173,17 +173,17 @@ function detectPlatform(): string {
 function getBinaryName(platformStr: string): string {
   switch (platformStr) {
     case "linux-x64":
-      return "opencomposer-cli-linux-x64";
+      return "open-composer-cli-linux-x64";
     case "linux-arm64":
-      return "opencomposer-cli-linux-aarch64-musl";
+      return "open-composer-cli-linux-aarch64-musl";
     case "macos-x64":
-      return "opencomposer-cli-darwin-x64";
+      return "open-composer-cli-darwin-x64";
     case "macos-arm64":
-      return "opencomposer-cli-darwin-arm64";
+      return "open-composer-cli-darwin-arm64";
     case "windows-x64":
-      return "opencomposer-cli-win32-x64";
+      return "open-composer-cli-win32-x64";
     case "windows-arm64":
-      return "opencomposer-cli-win32-arm64";
+      return "open-composer-cli-win32-arm64";
     default:
       throw new Error(`Unsupported platform: ${platformStr}`);
   }

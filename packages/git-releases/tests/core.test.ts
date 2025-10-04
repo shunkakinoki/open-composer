@@ -22,9 +22,9 @@ describe("GitHubReleases service", () => {
     published_at: "2024-01-01T00:00:00Z",
     assets: [
       {
-        name: "opencomposer-cli-linux-x64.zip",
+        name: "open-composer-cli-linux-x64.zip",
         browser_download_url:
-          "https://github.com/shunkakinoki/open-composer/releases/download/open-composer@0.8.3/opencomposer-cli-linux-x64.zip",
+          "https://github.com/shunkakinoki/open-composer/releases/download/open-composer@0.8.3/open-composer-cli-linux-x64.zip",
         size: 123456,
         content_type: "application/zip",
       },
