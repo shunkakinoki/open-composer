@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs/promises";
-import { homedir } from "node:os";
 import * as path from "node:path";
 import { type CodexSession, parseCodexSessions } from "../src/sessions.js";
 
@@ -85,10 +84,12 @@ describe("Codex Sessions Parser", () => {
     });
 
     expect(eventMsg).toBeDefined();
-    const parsed = JSON.parse(eventMsg!);
-    expect(parsed.payload.message).toContain(
-      "Add unit tests for the authentication module",
-    );
+    if (eventMsg) {
+      const parsed = JSON.parse(eventMsg);
+      expect(parsed.payload.message).toContain(
+        "Add unit tests for the authentication module",
+      );
+    }
   });
 
   test("session type structure is correct", () => {

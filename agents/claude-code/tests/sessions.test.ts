@@ -47,11 +47,14 @@ describe("Claude Code Sessions Parser", () => {
   test("handles sessions with no messages", async () => {
     const cacheFile = path.join(fixturesDir, "sessions.json");
     const content = await fs.readFile(cacheFile, "utf-8");
-    const data = JSON.parse(content);
+    const data = JSON.parse(content) as Array<{
+      id: string;
+      messageCount: number;
+    }>;
 
-    const emptySession = data.find((s: any) => s.messageCount === 0);
+    const emptySession = data.find((s) => s.messageCount === 0);
     expect(emptySession).toBeDefined();
-    expect(emptySession.id).toBe("session-3");
+    expect(emptySession?.id).toBe("session-3");
   });
 
   test("parses all fixture sessions successfully", async () => {

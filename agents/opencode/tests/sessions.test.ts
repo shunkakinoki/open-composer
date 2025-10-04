@@ -46,13 +46,13 @@ describe("Opencode Sessions Parser", () => {
   test("extracts summary from first user message", async () => {
     const sessionFile = path.join(fixturesDir, "session-2.json");
     const content = await fs.readFile(sessionFile, "utf-8");
-    const data = JSON.parse(content);
+    const data = JSON.parse(content) as {
+      messages: Array<{ role: string; content: string }>;
+    };
 
-    const firstUserMessage = data.messages.find(
-      (msg: any) => msg.role === "user",
-    );
+    const firstUserMessage = data.messages.find((msg) => msg.role === "user");
     expect(firstUserMessage).toBeDefined();
-    expect(firstUserMessage.content).toStartWith("Add a new component");
+    expect(firstUserMessage?.content).toStartWith("Add a new component");
   });
 
   test("handles sessions with no messages", async () => {
