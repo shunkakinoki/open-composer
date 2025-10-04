@@ -155,7 +155,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               🚀 Get Started
             </Text>
             <Box marginTop={1} flexDirection="column">
-              <Text color="gray">Run 'opencode --help' for CLI usage</Text>
+              <Text color="gray">Run 'open-composer --help' for CLI usage</Text>
               <Text color="gray">Visit docs for more information</Text>
             </Box>
           </Box>
