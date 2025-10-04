@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.8
+
+### Patch Changes
+
+- [#245](https://github.com/shunkakinoki/open-composer/pull/245) [`29f6114`](https://github.com/shunkakinoki/open-composer/commit/29f6114d95acbbf500e9a68aad67069c04ac6608) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add pr number for status
+
 ## 0.8.7
 
 ### Patch Changes
