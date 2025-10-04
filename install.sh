@@ -180,6 +180,11 @@ install_from_github() {
     mv "$extracted_binary" "$target_binary" || return 1
     chmod +x "$target_binary" || return 1
     success "Installed ${PACKAGE_NAME} to ${target_binary}"
+
+    # Create aliases
+    ln -sf "$target_binary" "${BIN_DIR}/oc" || warn "Failed to create 'oc' alias"
+    ln -sf "$target_binary" "${BIN_DIR}/opencomposer" || warn "Failed to create 'opencomposer' alias"
+    info "Created aliases: oc, opencomposer"
   else
     return 1
   fi
@@ -226,6 +231,13 @@ verify_installation() {
     version=$(open-composer --version 2>&1 | head -n 1 || echo "unknown")
     success "open-composer is installed and available in PATH"
     info "Version: $version"
+
+    # Verify aliases
+    if command_exists oc && command_exists opencomposer; then
+      success "Aliases 'oc' and 'opencomposer' are available"
+    else
+      warn "Some aliases may not be available in PATH"
+    fi
   else
     warn "open-composer command not found in PATH"
     info "You may need to restart your shell or add $BIN_DIR to your PATH"
