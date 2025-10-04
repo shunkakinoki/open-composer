@@ -133,6 +133,17 @@ COMMANDS${commandsText}
 Run 'open-composer <command> --help' for more information on a specific command.`;
 }
 
+// Helper function to display help text - used by both buildRootCommand and buildRunner
+function displayHelpText(): Effect.Effect<void> {
+  return Effect.sync(() => {
+    console.log(
+      generateHelpText(
+        HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+      ),
+    );
+  });
+}
+
 // -----------------------------------------------------------------------------
 // Command Implmentations
 // -----------------------------------------------------------------------------
@@ -147,13 +158,7 @@ export function buildRootCommand() {
     Command.withHandler(({ help }) => {
       if (help) {
         // Show help text
-        return Effect.sync(() => {
-          console.log(
-            generateHelpText(
-              HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
-            ),
-          );
-        });
+        return displayHelpText();
       }
       // Launch TUI
       return Effect.tryPromise({
@@ -193,23 +198,12 @@ export function buildRunner() {
   const runner = Command.run(buildRootCommand(), config);
 
   // Return a function that intercepts --help
-  // The first two elements of process.argv are:
-  //   0: path to node executable
-  //   1: path to script file
-  // User-supplied arguments start at index 2.
-  const NODE_ARGV_USER_ARGS_START_INDEX = 2;
   return (processArgs: string[]) => {
     // Check if --help was passed without any command
     // If so, show custom help text instead of default @effect/cli help
-    const args = processArgs.slice(NODE_ARGV_USER_ARGS_START_INDEX);
-    if (args.includes("--help") || args.includes("-h")) {
-      return Effect.sync(() => {
-        console.log(
-          generateHelpText(
-            HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
-          ),
-        );
-      });
+    const args = processArgs.slice(2);
+    if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+      return displayHelpText();
     }
 
     return runner(processArgs);
