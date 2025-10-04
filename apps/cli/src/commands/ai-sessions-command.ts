@@ -38,7 +38,6 @@ function buildListCommand() {
   );
 
   const limitOption = Options.integer("limit").pipe(
-    Options.optional,
     Options.withDefault(50),
     Options.withDescription(
       "Maximum number of sessions to display (default: 50)",
@@ -70,8 +69,8 @@ function buildListCommand() {
           return;
         }
 
-        // Get limit value
-        const limitValue = Option.getOrElse(limit, () => 50);
+        // Get limit value (limit already has a default of 50)
+        const limitValue = limit;
 
         // Print header
         console.log("\n🤖 AI Agent Sessions\n");
