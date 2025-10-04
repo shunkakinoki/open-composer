@@ -20,7 +20,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "bun run scripts/generate-version.ts && bun build ./src/index.ts --outdir ./dist --target=bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run scripts/prepublish.ts",
     "publish": "bun run prepublishOnly",
