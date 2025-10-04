@@ -1,14 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
+  "include": [],
   "references": [
-    { "path": "../../agents/codex" },
-    { "path": "../../agents/opencode" },
-    { "path": "../../agents/claude-code" }
+    {
+      "path": "tsconfig.src.json"
+    }
   ]
 }
