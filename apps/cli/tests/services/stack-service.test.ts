@@ -43,7 +43,30 @@ const mockRestackStack = mock(() =>
 
 const mockConfigureStack = mock(() => Effect.void);
 
-// TODO: Add MockGitCommandError when implementing error testing
+export const MockGitCommandError = (
+  args: ReadonlyArray<string>,
+  message?: string,
+): {
+  readonly _tag: "GitCommandError";
+  readonly message: string;
+  readonly args: ReadonlyArray<string>;
+  readonly cwd?: string | undefined;
+  readonly stderr?: string | undefined;
+  readonly stdout?: string | undefined;
+  readonly exitCode?: number | null;
+  readonly signal?: NodeJS.Signals | null;
+  readonly cause: unknown;
+} => ({
+  _tag: "GitCommandError",
+  message: message ?? `git ${args.join(" ")} failed`,
+  args,
+  cwd: undefined,
+  stderr: undefined,
+  stdout: undefined,
+  exitCode: 1,
+  signal: null,
+  cause: new Error(message ?? `git ${args.join(" ")} failed`),
+});
 
 // Mock console methods could be added here if needed for future tests
 
