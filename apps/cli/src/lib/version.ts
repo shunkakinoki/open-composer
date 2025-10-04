@@ -3,12 +3,13 @@ import { readFileSync } from "node:fs";
 // Try to import the generated version first
 let generatedVersion: string | undefined;
 try {
-  // biome-ignore lint/suspicious/noTsIgnore: Not always generated
-  // @ts-ignore - Generated file may not exist in development
-  const gen = require("./version.generated.ts");
-  generatedVersion = gen.CLI_VERSION;
+  const content = readFileSync(new URL("./version.generated.ts", import.meta.url), "utf8");
+  const versionMatch = content.match(/export const CLI_VERSION = "([^"]+)"/);
+  if (versionMatch?.[1]) {
+    generatedVersion = versionMatch[1];
+  }
 } catch {
-  // Will use fallback
+  // Generated file may not exist in development, will use fallback.
 }
 
 export const CLI_VERSION = (() => {
