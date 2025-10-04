@@ -5,7 +5,7 @@ let generatedVersion: string | undefined;
 try {
   // biome-ignore lint/suspicious/noTsIgnore: Not always generated
   // @ts-ignore - Generated file may not exist in development
-    const gen = require("./version.generated.ts");
+  const gen = require("./version.generated.ts");
   generatedVersion = gen.CLI_VERSION;
 } catch {
   // Will use fallback
