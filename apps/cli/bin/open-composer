@@ -31,21 +31,21 @@ else
     *) arch="$(uname -m)" ;;
   esac
 
-  binary="opencomposer"
-  [ "$platform" = "win32" ] && binary="opencomposer.exe"
+  binary="open-composer"
+  [ "$platform" = "win32" ] && binary="open-composer.exe"
 
   # ---------------------------------------------------------------------------
-  # Assume binary is in ./apps/cli/node_modules/opencomposer-<platform>-<arch>/bin/
+  # Assume binary is in ./apps/cli/node_modules/@open-composer/cli-<platform>-<arch>/bin/
   # ---------------------------------------------------------------------------
 
-  resolved="$(dirname "$0")/../node_modules/opencomposer-${platform}-${arch}/bin/${binary}"
+  resolved="$(dirname "$0")/../node_modules/@open-composer/cli-${platform}-${arch}/bin/${binary}"
 
   # ---------------------------------------------------------------------------
   # Check if the binary exists
   # ---------------------------------------------------------------------------
 
   if [ ! -f "$resolved" ]; then
-    echo "Error: Binary not found for opencomposer-${platform}-${arch}. Please ensure the correct version is installed." >&2
+    echo "Error: Binary not found for @open-composer/cli-${platform}-${arch}. Please ensure the correct version is installed." >&2
     exit 1
   fi
 fi
