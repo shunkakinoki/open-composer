@@ -251,22 +251,14 @@ main() {
   version=$(get_latest_version)
   info "Latest version: $version"
 
-  # Prioritize GitHub releases installation
+  # Install from GitHub releases
   info "Installing from GitHub releases..."
-  if install_from_github "$version" "$platform"; then
-    # Update PATH for GitHub releases installation
-    update_path
-  else
-    warn "GitHub releases installation failed, falling back to npm"
-
-    # Fallback to npm installation
-    if check_npm; then
-      info "Installing via npm..."
-      install_via_npm
-    else
-      error "Both GitHub releases and npm installation failed. Please check your internet connection and try again."
-    fi
+  if ! install_from_github "$version" "$platform"; then
+    error "GitHub releases installation failed. Please check your internet connection and try again."
   fi
+
+  # Update PATH for GitHub releases installation
+  update_path
 
   echo ""
   verify_installation

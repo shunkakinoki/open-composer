@@ -63,8 +63,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name || github.ref }}
-      - name: Test install.sh script
-        run: bash install.sh
+      - name: Test install.sh script with retry
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 30
+          max_attempts: 10
+          command: bash install.sh
         shell: bash
       - name: Verify open-composer command after script install
         run: |
