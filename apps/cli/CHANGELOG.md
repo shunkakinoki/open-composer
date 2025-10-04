@@ -1,5 +1,15 @@
 # open-composer
 
+## 0.8.6
+
+### Patch Changes
+
+- [#236](https://github.com/shunkakinoki/open-composer/pull/236) [`bc7386e`](https://github.com/shunkakinoki/open-composer/commit/bc7386e7afee4a37e24a6cebeb194b395235c4ca) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Fix binary naming consistency in CLI installation scripts
+
+  Update postinstall.mjs and preinstall.mjs to use "open-composer" instead of "opencomposer" for binary names, ensuring consistency with the project naming convention.
+
+- [#239](https://github.com/shunkakinoki/open-composer/pull/239) [`88e01b8`](https://github.com/shunkakinoki/open-composer/commit/88e01b87287e0c2054f90013bee67009b7428162) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Migrate `opencomposer` to `open-composer`
+
 ## 0.8.5
 
 ### Patch Changes
