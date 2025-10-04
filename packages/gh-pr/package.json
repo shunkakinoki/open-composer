@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "@open-composer/gh": "workspace:*",
-    "effect": "^3.18.0"
+    "effect": "^3.18.2"
   },
   "devDependencies": {
     "@effect/language-service": "^0.41.1",
     "@types/bun": "^1.2.23",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"

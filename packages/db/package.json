@@ -24,18 +24,18 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@effect/platform-bun": "^0.81.0",
+    "@effect/platform-bun": "^0.81.1",
     "@effect/sql": "^0.46.0",
     "@effect/sql-drizzle": "^0.45.0",
     "@effect/sql-sqlite-bun": "^0.47.0",
-    "drizzle-orm": "^0.44.5",
-    "effect": "^3.18.0"
+    "drizzle-orm": "^0.44.6",
+    "effect": "^3.18.2"
   },
   "devDependencies": {
     "@effect/language-service": "^0.41.1",
     "@types/bun": "^1.2.23",
-    "@types/node": "^24.6.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"
