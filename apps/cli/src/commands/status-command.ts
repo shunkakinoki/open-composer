@@ -4,8 +4,8 @@ import {
   getAvailableAgents,
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
-import { listPRs } from "@open-composer/gh-pr";
 import type { GitHubCommandError } from "@open-composer/gh";
+import { listPRs } from "@open-composer/gh-pr";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
 import { type GitWorktreeError, list } from "@open-composer/git-worktrees";
 import {
@@ -96,7 +96,11 @@ function getPRNumber(
 
 function gatherStatus(): Effect.Effect<
   WorktreeStatus[],
-  GitHubCommandError | GitCommandError | GitWorktreeError | ProcessRunnerError | TimeoutException,
+  | GitHubCommandError
+  | GitCommandError
+  | GitWorktreeError
+  | ProcessRunnerError
+  | TimeoutException,
   GitService
 > {
   return Effect.gen(function* () {
