@@ -66,7 +66,7 @@ export type ComposerCliServices =
 
 // Create base layer without telemetry
 const BASE_LAYER = Layer.mergeAll(
-  CliConfig.layer({ showBuiltIns: false }),
+  CliConfig.layer({ showBuiltIns: false, showTypes: false }),
   BunContext.layer,
   DatabaseLive,
   GitLive,
@@ -133,6 +133,17 @@ COMMANDS${commandsText}
 Run 'open-composer <command> --help' for more information on a specific command.`;
 }
 
+// Helper function to display help text - used by both buildRootCommand and buildRunner
+function displayHelpText(): Effect.Effect<void> {
+  return Effect.sync(() => {
+    console.log(
+      generateHelpText(
+        HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+      ),
+    );
+  });
+}
+
 // -----------------------------------------------------------------------------
 // Command Implmentations
 // -----------------------------------------------------------------------------
@@ -147,13 +158,7 @@ export function buildRootCommand() {
     Command.withHandler(({ help }) => {
       if (help) {
         // Show help text
-        return Effect.sync(() => {
-          console.log(
-            generateHelpText(
-              HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
-            ),
-          );
-        });
+        return displayHelpText();
       }
       // Launch TUI
       return Effect.tryPromise({
@@ -190,5 +195,17 @@ export function buildRunner() {
     version: CLI_VERSION,
   } satisfies Omit<CliApp.ConstructorArgs<never>, "command">;
 
-  return Command.run(buildRootCommand(), config);
+  const runner = Command.run(buildRootCommand(), config);
+
+  // Return a function that intercepts --help
+  return (processArgs: string[]) => {
+    // Check if --help was passed without any command
+    // If so, show custom help text instead of default @effect/cli help
+    const args = processArgs.slice(2);
+    if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+      return displayHelpText();
+    }
+
+    return runner(processArgs);
+  };
 }
