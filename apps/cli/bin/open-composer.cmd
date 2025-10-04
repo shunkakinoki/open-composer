@@ -5,8 +5,8 @@ REM ----------------------------------------------------------------------------
 REM Determine binary path
 REM -----------------------------------------------------------------------------
 
-IF DEFINED OPEN_COMPOSER_BIN_PATH (
-    SET "resolved=%OPEN_COMPOSER_BIN_PATH%"
+IF DEFINED OPENCOMPOSER_BIN_PATH (
+    SET "resolved=%OPENCOMPOSER_BIN_PATH%"
     GOTO :execute
 )
 
@@ -32,14 +32,20 @@ IF "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     SET "arch=x64"
 )
 
-SET "name=@open-composer/cli-!platform!-!arch!"
 SET "binary=open-composer.exe"
 
 REM -----------------------------------------------------------------------------
-REM Search for the binary starting from script location
+REM Look for binary in multiple locations
 REM -----------------------------------------------------------------------------
 
-SET "resolved="
+REM First check if binary exists in the same directory (postinstall places it here)
+IF EXIST "%script_dir%\%binary%" (
+    SET "resolved=%script_dir%\%binary%"
+    GOTO :execute
+)
+
+REM Then search upwards for node_modules
+SET "name=@open-composer/cli-!platform!-!arch!"
 SET "current_dir=%script_dir%"
 
 :search_loop
@@ -59,7 +65,7 @@ SET "current_dir=%parent_dir%"
 GOTO :search_loop
 
 :not_found
-ECHO It seems that your package manager failed to install the right version of the open-composer CLI for your platform. You can try manually installing the "%name%" package >&2
+ECHO Error: Binary not found for %name%. Please ensure the correct version is installed. >&2
 EXIT /B 1
 
 :execute
