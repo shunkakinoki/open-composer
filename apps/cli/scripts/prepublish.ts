@@ -191,7 +191,12 @@ if (isRelease) {
           opencomposer: "./bin/open-composer",
           oc: "./bin/open-composer",
         },
-        files: ["bin/**/*", "preinstall.mjs", "postinstall.mjs"],
+        files: [
+          "bin/open-composer",
+          "bin/open-composer.cmd",
+          "preinstall.mjs",
+          "postinstall.mjs",
+        ],
         scripts: {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
