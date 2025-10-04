@@ -16,7 +16,7 @@
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "dev": "bun run ./src/index.ts",
-    "test": "echo 'Tests are in agent packages' && exit 0",
+    "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
