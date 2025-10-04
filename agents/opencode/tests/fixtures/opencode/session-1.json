@@ -1,0 +1,21 @@
+{
+  "info": {
+    "id": "session-1",
+    "timestamp": 1704067200000,
+    "cwd": "/Users/test/projects/my-app",
+    "repository": "user/my-app",
+    "branch": "main"
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Fix the bug in the authentication module",
+      "timestamp": 1704067200000
+    },
+    {
+      "role": "assistant",
+      "content": "I'll help you fix the authentication bug. Let me start by examining the authentication module.",
+      "timestamp": 1704067201000
+    }
+  ]
+}

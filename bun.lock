@@ -38,6 +38,19 @@
         "typescript": "^5.9.3",
       },
     },
+    "agents/cursor": {
+      "name": "@open-composer/agent-cursor",
+      "version": "0.1.0",
+      "dependencies": {
+        "@open-composer/agent-types": "workspace:*",
+        "effect": "^3.18.2",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.2",
+        "typescript": "^5.9.3",
+      },
+    },
     "agents/opencode": {
       "name": "@open-composer/agent-opencode",
       "version": "0.1.0",
@@ -94,6 +107,7 @@
         "@effect/printer": "^0.46.0",
         "@effect/printer-ansi": "^0.46.0",
         "@open-composer/agent-router": "workspace:*",
+        "@open-composer/ai-sessions": "workspace:*",
         "@open-composer/cache": "workspace:*",
         "@open-composer/config": "workspace:*",
         "@open-composer/db": "workspace:*",
@@ -103,6 +117,7 @@
         "@open-composer/git-releases": "workspace:*",
         "@open-composer/git-stack": "workspace:*",
         "@open-composer/git-worktrees": "workspace:*",
+        "@open-composer/orchestrator": "workspace:*",
         "@open-composer/process-runner": "workspace:*",
         "@open-composer/tmux": "workspace:*",
         "bun-pty": "^0.3.2",
@@ -156,6 +171,22 @@
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "tailwindcss": "^4.1.14",
+        "typescript": "^5.9.3",
+      },
+    },
+    "packages/ai-sessions": {
+      "name": "@open-composer/ai-sessions",
+      "version": "0.1.0",
+      "dependencies": {
+        "@open-composer/agent-claude-code": "workspace:*",
+        "@open-composer/agent-codex": "workspace:*",
+        "@open-composer/agent-cursor": "workspace:*",
+        "@open-composer/agent-opencode": "workspace:*",
+        "effect": "^3.18.2",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.2",
         "typescript": "^5.9.3",
       },
     },
@@ -650,11 +681,15 @@
 
     "@open-composer/agent-codex": ["@open-composer/agent-codex@workspace:agents/codex"],
 
+    "@open-composer/agent-cursor": ["@open-composer/agent-cursor@workspace:agents/cursor"],
+
     "@open-composer/agent-opencode": ["@open-composer/agent-opencode@workspace:agents/opencode"],
 
     "@open-composer/agent-router": ["@open-composer/agent-router@workspace:agents/router"],
 
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
+
+    "@open-composer/ai-sessions": ["@open-composer/ai-sessions@workspace:packages/ai-sessions"],
 
     "@open-composer/cache": ["@open-composer/cache@workspace:packages/cache"],
 

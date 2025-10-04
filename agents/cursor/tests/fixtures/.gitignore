@@ -1,0 +1,4 @@
+# Allow .git directories in test fixtures
+!.git/
+!**/.git/
+!**/.git/**

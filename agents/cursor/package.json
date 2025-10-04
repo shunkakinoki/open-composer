@@ -1,0 +1,35 @@
+{
+  "name": "@open-composer/agent-cursor",
+  "version": "0.1.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "bun test",
+    "type-check": "tsc --build"
+  },
+  "dependencies": {
+    "@open-composer/agent-types": "workspace:*",
+    "effect": "^3.18.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,3 @@
+{"timestamp":"2025-10-04T12:00:00.000Z","type":"session_meta","payload":{"id":"test-session-no-git-789","timestamp":"2025-10-04T12:00:00.000Z","cwd":"/Users/test/non-git-project","originator":"codex_vscode","cli_version":"0.42.0","instructions":null}}
+{"timestamp":"2025-10-04T12:00:01.000Z","type":"event_msg","payload":{"type":"user_message","message":"Refactor the utility functions","kind":"plain"}}
+{"timestamp":"2025-10-04T12:00:02.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"text","text":"I'll help refactor the utility functions."}]}}
