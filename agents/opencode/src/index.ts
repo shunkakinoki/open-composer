@@ -108,3 +108,4 @@ const checkOpencode: AgentChecker = {
 
 export default checkOpencode;
 export * from "./sessions.js";
+export * from "./parser.js";
