@@ -291,14 +291,34 @@ function spawnAgentSession(
     const runnerService = yield* ProcessRunnerService.make();
 
     // Build the command based on the agent
-    // For now, we'll spawn a shell in the worktree directory
-    // TODO: In the future, route to specific agent commands
-    const command = `cd "${worktreePath}" && echo "Running ${agent} for: ${description}" && exec $SHELL`;
+    const command = getAgentCommand(agent, worktreePath, description);
 
     const sessionInfo = yield* runnerService.newSession(sessionName, command);
 
     return sessionInfo;
   });
+}
+
+function getAgentCommand(
+  agent: string,
+  worktreePath: string,
+  description: string,
+): string {
+  // Route to specific agent commands based on agent type
+  switch (agent.toLowerCase()) {
+    case "claude-code":
+      return `cd "${worktreePath}" && echo "Running Claude Code for: ${description}" && exec $SHELL`;
+
+    case "codex":
+      return `cd "${worktreePath}" && echo "Running Codex for: ${description}" && exec $SHELL`;
+
+    case "opencode":
+      return `cd "${worktreePath}" && echo "Running OpenCode for: ${description}" && exec $SHELL`;
+
+    default:
+      // Fallback for unknown agents
+      return `cd "${worktreePath}" && echo "Running ${agent} for: ${description}" && exec $SHELL`;
+  }
 }
 
 function calculateChangeStats(
