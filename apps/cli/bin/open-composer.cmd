@@ -6,7 +6,7 @@ REM Determine binary path
 REM -----------------------------------------------------------------------------
 
 IF DEFINED OPEN_COMPOSER_BIN_PATH (
-    SET "resolved=%OPEN_COMPOSER_BIN_PATH%\"
+    SET "resolved=%OPEN_COMPOSER_BIN_PATH%"
     GOTO :execute
 )
 
