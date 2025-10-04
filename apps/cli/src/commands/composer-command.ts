@@ -20,6 +20,7 @@ import {
   ConfigLive,
   type ConfigServiceInterface,
 } from "../services/config-service.js";
+import { OrchestratorLive } from "../services/orchestrator-service.js";
 import {
   SettingsLive,
   type SettingsServiceInterface as SettingsService,
@@ -34,6 +35,7 @@ import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
+import { buildOrchestratorCommand } from "./orchestrator-command.js";
 import { buildRunCommand } from "./run-command.js";
 import { buildSessionCommand } from "./session-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
@@ -74,6 +76,7 @@ const BASE_LAYER = Layer.mergeAll(
   ConfigLive,
   CacheLive,
   AgentRouterLive,
+  OrchestratorLive,
   SettingsLive,
 );
 
@@ -88,6 +91,7 @@ const ALL_COMMAND_BUILDERS = [
   buildConfigCommand,
   buildGHPRCommand,
   buildGitWorktreeCommand,
+  buildOrchestratorCommand,
   buildRunCommand,
   buildSessionCommand,
   buildSessionsCommand,

@@ -46,6 +46,7 @@
     "@open-composer/git-releases": "workspace:*",
     "@open-composer/git-stack": "workspace:*",
     "@open-composer/git-worktrees": "workspace:*",
+    "@open-composer/orchestrator": "workspace:*",
     "@open-composer/process-runner": "workspace:*",
     "@open-composer/tmux": "workspace:*",
     "bun-pty": "^0.3.2",
