@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 // Try to import the generated version first
 let generatedVersion: string | undefined;
 try {
-  const content = readFileSync(new URL("./version.generated.ts", import.meta.url), "utf8");
+  const content = readFileSync(
+    new URL("./version.generated.ts", import.meta.url),
+    "utf8",
+  );
   const versionMatch = content.match(/export const CLI_VERSION = "([^"]+)"/);
   if (versionMatch?.[1]) {
     generatedVersion = versionMatch[1];
