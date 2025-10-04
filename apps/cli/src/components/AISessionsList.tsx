@@ -82,9 +82,9 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
   const { exit } = useApp();
   const { stdout } = useStdout();
 
-  // Get terminal dimensions for fullscreen
-  const terminalHeight = stdout?.rows || 24;
-  const terminalWidth = stdout?.columns || 80;
+  // Get terminal dimensions for fullscreen (only when running in a real terminal)
+  const terminalHeight = stdout?.rows;
+  const terminalWidth = stdout?.columns;
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -172,8 +172,8 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
     <Box
       flexDirection="column"
       padding={1}
-      height={terminalHeight}
-      width={terminalWidth}
+      {...(terminalHeight && { height: terminalHeight })}
+      {...(terminalWidth && { width: terminalWidth })}
     >
       <Text bold color="cyan">
         🤖 AI Agent Sessions

@@ -16,9 +16,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const { stdout } = useStdout();
   const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
 
-  // Get terminal dimensions for fullscreen
-  const terminalHeight = stdout?.rows || 24;
-  const terminalWidth = stdout?.columns || 80;
+  // Get terminal dimensions for fullscreen (only when running in a real terminal)
+  const terminalHeight = stdout?.rows;
+  const terminalWidth = stdout?.columns;
 
   // Define menu items based on available commands
   const menuItems: MenuItem[] = [
@@ -92,7 +92,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   };
 
   return (
-    <Box flexDirection="column" height={terminalHeight} width={terminalWidth}>
+    <Box
+      flexDirection="column"
+      {...(terminalHeight && { height: terminalHeight })}
+      {...(terminalWidth && { width: terminalWidth })}
+    >
       {/* Header */}
       <Box
         borderStyle="double"
