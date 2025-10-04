@@ -29,15 +29,15 @@ REM ----------------------------------------------------------------------------
 REM Set binary path
 REM -----------------------------------------------------------------------------
 
-SET "binary=opencomposer.exe"
-SET "resolved=%~dp0..\node_modules\opencomposer-windows-!arch!\bin\!binary!"
+SET "binary=open-composer.exe"
+SET "resolved=%~dp0..\node_modules\@open-composer\cli-windows-!arch!\bin\!binary!"
 
 REM -----------------------------------------------------------------------------
 REM Check if binary exists
 REM -----------------------------------------------------------------------------
 
 IF NOT EXIST "!resolved!" (
-    ECHO Error: Binary not found for opencomposer-windows-!arch!. Please ensure the correct version is installed. >&2
+    ECHO Error: Binary not found for @open-composer/cli-windows-!arch!. Please ensure the correct version is installed. >&2
     EXIT /B 1
 )
 
