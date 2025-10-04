@@ -193,10 +193,15 @@ export function buildRunner() {
   const runner = Command.run(buildRootCommand(), config);
 
   // Return a function that intercepts --help
+  // The first two elements of process.argv are:
+  //   0: path to node executable
+  //   1: path to script file
+  // User-supplied arguments start at index 2.
+  const NODE_ARGV_USER_ARGS_START_INDEX = 2;
   return (processArgs: string[]) => {
     // Check if --help was passed without any command
     // If so, show custom help text instead of default @effect/cli help
-    const args = processArgs.slice(2);
+    const args = processArgs.slice(NODE_ARGV_USER_ARGS_START_INDEX);
     if (args.includes("--help") || args.includes("-h")) {
       return Effect.sync(() => {
         console.log(
