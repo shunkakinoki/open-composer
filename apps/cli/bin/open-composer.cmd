@@ -22,11 +22,12 @@ REM Detect platform and architecture
 REM -----------------------------------------------------------------------------
 
 SET "platform=win32"
-
 IF "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     SET "arch=x64"
 ) ELSE IF "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
     SET "arch=arm64"
+) ELSE IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
+    SET "arch=x86"
 ) ELSE (
     SET "arch=x64"
 )
