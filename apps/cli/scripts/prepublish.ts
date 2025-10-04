@@ -101,7 +101,8 @@ for (const [os, arch] of targets) {
   // Use bun build with cross-compilation
   // ---------------------------------------------------------------------------
 
-  await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/open-composer`;
+  const binaryName = os === "win32" ? "open-composer.exe" : "open-composer";
+  await $`bun build --compile --target=${bunTarget} ./src/index.ts --outfile dist/${packageName}/bin/${binaryName}`;
 
   // Make executable on Unix systems
   if (os !== "win32") {
@@ -114,13 +115,13 @@ for (const [os, arch] of targets) {
       {
         name: packageName,
         version: CLI_VERSION,
-        main: "bin/open-composer",
+        main: `bin/${binaryName}`,
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
         bin: {
-          oc: "bin/open-composer",
-          opencomposer: "bin/open-composer",
-          "open-composer": "bin/open-composer",
+          oc: `bin/${binaryName}`,
+          opencomposer: `bin/${binaryName}`,
+          "open-composer": `bin/${binaryName}`,
         },
       },
       null,
