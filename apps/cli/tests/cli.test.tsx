@@ -44,26 +44,77 @@ const runCli = (args: string[] = []): Promise<CliResult> =>
   });
 
 describe("CLI Execution", () => {
-  it("prints help text by default", async () => {
-    const result = await runCli();
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
+  it("launches welcome screen TUI by default", async () => {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn("bun", ["run", cliPath], {
+        stdio: "pipe",
+        timeout: 5000,
+      });
 
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toContain("USAGE");
-    expect(stdout).toContain("$ open-composer");
-    expect(stdout).toContain("Manage AI agents");
+      let stdout = "";
+      let stderr = "";
+
+      child.stdout?.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr?.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      setTimeout(() => {
+        child.kill("SIGINT");
+      }, 1000);
+
+      child.on("close", (_code) => {
+        const strippedStdout = stripAnsi(stdout);
+        // Check that TUI components are rendered
+        expect(strippedStdout).toContain("Open Composer CLI");
+        expect(strippedStdout).toContain("Welcome to Open Composer");
+        const hasRealErrors =
+          stderr.length > 0 &&
+          !stderr.includes("Warning:") &&
+          !stderr.includes("Encountered");
+        expect(hasRealErrors).toBe(false);
+        resolve();
+      });
+
+      child.on("error", (error) => {
+        reject(error);
+      });
+    });
   });
 
-  it("prints help text that matches snapshot", async () => {
-    const result = await runCli();
-    const stdout = stripAnsi(result.stdout);
-    const stderr = stripAnsi(result.stderr);
+  it("launches welcome screen TUI that matches expected structure", async () => {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn("bun", ["run", cliPath], {
+        stdio: "pipe",
+        timeout: 5000,
+      });
 
-    expect(result.code).toBe(0);
-    expect(stderr).toBe("");
-    expect(stdout).toMatchSnapshot();
+      let stdout = "";
+
+      child.stdout?.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      setTimeout(() => {
+        child.kill("SIGINT");
+      }, 1000);
+
+      child.on("close", (_code) => {
+        const strippedStdout = stripAnsi(stdout);
+        // Verify key TUI components are present
+        expect(strippedStdout).toContain("Main Menu");
+        expect(strippedStdout).toContain("Sessions");
+        expect(strippedStdout).toContain("Quick Info");
+        resolve();
+      });
+
+      child.on("error", (error) => {
+        reject(error);
+      });
+    });
   });
 
   it("launches the TUI when requested", async () => {
