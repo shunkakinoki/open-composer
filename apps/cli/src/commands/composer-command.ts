@@ -1,4 +1,4 @@
-import { Command } from "@effect/cli";
+import { Command, Options } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
 import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
 import * as CliConfig from "@effect/cli/CliConfig";
@@ -28,6 +28,7 @@ import {
   TelemetryLive,
   type TelemetryService,
 } from "../services/telemetry-service.js";
+import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
@@ -99,15 +100,63 @@ const ALL_COMMAND_BUILDERS = [
   buildUpgradeCommand,
 ];
 
+const EXCLUDED_HELP_TEXT_NAMES = ["cache", "config"];
+
+const HELP_TEXT_BUILDERS = ALL_COMMAND_BUILDERS.filter((cb) => {
+  const built = cb();
+  return !EXCLUDED_HELP_TEXT_NAMES.includes(built.metadata.name);
+});
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
+
+// Function to generate help text from command builders with explicit metadata
+function generateHelpText(commandBuilders: CommandBuilder[]): string {
+  let commandsText = "";
+
+  for (const builder of commandBuilders) {
+    const { name, description } = builder.metadata;
+
+    // Format the command line
+    const paddedName = name.padEnd(18);
+    commandsText += `\n  ${paddedName}${description}`;
+  }
+
+  return `Open Composer CLI
+
+USAGE
+  $ open-composer <command>
+
+COMMANDS${commandsText}
+
+Run 'open-composer <command> --help' for more information on a specific command.`;
+}
+
 // -----------------------------------------------------------------------------
 // Command Implmentations
 // -----------------------------------------------------------------------------
 
 export function buildRootCommand() {
-  return Command.make("open-composer").pipe(
+  const helpOption = Options.boolean("help").pipe(
+    Options.withDescription("Show help text instead of TUI"),
+  );
+
+  return Command.make("open-composer", { help: helpOption }).pipe(
     Command.withDescription("Open Composer command line interface"),
-    Command.withHandler(() =>
-      Effect.tryPromise({
+    Command.withHandler(({ help }) => {
+      if (help) {
+        // Show help text
+        return Effect.sync(() => {
+          console.log(
+            generateHelpText(
+              HELP_TEXT_BUILDERS.map((cb) => cb()) as CommandBuilder[],
+            ),
+          );
+        });
+      }
+      // Launch TUI
+      return Effect.tryPromise({
         try: async () => {
           const { waitUntilExit } = render(
             React.createElement(WelcomeScreen, {
@@ -126,8 +175,8 @@ export function buildRootCommand() {
               error instanceof Error ? error.message : String(error)
             }`,
           ),
-      }),
-    ),
+      });
+    }),
     Command.withSubcommands(
       // biome-ignore lint/suspicious/noExplicitAny: Command union types incompatible with generic Command type
       ALL_COMMAND_BUILDERS.map((cb) => cb().command()) as any,
