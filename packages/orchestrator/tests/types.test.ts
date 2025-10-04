@@ -13,19 +13,22 @@ import type {
 } from "../src/types.js";
 
 describe.concurrent("Types", () => {
-  test.concurrent("ProjectRequirements should have required fields", async () => {
-    const requirements: ProjectRequirements = {
-      objective: "Build a REST API",
-      description: "Create user management API",
-      constraints: ["TypeScript", "Tests required"],
-      technicalRequirements: ["Express.js", "PostgreSQL"],
-    };
+  test.concurrent(
+    "ProjectRequirements should have required fields",
+    async () => {
+      const requirements: ProjectRequirements = {
+        objective: "Build a REST API",
+        description: "Create user management API",
+        constraints: ["TypeScript", "Tests required"],
+        technicalRequirements: ["Express.js", "PostgreSQL"],
+      };
 
-    expect(requirements.objective).toBe("Build a REST API");
-    expect(requirements.description).toBe("Create user management API");
-    expect(requirements.constraints).toHaveLength(2);
-    expect(requirements.technicalRequirements).toHaveLength(2);
-  });
+      expect(requirements.objective).toBe("Build a REST API");
+      expect(requirements.description).toBe("Create user management API");
+      expect(requirements.constraints).toHaveLength(2);
+      expect(requirements.technicalRequirements).toHaveLength(2);
+    },
+  );
 
   test.concurrent("Task should have required fields", async () => {
     const task: Task = {

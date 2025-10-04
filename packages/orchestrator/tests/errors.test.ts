@@ -34,17 +34,20 @@ describe.concurrent("Error Types", () => {
     expect(error.task).toBe("planner");
   });
 
-  test.concurrent("makeValidationError should create validation error", async () => {
-    const error = makeValidationError({
-      message: "Invalid priority value",
-      field: "priority",
-      cause: new Error("Must be between 1 and 5"),
-    });
+  test.concurrent(
+    "makeValidationError should create validation error",
+    async () => {
+      const error = makeValidationError({
+        message: "Invalid priority value",
+        field: "priority",
+        cause: new Error("Must be between 1 and 5"),
+      });
 
-    expect(error._tag).toBe("OrchestratorValidationError");
-    expect(error.message).toBe("Invalid priority value");
-    expect(error.field).toBe("priority");
-  });
+      expect(error._tag).toBe("OrchestratorValidationError");
+      expect(error.message).toBe("Invalid priority value");
+      expect(error.field).toBe("priority");
+    },
+  );
 
   test.concurrent("ConfigError should work without cause", async () => {
     const error: OrchestratorConfigError = {
@@ -79,34 +82,37 @@ describe.concurrent("Error Types", () => {
     expect(error.message).toBe("Field is required");
   });
 
-  test.concurrent("Error factories should preserve all properties", async () => {
-    const configError = makeConfigError({
-      message: "Test config error",
-      cause: { detail: "test" },
-    });
+  test.concurrent(
+    "Error factories should preserve all properties",
+    async () => {
+      const configError = makeConfigError({
+        message: "Test config error",
+        cause: { detail: "test" },
+      });
 
-    const apiError = makeAPIError({
-      message: "Test API error",
-      modelName: "test-model",
-      task: "test-task",
-      cause: { detail: "test" },
-    });
+      const apiError = makeAPIError({
+        message: "Test API error",
+        modelName: "test-model",
+        task: "test-task",
+        cause: { detail: "test" },
+      });
 
-    const validationError = makeValidationError({
-      message: "Test validation error",
-      field: "test-field",
-      cause: { detail: "test" },
-    });
+      const validationError = makeValidationError({
+        message: "Test validation error",
+        field: "test-field",
+        cause: { detail: "test" },
+      });
 
-    expect(configError).toHaveProperty("_tag");
-    expect(configError).toHaveProperty("message");
-    expect(configError).toHaveProperty("cause");
+      expect(configError).toHaveProperty("_tag");
+      expect(configError).toHaveProperty("message");
+      expect(configError).toHaveProperty("cause");
 
-    expect(apiError).toHaveProperty("_tag");
-    expect(apiError).toHaveProperty("modelName");
-    expect(apiError).toHaveProperty("task");
+      expect(apiError).toHaveProperty("_tag");
+      expect(apiError).toHaveProperty("modelName");
+      expect(apiError).toHaveProperty("task");
 
-    expect(validationError).toHaveProperty("_tag");
-    expect(validationError).toHaveProperty("field");
-  });
+      expect(validationError).toHaveProperty("_tag");
+      expect(validationError).toHaveProperty("field");
+    },
+  );
 });

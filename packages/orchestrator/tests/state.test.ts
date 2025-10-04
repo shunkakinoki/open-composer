@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type GraphConfig,
   GraphConfigSchema,
   OrchestratorStateAnnotation,
   tokenDataReducer,
-  type GraphConfig,
-  type OrchestratorState,
 } from "../src/state.js";
 import type { ModelTokenData } from "../src/types.js";
 
@@ -65,25 +64,32 @@ describe.concurrent("State Management", () => {
       const result = tokenDataReducer(state, update);
 
       expect(result).toHaveLength(2);
-      expect(result.find((d) => d.model === "anthropic:claude-sonnet-4-0")).toBeDefined();
-      expect(result.find((d) => d.model === "anthropic:claude-3-5-haiku-latest")).toBeDefined();
+      expect(
+        result.find((d) => d.model === "anthropic:claude-sonnet-4-0"),
+      ).toBeDefined();
+      expect(
+        result.find((d) => d.model === "anthropic:claude-3-5-haiku-latest"),
+      ).toBeDefined();
     });
 
-    test.concurrent("should return update when state is undefined", async () => {
-      const update: ModelTokenData[] = [
-        {
-          model: "anthropic:claude-sonnet-4-0",
-          cacheCreationInputTokens: 100,
-          cacheReadInputTokens: 50,
-          inputTokens: 200,
-          outputTokens: 150,
-        },
-      ];
+    test.concurrent(
+      "should return update when state is undefined",
+      async () => {
+        const update: ModelTokenData[] = [
+          {
+            model: "anthropic:claude-sonnet-4-0",
+            cacheCreationInputTokens: 100,
+            cacheReadInputTokens: 50,
+            inputTokens: 200,
+            outputTokens: 150,
+          },
+        ];
 
-      const result = tokenDataReducer(undefined, update);
+        const result = tokenDataReducer(undefined, update);
 
-      expect(result).toEqual(update);
-    });
+        expect(result).toEqual(update);
+      },
+    );
 
     test.concurrent("should handle empty update array", async () => {
       const state: ModelTokenData[] = [
@@ -162,22 +168,25 @@ describe.concurrent("State Management", () => {
       expect(stateSpec.executionMetadata).toBeDefined();
     });
 
-    test.concurrent("should use tokenDataReducer for tokenData field", async () => {
-      const spec = OrchestratorStateAnnotation.spec.tokenData;
+    test.concurrent(
+      "should use tokenDataReducer for tokenData field",
+      async () => {
+        const spec = OrchestratorStateAnnotation.spec.tokenData;
 
-      // Test that the reducer works correctly
-      const state: ModelTokenData[] = [];
-      const update: ModelTokenData[] = [
-        {
-          model: "test-model",
-          cacheCreationInputTokens: 10,
-          cacheReadInputTokens: 5,
-          inputTokens: 20,
-          outputTokens: 15,
-        },
-      ];
+        // Test that the reducer works correctly
+        const _state: ModelTokenData[] = [];
+        const _update: ModelTokenData[] = [
+          {
+            model: "test-model",
+            cacheCreationInputTokens: 10,
+            cacheReadInputTokens: 5,
+            inputTokens: 20,
+            outputTokens: 15,
+          },
+        ];
 
-      expect(spec).toBeDefined();
-    });
+        expect(spec).toBeDefined();
+      },
+    );
   });
 });

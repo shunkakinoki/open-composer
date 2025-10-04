@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
+  getTaskConfigKey,
   LLMTask,
   TASK_TO_CONFIG_DEFAULTS_MAP,
-  getTaskConfigKey,
 } from "../src/llm-task.js";
 
 describe.concurrent("LLM Task", () => {
@@ -13,12 +13,15 @@ describe.concurrent("LLM Task", () => {
     expect(LLMTask.OPTIMIZER).toBe("optimizer");
   });
 
-  test.concurrent("TASK_TO_CONFIG_DEFAULTS_MAP should have defaults for all tasks", async () => {
-    expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.PLANNER]).toBeDefined();
-    expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.COORDINATOR]).toBeDefined();
-    expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.SYNTHESIZER]).toBeDefined();
-    expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.OPTIMIZER]).toBeDefined();
-  });
+  test.concurrent(
+    "TASK_TO_CONFIG_DEFAULTS_MAP should have defaults for all tasks",
+    async () => {
+      expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.PLANNER]).toBeDefined();
+      expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.COORDINATOR]).toBeDefined();
+      expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.SYNTHESIZER]).toBeDefined();
+      expect(TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.OPTIMIZER]).toBeDefined();
+    },
+  );
 
   test.concurrent("PLANNER should use Claude Sonnet 4", async () => {
     const config = TASK_TO_CONFIG_DEFAULTS_MAP[LLMTask.PLANNER];
@@ -51,12 +54,15 @@ describe.concurrent("LLM Task", () => {
     expect(getTaskConfigKey(LLMTask.OPTIMIZER)).toBe("optimizer");
   });
 
-  test.concurrent("all tasks should have temperature 0 for consistency", async () => {
-    for (const task of Object.values(LLMTask)) {
-      const config = TASK_TO_CONFIG_DEFAULTS_MAP[task];
-      expect(config.temperature).toBe(0);
-    }
-  });
+  test.concurrent(
+    "all tasks should have temperature 0 for consistency",
+    async () => {
+      for (const task of Object.values(LLMTask)) {
+        const config = TASK_TO_CONFIG_DEFAULTS_MAP[task];
+        expect(config.temperature).toBe(0);
+      }
+    },
+  );
 
   test.concurrent("all tasks should have valid model names", async () => {
     for (const task of Object.values(LLMTask)) {

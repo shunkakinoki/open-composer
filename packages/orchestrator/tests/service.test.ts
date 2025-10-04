@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
-  OrchestratorService,
   makeOrchestratorService,
+  OrchestratorService,
 } from "../src/service.js";
 
 describe.concurrent("Orchestrator Service", () => {
@@ -10,18 +10,21 @@ describe.concurrent("Orchestrator Service", () => {
     expect(typeof OrchestratorService).toBe("object");
   });
 
-  test.concurrent("makeOrchestratorService should create service instance", async () => {
-    const service = makeOrchestratorService({
-      openRouterApiKey: "test-key",
-    });
+  test.concurrent(
+    "makeOrchestratorService should create service instance",
+    async () => {
+      const service = makeOrchestratorService({
+        openRouterApiKey: "test-key",
+      });
 
-    expect(service).toBeDefined();
-    expect(typeof service.planProject).toBe("function");
-    expect(typeof service.decomposeTask).toBe("function");
-    expect(typeof service.coordinateAgents).toBe("function");
-    expect(typeof service.synthesizeResults).toBe("function");
-    expect(typeof service.optimizeResourceAllocation).toBe("function");
-  });
+      expect(service).toBeDefined();
+      expect(typeof service.planProject).toBe("function");
+      expect(typeof service.decomposeTask).toBe("function");
+      expect(typeof service.coordinateAgents).toBe("function");
+      expect(typeof service.synthesizeResults).toBe("function");
+      expect(typeof service.optimizeResourceAllocation).toBe("function");
+    },
+  );
 
   test.concurrent("service should have all required methods", async () => {
     const service = makeOrchestratorService();
@@ -66,56 +69,63 @@ describe.concurrent("Orchestrator Service", () => {
     expect(typeof service.planProject).toBe("function");
   });
 
-  test.concurrent("all service methods should accept optional config", async () => {
-    const service = makeOrchestratorService({
-      openRouterApiKey: "test-key",
-    });
+  test.concurrent(
+    "all service methods should accept optional config",
+    async () => {
+      const service = makeOrchestratorService({
+        openRouterApiKey: "test-key",
+      });
 
-    const projectRequirements = {
-      objective: "Test",
-      description: "Test",
-    };
+      const projectRequirements = {
+        objective: "Test",
+        description: "Test",
+      };
 
-    const task = {
-      id: "1",
-      title: "Test",
-      description: "Test",
-      priority: 1,
-      completed: false,
-    };
+      const task = {
+        id: "1",
+        title: "Test",
+        description: "Test",
+        priority: 1,
+        completed: false,
+      };
 
-    const agents: ReadonlyArray<{
-      readonly id: string;
-      readonly name: string;
-      readonly capabilities: ReadonlyArray<string>;
-      readonly currentWorkload: number;
-      readonly maxCapacity: number;
-    }> = [];
+      const agents: ReadonlyArray<{
+        readonly id: string;
+        readonly name: string;
+        readonly capabilities: ReadonlyArray<string>;
+        readonly currentWorkload: number;
+        readonly maxCapacity: number;
+      }> = [];
 
-    const subtasks: ReadonlyArray<{
-      readonly id: string;
-      readonly parentTaskId: string;
-      readonly title: string;
-      readonly description: string;
-      readonly priority: number;
-      readonly completed: boolean;
-    }> = [];
+      const subtasks: ReadonlyArray<{
+        readonly id: string;
+        readonly parentTaskId: string;
+        readonly title: string;
+        readonly description: string;
+        readonly priority: number;
+        readonly completed: boolean;
+      }> = [];
 
-    const results: ReadonlyArray<{
-      readonly agentId: string;
-      readonly taskId: string;
-      readonly success: boolean;
-    }> = [];
+      const results: ReadonlyArray<{
+        readonly agentId: string;
+        readonly taskId: string;
+        readonly success: boolean;
+      }> = [];
 
-    const taskPlan = {
-      tasks: [],
-    };
+      const taskPlan = {
+        tasks: [],
+      };
 
-    // All these should accept config as second parameter
-    expect(() => service.planProject(projectRequirements, {})).not.toThrow();
-    expect(() => service.decomposeTask(task, agents, {})).not.toThrow();
-    expect(() => service.coordinateAgents(subtasks, agents, {})).not.toThrow();
-    expect(() => service.synthesizeResults(results, {})).not.toThrow();
-    expect(() => service.optimizeResourceAllocation(taskPlan, {})).not.toThrow();
-  });
+      // All these should accept config as second parameter
+      expect(() => service.planProject(projectRequirements, {})).not.toThrow();
+      expect(() => service.decomposeTask(task, agents, {})).not.toThrow();
+      expect(() =>
+        service.coordinateAgents(subtasks, agents, {}),
+      ).not.toThrow();
+      expect(() => service.synthesizeResults(results, {})).not.toThrow();
+      expect(() =>
+        service.optimizeResourceAllocation(taskPlan, {}),
+      ).not.toThrow();
+    },
+  );
 });

@@ -13,7 +13,9 @@ describe.concurrent("Package Exports", () => {
     expect(typeof OrchestratorPackage.decomposeTask).toBe("function");
     expect(typeof OrchestratorPackage.coordinateAgents).toBe("function");
     expect(typeof OrchestratorPackage.synthesizeResults).toBe("function");
-    expect(typeof OrchestratorPackage.optimizeResourceAllocation).toBe("function");
+    expect(typeof OrchestratorPackage.optimizeResourceAllocation).toBe(
+      "function",
+    );
   });
 
   test.concurrent("should export error types", async () => {
@@ -24,7 +26,9 @@ describe.concurrent("Package Exports", () => {
 
   test.concurrent("should export legacy orchestrator class", async () => {
     expect(OrchestratorPackage.ProfessorOakOrchestrator).toBeDefined();
-    expect(typeof OrchestratorPackage.ProfessorOakOrchestrator).toBe("function");
+    expect(typeof OrchestratorPackage.ProfessorOakOrchestrator).toBe(
+      "function",
+    );
   });
 
   test.concurrent("should export state management", async () => {
@@ -73,22 +77,31 @@ describe.concurrent("Package Exports", () => {
     expect(typeof orchestrator.optimizeResourceAllocation).toBe("function");
   });
 
-  test.concurrent("should have consistent API between Effect and legacy", async () => {
-    const service = OrchestratorPackage.makeOrchestratorService({
-      openRouterApiKey: "test-key",
-    });
+  test.concurrent(
+    "should have consistent API between Effect and legacy",
+    async () => {
+      const service = OrchestratorPackage.makeOrchestratorService({
+        openRouterApiKey: "test-key",
+      });
 
-    const orchestrator = new OrchestratorPackage.ProfessorOakOrchestrator({
-      openRouterApiKey: "test-key",
-    });
+      const orchestrator = new OrchestratorPackage.ProfessorOakOrchestrator({
+        openRouterApiKey: "test-key",
+      });
 
-    // Both should have the same method names
-    expect(typeof service.planProject).toBe(typeof orchestrator.planProject);
-    expect(typeof service.decomposeTask).toBe(typeof orchestrator.decomposeTask);
-    expect(typeof service.coordinateAgents).toBe(typeof orchestrator.coordinateAgents);
-    expect(typeof service.synthesizeResults).toBe(typeof orchestrator.synthesizeResults);
-    expect(typeof service.optimizeResourceAllocation).toBe(
-      typeof orchestrator.optimizeResourceAllocation,
-    );
-  });
+      // Both should have the same method names
+      expect(typeof service.planProject).toBe(typeof orchestrator.planProject);
+      expect(typeof service.decomposeTask).toBe(
+        typeof orchestrator.decomposeTask,
+      );
+      expect(typeof service.coordinateAgents).toBe(
+        typeof orchestrator.coordinateAgents,
+      );
+      expect(typeof service.synthesizeResults).toBe(
+        typeof orchestrator.synthesizeResults,
+      );
+      expect(typeof service.optimizeResourceAllocation).toBe(
+        typeof orchestrator.optimizeResourceAllocation,
+      );
+    },
+  );
 });
