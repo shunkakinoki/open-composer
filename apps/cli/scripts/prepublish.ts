@@ -98,16 +98,6 @@ for (const [os, arch] of targets) {
   await $`mkdir -p dist/${packageName}/bin`;
 
   // ---------------------------------------------------------------------------
-  // Create a version file with the embedded version
-  // ---------------------------------------------------------------------------
-
-  const versionFileContent = `// This version is embedded during build
-export const CLI_VERSION = "${version}";
-`;
-
-  await Bun.write("src/lib/version.generated.ts", versionFileContent);
-
-  // ---------------------------------------------------------------------------
   // Use bun build with cross-compilation
   // ---------------------------------------------------------------------------
 
