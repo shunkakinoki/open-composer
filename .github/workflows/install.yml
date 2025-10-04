@@ -69,7 +69,6 @@ jobs:
           timeout_seconds: 30
           max_attempts: 10
           command: bash install.sh
-        shell: bash
       - name: Verify open-composer command after script install
         run: |
           export PATH="$HOME/.local/bin:$PATH"
