@@ -1,7 +1,7 @@
 import type { Command } from "@effect/cli/Command";
 
 // Interface for command metadata to avoid internal property access
-export interface CommandMetadata {
+interface CommandMetadata {
   name: string;
   description: string;
 }

@@ -35,7 +35,7 @@ export function buildCacheCommand(): CommandBuilder<"cache"> {
 // Command Implementations
 // -----------------------------------------------------------------------------
 
-export function buildListCommand() {
+function buildListCommand() {
   const jsonOption = Options.boolean("json").pipe(
     Options.withDescription("Output in JSON format"),
   );
@@ -103,7 +103,7 @@ export function buildListCommand() {
   );
 }
 
-export function buildClearCommand() {
+function buildClearCommand() {
   const forceOption = Options.boolean("force").pipe(
     Options.withDescription("Skip confirmation prompt"),
   );
@@ -149,7 +149,7 @@ export function buildClearCommand() {
   );
 }
 
-export function buildStatusCommand() {
+function buildStatusCommand() {
   const jsonOption = Options.boolean("json").pipe(
     Options.withDescription("Output in JSON format"),
   );

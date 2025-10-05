@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

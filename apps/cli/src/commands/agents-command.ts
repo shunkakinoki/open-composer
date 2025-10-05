@@ -103,7 +103,7 @@ export function buildDeactivateCommand() {
   );
 }
 
-export function buildRefreshCommand() {
+function buildRefreshCommand() {
   return Command.make("refresh").pipe(
     Command.withDescription("Refresh agent availability cache"),
     Command.withHandler(() =>

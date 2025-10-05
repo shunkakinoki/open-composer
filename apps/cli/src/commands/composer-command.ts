@@ -1,14 +1,11 @@
 import { Command, Options } from "@effect/cli";
 import type { CliApp } from "@effect/cli/CliApp";
-import type { CliConfig as CliConfigService } from "@effect/cli/CliConfig";
 import * as CliConfig from "@effect/cli/CliConfig";
-import type { BunContext as BunContextService } from "@effect/platform-bun/BunContext";
 import * as BunContext from "@effect/platform-bun/BunContext";
-import { type AgentRouter, AgentRouterLive } from "@open-composer/agent-router";
-import { DatabaseLive, type SqliteDrizzle } from "@open-composer/db";
-import type { GitService } from "@open-composer/git";
+import { AgentRouterLive } from "@open-composer/agent-router";
+import { DatabaseLive } from "@open-composer/db";
 import { GitLive } from "@open-composer/git";
-import { GitStackLive, type GitStackService } from "@open-composer/git-stack";
+import { GitStackLive } from "@open-composer/git-stack";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { render } from "ink";
@@ -18,16 +15,13 @@ import { CLI_VERSION } from "../lib/version.js";
 import { CacheLive } from "../services/cache-service.js";
 import {
   ConfigLive,
-  type ConfigServiceInterface,
 } from "../services/config-service.js";
 import { OrchestratorLive } from "../services/orchestrator-service.js";
 import {
   SettingsLive,
-  type SettingsServiceInterface as SettingsService,
 } from "../services/settings-service.js";
 import {
   TelemetryLive,
-  type TelemetryService,
 } from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
@@ -49,21 +43,6 @@ import { buildStatusCommand } from "./status-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
 import { buildTUICommand } from "./tui-command.js";
 import { buildUpgradeCommand } from "./upgrade-command.js";
-
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-export type ComposerCliServices =
-  | SqliteDrizzle
-  | AgentRouter
-  | GitStackService
-  | GitService
-  | CliConfigService
-  | BunContextService
-  | ConfigServiceInterface
-  | SettingsService
-  | TelemetryService;
 
 // -----------------------------------------------------------------------------
 // Constants
