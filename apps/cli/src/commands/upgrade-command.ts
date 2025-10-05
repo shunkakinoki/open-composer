@@ -341,6 +341,11 @@ const checkOption = Options.boolean("check").pipe(
   Options.withDescription("Check for updates without installing"),
 );
 
+const forceOption = Options.boolean("force").pipe(
+  Options.withAlias("f"),
+  Options.withDescription("Force upgrade even if already on latest version"),
+);
+
 const versionArg = Args.text({ name: "version" }).pipe(
   Args.optional,
   Args.withDescription("Specific version to upgrade to (optional)"),
@@ -352,15 +357,17 @@ const versionArg = Args.text({ name: "version" }).pipe(
 
 const upgradeCommand = Command.make("upgrade", {
   check: checkOption,
+  force: forceOption,
   version: versionArg,
 }).pipe(
   Command.withDescription("Upgrade open-composer to the latest version"),
-  Command.withHandler(({ check, version }) =>
+  Command.withHandler(({ check, force, version }) =>
     Effect.gen(function* () {
       const versionValue = version?._tag === "Some" ? version.value : undefined;
 
       yield* trackFeatureUsage("upgrade_command_started", {
         check_only: check,
+        force,
         target_version: versionValue || "latest",
       });
 
@@ -375,7 +382,7 @@ const upgradeCommand = Command.make("upgrade", {
 
       const comparison = compareVersions(currentVersion, latestVersion);
 
-      if (comparison === 0) {
+      if (comparison === 0 && !force) {
         yield* Console.log("\n✓ You are already running the latest version!");
         yield* trackFeatureUsage("upgrade_command_completed", {
           already_latest: true,
@@ -384,7 +391,7 @@ const upgradeCommand = Command.make("upgrade", {
         return;
       }
 
-      if (comparison > 0) {
+      if (comparison > 0 && !force) {
         yield* Console.log(
           "\n⚠ You are running a newer version than the latest release.",
         );
@@ -394,6 +401,12 @@ const upgradeCommand = Command.make("upgrade", {
           latest: latestVersion,
         });
         return;
+      }
+
+      if (force && comparison === 0) {
+        yield* Console.log(
+          "\n⚠ Forcing upgrade even though you are already on the latest version.",
+        );
       }
 
       // If check-only mode, just report the availability
@@ -444,6 +457,7 @@ const upgradeCommand = Command.make("upgrade", {
         from_version: currentVersion,
         to_version: targetVersion,
         install_method: installInfo.method,
+        force,
       });
     }).pipe(
       Effect.catchAll((error) =>
@@ -464,6 +478,7 @@ const upgradeCommand = Command.make("upgrade", {
       Effect.withSpan("upgrade_command", {
         attributes: {
           check,
+          force,
           version: version?._tag === "Some" ? version.value : undefined,
         },
       }),
