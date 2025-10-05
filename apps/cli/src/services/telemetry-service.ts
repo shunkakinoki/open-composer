@@ -10,11 +10,11 @@ import { ConfigService, ConfigLive } from "./config-service.js";
 function getOrCreateAnonymousId(): Effect.Effect<
   string,
   never,
-  ConfigServiceInterface
+  ConfigService
 > {
-  return Effect.gen(function* (_) {
-    const configService = yield* _(ConfigService);
-    const config = yield* _(configService.getConfig());
+  return Effect.gen(function* () {
+    const configService = yield* ConfigService;
+    const config = yield* configService.getConfig();
     const telemetry = config.telemetry;
 
     // Check if we already have an anonymous ID in the config
@@ -41,11 +41,9 @@ function getOrCreateAnonymousId(): Effect.Effect<
       ...(telemetry?.consentedAt && { consentedAt: telemetry.consentedAt }),
     };
 
-    yield* _(
-      configService.updateConfig({
-        telemetry: updatedTelemetry,
-      }),
-    );
+    yield* configService.updateConfig({
+      telemetry: updatedTelemetry,
+    });
 
     return newId;
   });
@@ -210,10 +208,10 @@ const createTelemetryService = (config: TelemetryConfig): TelemetryService => {
 // Create telemetry layer
 export const TelemetryLive = Layer.effect(
   TelemetryService,
-  Effect.gen(function* (_) {
-    const configService = yield* _(ConfigService);
-    const config = yield* _(configService.getConfig());
-    const anonymousId = yield* _(getOrCreateAnonymousId());
+  Effect.gen(function* () {
+    const configService = yield* ConfigService;
+    const config = yield* configService.getConfig();
+    const anonymousId = yield* getOrCreateAnonymousId();
 
     // Check telemetry enabled status from config, environment, or default
     const enabled = config.telemetry?.enabled || defaultConfig.enabled;
@@ -266,7 +264,8 @@ export const trackFeatureUsage = (
   );
 
 // Merge TelemetryLive and ConfigLive layers for providing dependencies
-export const AppLayer = Layer.merge(TelemetryLive, ConfigLive);
+// TelemetryLive depends on ConfigService, so we provide ConfigLive to TelemetryLive
+export const AppLayer = Layer.provide(TelemetryLive, ConfigLive);
 
 // Create simple async telemetry functions that internally provide their layers
 export const trackExceptionAsync = async (error: Error, command?: string) => {
