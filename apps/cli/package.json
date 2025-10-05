@@ -28,7 +28,7 @@
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
-    "type-check": "tsc --build"
+    "type-check": "NODE_OPTIONS='--max-old-space-size=8192' tsc --build"
   },
   "dependencies": {
     "@effect/cli": "^0.71.0",
