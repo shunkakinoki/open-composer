@@ -90,6 +90,14 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     if (existsSync(versionGeneratedPath)) {
       unlinkSync(versionGeneratedPath);
     }
+
+    // Generate version.generated.ts with the current package.json version
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    const version = packageJson.version;
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${version}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
   });
 
   test("build process should work with modified package.json version", async () => {
@@ -99,6 +107,12 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Generate version.generated.ts with the new version
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${testVersion}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
 
     // Run the build process
     const result = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
@@ -138,6 +152,12 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
 
+    // Generate version.generated.ts with the new version
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${testVersion}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
+
     // Run generate-version script to ensure it works with modified package.json
     const result = await execAsync("bun", ["run", "scripts/generate-version.ts"], join(__dirname, "../.."));
     expect(result.code).toBe(0);
@@ -155,6 +175,12 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Generate version.generated.ts with the new version
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${testVersion}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
 
     // Run the build process
     const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
@@ -179,6 +205,12 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
 
+    // Generate version.generated.ts with the new version
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${testVersion}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
+
     // Run the build process
     const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
     expect(buildResult.code).toBe(0);
@@ -202,6 +234,12 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Generate version.generated.ts with the new version
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${testVersion}";
+`;
+    writeFileSync(versionGeneratedPath, versionFileContent, "utf8");
 
     // Run prepublishOnly script (which generates version file and builds binaries)
     const prepublishResult = await execAsync("bun", ["run", "prepublishOnly"], join(__dirname, "../.."));
