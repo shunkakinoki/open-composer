@@ -86,6 +86,10 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     if (originalPackageJson) {
       writeFileSync(packageJsonPath, originalPackageJson, "utf8");
     }
+    // Also clean up the version.generated.ts to ensure fresh generation
+    if (existsSync(versionGeneratedPath)) {
+      unlinkSync(versionGeneratedPath);
+    }
   });
 
   test("build process should work with modified package.json version", async () => {
@@ -166,4 +170,79 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     const distIndexPath = join(distPath, "index.js");
     expect(existsSync(distIndexPath)).toBe(true);
   });
+
+  test("built binary should return correct version with --version flag", async () => {
+    const testVersion = "4.5.6";
+
+    // Update package.json with test version
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    packageJson.version = testVersion;
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Run the build process
+    const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
+    expect(buildResult.code).toBe(0);
+
+    // Check that dist/index.js was created
+    const distIndexPath = join(distPath, "index.js");
+    expect(existsSync(distIndexPath)).toBe(true);
+
+    // Run the binary with --version flag
+    const versionResult = await execAsync(distIndexPath, ["--version"]);
+
+    // The output should contain the correct version
+    expect(versionResult.stdout.trim()).toBe(testVersion);
+    expect(versionResult.code).toBe(0);
+  });
+
+  test.skipIf(process.env.CI === "true")("prepublishOnly build should produce binaries with correct version", async () => {
+    const testVersion = "5.0.0-rc.1";
+
+    // Update package.json with test version
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    packageJson.version = testVersion;
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Run prepublishOnly script (which generates version file and builds binaries)
+    const prepublishResult = await execAsync("bun", ["run", "prepublishOnly"], join(__dirname, "../.."));
+
+    // Log output if failed for debugging
+    if (prepublishResult.code !== 0) {
+      console.error("prepublishOnly stderr:", prepublishResult.stderr);
+      console.error("prepublishOnly stdout:", prepublishResult.stdout);
+    }
+
+    expect(prepublishResult.code).toBe(0);
+
+    // Check that version.generated.ts has the correct version
+    expect(existsSync(versionGeneratedPath)).toBe(true);
+    const generatedContent = readFileSync(versionGeneratedPath, "utf8");
+    expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
+
+    // Check that at least one binary was created (darwin-arm64 for M-series Macs)
+    const darwinArm64Path = join(distPath, "@open-composer/cli-darwin-arm64");
+    const linuxX64Path = join(distPath, "@open-composer/cli-linux-x64");
+
+    // At least one of these should exist
+    const binaryExists = existsSync(darwinArm64Path) || existsSync(linuxX64Path);
+    expect(binaryExists).toBe(true);
+
+    // Check package.json in binary directory contains correct version
+    const binaryDirPath = existsSync(darwinArm64Path) ? darwinArm64Path : linuxX64Path;
+    const binaryPackageJsonPath = join(binaryDirPath, "package.json");
+    expect(existsSync(binaryPackageJsonPath)).toBe(true);
+
+    const binaryPackageJson = JSON.parse(readFileSync(binaryPackageJsonPath, "utf8"));
+    expect(binaryPackageJson.version).toBe(testVersion);
+
+    // Check that the binary executable exists
+    const binaryName = existsSync(darwinArm64Path) ? "open-composer" : "open-composer";
+    const binaryPath = join(binaryDirPath, "bin", binaryName);
+    expect(existsSync(binaryPath)).toBe(true);
+
+    // Run the binary with --version flag
+    const versionResult = await execAsync(binaryPath, ["--version"]);
+    expect(versionResult.stdout.trim()).toBe(testVersion);
+    expect(versionResult.code).toBe(0);
+  }, 60000); // Increase timeout to 60 seconds for the full build
 });

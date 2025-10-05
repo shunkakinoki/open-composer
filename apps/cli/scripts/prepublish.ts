@@ -10,7 +10,8 @@ import { $ } from "bun";
 console.log("Generating version file...");
 await $`bun run scripts/generate-version.ts`;
 
-import { CLI_VERSION } from "../src/lib/version.js";
+// Import version after generation
+const { CLI_VERSION } = await import("../src/lib/version.js");
 
 // -----------------------------------------------------------------------------
 // Set the flags
