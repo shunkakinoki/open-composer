@@ -1,7 +1,7 @@
 import type { AISession } from "@open-composer/ai-sessions";
 import { AISessionsService } from "@open-composer/ai-sessions";
 import * as Effect from "effect/Effect";
-import { Box, Text, useApp, useInput } from "ink";
+import { Box, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -80,6 +80,11 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
     "all",
   );
   const { exit } = useApp();
+  const { stdout } = useStdout();
+
+  // Get terminal dimensions for fullscreen (only when running in a real terminal)
+  const terminalHeight = stdout?.rows;
+  const terminalWidth = stdout?.columns;
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -164,7 +169,12 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
   }
 
   return (
-    <Box flexDirection="column" padding={1}>
+    <Box
+      flexDirection="column"
+      padding={1}
+      {...(terminalHeight && { height: terminalHeight })}
+      {...(terminalWidth && { width: terminalWidth })}
+    >
       <Text bold color="cyan">
         🤖 AI Agent Sessions
       </Text>
@@ -215,7 +225,7 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
         ) : (
           filteredSessions.slice(0, 20).map((session, index) => {
             const isSelected = index === selectedIndex;
-            const bgColor = isSelected ? "bgBlue" : undefined;
+            const bgColor = isSelected ? "blue" : undefined;
 
             return (
               <Box key={session.id} paddingX={1} backgroundColor={bgColor}>

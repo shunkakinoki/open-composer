@@ -179,6 +179,10 @@ export function buildRootCommand() {
                 console.log(`Selected command: ${commandName}`);
               },
             }),
+            {
+              exitOnCtrlC: true,
+              patchConsole: false,
+            },
           );
           await waitUntilExit();
         },

@@ -1,6 +1,11 @@
-import { expect, test } from "bun:test";
+import { expect, mock, test } from "bun:test";
 import { WelcomeScreen } from "../../src/components/WelcomeScreen.js";
 import { render } from "../utils.js";
+
+// Mock the version module to ensure consistent snapshots
+mock.module("../../src/lib/version.js", () => ({
+  CLI_VERSION: "0.0.0-test",
+}));
 
 test("WelcomeScreen renders header", () => {
   const { lastFrame } = render(<WelcomeScreen />);
