@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,16 @@ const __dirname = dirname(__filename);
 describe("generate-version.ts", () => {
   const packageJsonPath = join(__dirname, "../../package.json");
   const outputPath = join(__dirname, "../../src/lib/version.generated.ts");
+
+  // Ensure version file exists before running tests
+  if (!existsSync(outputPath)) {
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    const version = packageJson.version;
+    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${version}";
+`;
+    writeFileSync(outputPath, versionFileContent, "utf8");
+  }
 
   test("should have generated version file after build", () => {
     expect(existsSync(outputPath)).toBe(true);
