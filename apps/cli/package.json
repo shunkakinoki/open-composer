@@ -39,7 +39,7 @@
     "@effect/printer-ansi": "^0.46.0",
     "@open-composer/agent-registry": "workspace:*",
     "@open-composer/agent-router": "workspace:*",
-    "@open-composer/ai-sessions": "workspace:*",
+    "@open-composer/agent-sessions": "workspace:*",
     "@open-composer/analytics": "workspace:*",
     "@open-composer/cache": "workspace:*",
     "@open-composer/config": "workspace:*",

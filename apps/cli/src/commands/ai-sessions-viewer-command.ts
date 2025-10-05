@@ -62,7 +62,7 @@ function buildViewCommand() {
         });
 
         const { AISessionsService, streamConversation } = yield* Effect.promise(
-          () => import("@open-composer/ai-sessions"),
+          () => import("@open-composer/agent-sessions"),
         );
 
         const service = new AISessionsService();
@@ -83,7 +83,7 @@ function buildViewCommand() {
 
         // Create conversation object
         const { getConversationFromSession } = yield* Effect.promise(
-          () => import("@open-composer/ai-sessions"),
+          () => import("@open-composer/agent-sessions"),
         );
 
         const conversation = yield* getConversationFromSession(
