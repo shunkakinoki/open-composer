@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll } from "bun:test";
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,15 +11,25 @@ describe("generate-version.ts", () => {
   const packageJsonPath = join(__dirname, "../../package.json");
   const outputPath = join(__dirname, "../../src/lib/version.generated.ts");
 
-  // Ensure version file exists before running tests
-  if (!existsSync(outputPath)) {
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
-    const version = packageJson.version;
-    const versionFileContent = `// This file is auto-generated during build - do not edit manually
+  beforeAll(() => {
+    // Ensure version file exists before running tests
+    try {
+      if (!existsSync(outputPath)) {
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+        const version = packageJson.version;
+        const versionFileContent = `// This file is auto-generated during build - do not edit manually
 export const CLI_VERSION = "${version}";
 `;
-    writeFileSync(outputPath, versionFileContent, "utf8");
-  }
+        writeFileSync(outputPath, versionFileContent, "utf8");
+        console.log(`Generated version.generated.ts with version: ${version}`);
+      } else {
+        console.log("version.generated.ts already exists");
+      }
+    } catch (error) {
+      console.error("Error generating version file:", error);
+      throw error;
+    }
+  });
 
   test("should have generated version file after build", () => {
     expect(existsSync(outputPath)).toBe(true);

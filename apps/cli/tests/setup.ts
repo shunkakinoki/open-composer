@@ -1,6 +1,24 @@
 import { afterAll, afterEach, mock } from "bun:test";
 import { configure } from "@testing-library/react";
 import { cleanup } from "./utils.js";
+import { readFileSync, existsSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Generate version.generated.ts before anything else
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJsonPath = join(__dirname, "../package.json");
+const outputPath = join(__dirname, "../src/lib/version.generated.ts");
+
+if (!existsSync(outputPath)) {
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+  const version = packageJson.version;
+  const versionFileContent = `// This file is auto-generated during build - do not edit manually
+export const CLI_VERSION = "${version}";
+`;
+  writeFileSync(outputPath, versionFileContent, "utf8");
+}
 
 // Mock CLI version to keep snapshots stable across version changes
 // This must be done before any imports that use CLI_VERSION
