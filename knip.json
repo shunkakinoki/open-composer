@@ -15,6 +15,7 @@
     "bun-test-setup.ts"
   ],
   "ignoreBinaries": ["microfrontends"],
+  "ignoreDependencies": ["tailwindcss"],
   "ignoreUnresolved": ["bun-types", "@effect/language-service"],
   "ignoreExportsUsedInFile": {
     "interface": true
