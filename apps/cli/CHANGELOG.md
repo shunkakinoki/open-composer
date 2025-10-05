@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.16
+
+### Patch Changes
+
+- [#289](https://github.com/shunkakinoki/open-composer/pull/289) [`3f636ae`](https://github.com/shunkakinoki/open-composer/commit/3f636ae5e025a044ac835458b2cab54dbe7e8e47) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Lean telemetry service
+
 ## 0.8.15
 
 ### Patch Changes
