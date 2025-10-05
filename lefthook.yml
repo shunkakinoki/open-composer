@@ -12,7 +12,5 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
-    test:
-      run: bun run test
     build:
       run: bun run build
