@@ -1,107 +1,68 @@
-import chalk from "chalk";
+/**
+ * Legacy string-based Pokemon UI renderer
+ *
+ * This file provides backward compatibility for the old PokemonUI class API.
+ * The actual React components are now in apps/cli/src/components/PokemonUI.tsx
+ *
+ * Note: This is a placeholder that returns simple string representations.
+ * For rich terminal UI, use the React components directly with Ink.
+ */
+
 import type { AgentTeam, OpenComposerAgent } from "../types.js";
 
 /**
- * Pokemon-style UI renderer for agents
+ * Pokemon-style UI renderer for agents (legacy string-based API)
+ * @deprecated Use React components from apps/cli/src/components/PokemonUI.tsx instead
  */
 export class PokemonUI {
   /**
    * Render agent card in Pokemon style
+   * @deprecated Use <AgentCard> React component instead
    */
   static renderAgentCard(agent: OpenComposerAgent): string {
-    const { name, tier, pokemonAttributes, provider, modelName, performance } =
-      agent;
-    const { sprite, stats, type, evolvesFrom, evolvesTo } = pokemonAttributes;
-
-    const tierColor =
-      tier === "legendary"
-        ? chalk.yellow
-        : tier === "evolved"
-          ? chalk.blue
-          : chalk.green;
-
-    const statBars = this.renderStatBars(stats);
-
-    const evolutionInfo =
-      evolvesFrom || evolvesTo
-        ? `\n${chalk.gray("Evolution:")} ${evolvesFrom ? `← ${evolvesFrom}` : ""} ${evolvesTo ? `→ ${evolvesTo}` : ""}`
-        : "";
+    const { name, tier, pokemonAttributes, provider, modelName, performance } = agent;
+    const { sprite, stats, type } = pokemonAttributes;
 
     return `
 ╔════════════════════════════════════════╗
-║  ${sprite}  ${tierColor.bold(name.padEnd(35))}║
+║  ${sprite}  ${name.padEnd(35)}║
 ╠════════════════════════════════════════╣
-║  ${chalk.cyan("Type:")} ${type.padEnd(31)}║
-║  ${chalk.cyan("Tier:")} ${tierColor(tier.padEnd(31))}║
-║  ${chalk.cyan("Provider:")} ${provider.padEnd(27)}║
-║  ${chalk.cyan("Model:")} ${modelName.padEnd(29)}║
+║  Type: ${type.padEnd(31)}║
+║  Tier: ${tier.padEnd(31)}║
+║  Provider: ${provider.padEnd(27)}║
+║  Model: ${modelName.padEnd(29)}║
 ╠════════════════════════════════════════╣
-║  ${chalk.bold("Stats")}                              ║
-${statBars}
+║  Stats                              ║
+║  Speed       ${"█".repeat(Math.round(stats.speed / 5))}${"░".repeat(20 - Math.round(stats.speed / 5))} ${stats.speed}║
+║  Accuracy    ${"█".repeat(Math.round(stats.accuracy / 5))}${"░".repeat(20 - Math.round(stats.accuracy / 5))} ${stats.accuracy}║
+║  Power       ${"█".repeat(Math.round(stats.power / 5))}${"░".repeat(20 - Math.round(stats.power / 5))} ${stats.power}║
+║  Efficiency  ${"█".repeat(Math.round(stats.efficiency / 5))}${"░".repeat(20 - Math.round(stats.efficiency / 5))} ${stats.efficiency}║
+║  Versatility ${"█".repeat(Math.round(stats.versatility / 5))}${"░".repeat(20 - Math.round(stats.versatility / 5))} ${stats.versatility}║
 ╠════════════════════════════════════════╣
-║  ${chalk.bold("Performance")}                        ║
-║  ${chalk.cyan("Requests:")} ${String(performance.totalRequests).padEnd(27)}║
-║  ${chalk.cyan("Tokens:")} ${String(performance.totalTokensUsed).padEnd(29)}║
-║  ${chalk.cyan("Success:")} ${String(performance.successRate.toFixed(1)).padEnd(28)}%║
-║  ${chalk.cyan("Latency:")} ${String(performance.averageLatency.toFixed(0)).padEnd(26)}ms║${evolutionInfo}
+║  Performance                        ║
+║  Requests: ${String(performance.totalRequests).padEnd(27)}║
+║  Tokens: ${String(performance.totalTokensUsed).padEnd(29)}║
+║  Success: ${String(performance.successRate.toFixed(1)).padEnd(28)}%║
+║  Latency: ${String(performance.averageLatency.toFixed(0)).padEnd(26)}ms║
 ╚════════════════════════════════════════╝
 `;
   }
 
   /**
-   * Render stat bars
-   */
-  private static renderStatBars(stats: {
-    speed: number;
-    accuracy: number;
-    power: number;
-    efficiency: number;
-    versatility: number;
-  }): string {
-    const renderBar = (label: string, value: number): string => {
-      const barLength = 20;
-      const filled = Math.round((value / 100) * barLength);
-      const empty = barLength - filled;
-
-      const bar =
-        chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
-      const valueStr = String(value).padStart(3);
-
-      return `║  ${label.padEnd(12)} ${bar} ${valueStr}║`;
-    };
-
-    return [
-      renderBar("Speed", stats.speed),
-      renderBar("Accuracy", stats.accuracy),
-      renderBar("Power", stats.power),
-      renderBar("Efficiency", stats.efficiency),
-      renderBar("Versatility", stats.versatility),
-    ].join("\n");
-  }
-
-  /**
    * Render compact agent list
+   * @deprecated Use <AgentList> React component instead
    */
   static renderAgentList(agents: OpenComposerAgent[]): string {
-    const header = chalk.bold(
-      `\n${"#".padEnd(4)}${"Name".padEnd(25)}${"Type".padEnd(20)}${"Tier".padEnd(15)}${"Provider".padEnd(15)}\n`,
-    );
-    const separator = chalk.gray("─".repeat(79) + "\n");
+    const header = `\n${"#".padEnd(4)}${"Name".padEnd(25)}${"Type".padEnd(20)}${"Tier".padEnd(15)}${"Provider".padEnd(15)}\n`;
+    const separator = "─".repeat(79) + "\n";
 
     const rows = agents
       .map((agent, index) => {
-        const tierColor =
-          agent.tier === "legendary"
-            ? chalk.yellow
-            : agent.tier === "evolved"
-              ? chalk.blue
-              : chalk.green;
-
         return [
           String(index + 1).padEnd(4),
           `${agent.pokemonAttributes.sprite} ${agent.name}`.padEnd(25),
           agent.pokemonAttributes.type.padEnd(20),
-          tierColor(agent.tier.padEnd(15)),
+          agent.tier.padEnd(15),
           agent.provider.padEnd(15),
         ].join("");
       })
@@ -112,21 +73,22 @@ ${statBars}
 
   /**
    * Render team composition
+   * @deprecated Use <TeamDisplay> React component instead
    */
   static renderTeam(team: AgentTeam): string {
     const { name, description, agents, config } = team;
 
     const header = `
 ╔════════════════════════════════════════════════════════╗
-║  ${chalk.bold.cyan("SQUAD:")} ${name.padEnd(45)}║
-║  ${chalk.gray(description.slice(0, 50).padEnd(50))}║
+║  SQUAD: ${name.padEnd(45)}║
+║  ${description.slice(0, 50).padEnd(50)}║
 ╠════════════════════════════════════════════════════════╣`;
 
     const configInfo = config
       ? `
-║  ${chalk.cyan("Configuration:")}                                    ║
+║  Configuration:                                    ║
 ║    Max Concurrent: ${String(config.maxConcurrent).padEnd(32)}║
-║    Task Distribution: ${config.taskDistribution?.padEnd(27)}║
+║    Task Distribution: ${(config.taskDistribution || "").padEnd(27)}║
 ║    Fallback: ${String(config.fallbackEnabled).padEnd(36)}║
 ╠════════════════════════════════════════════════════════╣`
       : "";
@@ -135,7 +97,7 @@ ${statBars}
       .map(
         (agent, i) => `
 ║  ${String(i + 1)}. ${agent.pokemonAttributes.sprite} ${agent.name.padEnd(45)}║
-║     ${chalk.gray(`${agent.tier} | ${agent.provider} | ${agent.modelName}`.slice(0, 50).padEnd(50))}║`,
+║     ${`${agent.tier} | ${agent.provider} | ${agent.modelName}`.slice(0, 50).padEnd(50)}║`,
       )
       .join("");
 
@@ -147,23 +109,24 @@ ${statBars}
 
   /**
    * Render agent evolution tree
+   * @deprecated Use <EvolutionTree> React component instead
    */
   static renderEvolutionTree(agent: OpenComposerAgent): string {
     const { name, pokemonAttributes } = agent;
     const { evolvesFrom, evolvesTo } = pokemonAttributes;
 
-    let tree = chalk.bold.cyan(`Evolution Tree for ${name}:\n\n`);
+    let tree = `Evolution Tree for ${name}:\n\n`;
 
     if (evolvesFrom) {
-      tree += `  ${chalk.gray(evolvesFrom)}\n`;
-      tree += `    ${chalk.gray("↓")}\n`;
+      tree += `  ${evolvesFrom}\n`;
+      tree += `    ↓\n`;
     }
 
-    tree += `  ${chalk.bold.green(name)} ${pokemonAttributes.sprite}\n`;
+    tree += `  ${name} ${pokemonAttributes.sprite}\n`;
 
     if (evolvesTo) {
-      tree += `    ${chalk.gray("↓")}\n`;
-      tree += `  ${chalk.yellow(evolvesTo)}\n`;
+      tree += `    ↓\n`;
+      tree += `  ${evolvesTo}\n`;
     }
 
     return tree;
@@ -171,6 +134,7 @@ ${statBars}
 
   /**
    * Render task specializations
+   * @deprecated Use <TaskSpecializations> React component instead
    */
   static renderTaskSpecializations(agent: OpenComposerAgent): string {
     const taskIcons: Record<string, string> = {
@@ -181,12 +145,10 @@ ${statBars}
       summarizer: "🌿",
     };
 
-    const header = chalk.bold.cyan(
-      `\nTask Specializations for ${agent.name}:\n\n`,
-    );
+    const header = `\nTask Specializations for ${agent.name}:\n\n`;
 
     const tasks = agent.taskSpecializations
-      .map((task) => `  ${taskIcons[task] || "📋"} ${chalk.green(task)}`)
+      .map((task) => `  ${taskIcons[task] || "📋"} ${task}`)
       .join("\n");
 
     return header + tasks + "\n";
@@ -194,6 +156,7 @@ ${statBars}
 
   /**
    * Render registry statistics
+   * @deprecated Use <RegistryStats> React component instead
    */
   static renderStats(stats: {
     totalAgents: number;
@@ -206,44 +169,40 @@ ${statBars}
   }): string {
     return `
 ╔════════════════════════════════════════╗
-║  ${chalk.bold.cyan("Agent Registry Statistics")}        ║
+║  Agent Registry Statistics        ║
 ╠════════════════════════════════════════╣
-║  ${chalk.cyan("Total Agents:")} ${String(stats.totalAgents).padEnd(24)}║
-║  ${chalk.cyan("Total Squads:")} ${String(stats.totalTeams).padEnd(24)}║
+║  Total Agents: ${String(stats.totalAgents).padEnd(24)}║
+║  Total Squads: ${String(stats.totalTeams).padEnd(24)}║
 ╠════════════════════════════════════════╣
-║  ${chalk.bold("Tiers")}                             ║
+║  Tiers                             ║
 ║    Starter: ${String(stats.tierCounts.starter || 0).padEnd(27)}║
 ║    Evolved: ${String(stats.tierCounts.evolved || 0).padEnd(27)}║
 ║    Legendary: ${String(stats.tierCounts.legendary || 0).padEnd(25)}║
 ╠════════════════════════════════════════╣
-║  ${chalk.bold("Performance")}                        ║
-║  ${chalk.cyan("Total Requests:")} ${String(stats.totalRequests).padEnd(20)}║
-║  ${chalk.cyan("Total Tokens:")} ${String(stats.totalTokensUsed).padEnd(22)}║
-║  ${chalk.cyan("Avg Success:")} ${String(stats.averageSuccessRate.toFixed(1)).padEnd(21)}%║
+║  Performance                        ║
+║  Total Requests: ${String(stats.totalRequests).padEnd(20)}║
+║  Total Tokens: ${String(stats.totalTokensUsed).padEnd(22)}║
+║  Avg Success: ${String(stats.averageSuccessRate.toFixed(1)).padEnd(21)}%║
 ╚════════════════════════════════════════╝
 `;
   }
 
   /**
    * Render comparison between two agents
+   * @deprecated Use <AgentComparison> React component instead
    */
   static renderComparison(
     agent1: OpenComposerAgent,
     agent2: OpenComposerAgent,
   ): string {
-    const header = chalk.bold.cyan(
-      `\nAgent Comparison: ${agent1.name} vs ${agent2.name}\n\n`,
-    );
+    const header = `\nAgent Comparison: ${agent1.name} vs ${agent2.name}\n\n`;
 
     const compareStats = (
       label: string,
       val1: number,
       val2: number,
     ): string => {
-      const winner = val1 > val2 ? chalk.green : val1 < val2 ? chalk.red : chalk.yellow;
-      const winner2 = val2 > val1 ? chalk.green : val2 < val1 ? chalk.red : chalk.yellow;
-
-      return `  ${label.padEnd(15)} ${winner(String(val1).padStart(3))}  ${chalk.gray("vs")}  ${winner2(String(val2).padStart(3))}`;
+      return `  ${label.padEnd(15)} ${String(val1).padStart(3)}  vs  ${String(val2).padStart(3)}`;
     };
 
     const stats1 = agent1.pokemonAttributes.stats;

@@ -23,7 +23,17 @@ export function buildSquadCommand(): CommandBuilder<"squad"> {
   const command = () =>
     Command.make("squad").pipe(
       Command.withDescription(
-        "Launch custom agent squads with Pokemon-style configuration",
+        "Launch custom agent squads with Pokemon-style configuration (defaults to interactive mode)",
+      ),
+      Command.withHandler(() =>
+        Effect.gen(function* () {
+          yield* trackCommand("squad:interactive");
+          yield* trackFeatureUsage("squad", { feature: "interactive" });
+
+          yield* Effect.promise(() => startSquadSelector());
+
+          yield* Console.log("Interactive mode ended");
+        }),
       ),
       Command.withSubcommands([
         buildInteractiveCommand(),
@@ -41,7 +51,7 @@ export function buildSquadCommand(): CommandBuilder<"squad"> {
     command,
     metadata: {
       name: "squad",
-      description: "Launch custom agent squads with Pokemon-style configuration",
+      description: "Launch custom agent squads with Pokemon-style configuration (defaults to interactive mode)",
     },
   };
 }

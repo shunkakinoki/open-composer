@@ -6,8 +6,8 @@
  */
 
 // Core types
+export { LLMTask } from "./types.js";
 export type {
-  LLMTask,
   Provider,
   AgentTier,
   AgentStats,
