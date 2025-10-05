@@ -105,38 +105,40 @@ await startSquadSelector();
 
 ### CLI Usage
 
-The package includes a CLI tool for managing agent squads:
+Squad management is available through the `open-composer` CLI:
 
 ```bash
 # Start interactive mode
-squad interactive
+open-composer squad interactive
 
 # Create a quick squad
-squad quick programmer --name "Code Squad" --launch
+open-composer squad quick programmer --name "Code Squad" --launch
 
 # List all agents
-squad list-agents
+open-composer squad list-agents
 
 # Filter agents
-squad list-agents --tier legendary
-squad list-agents --provider anthropic
-squad list-agents --task programmer
+open-composer squad list-agents --tier legendary
+open-composer squad list-agents --provider anthropic
+open-composer squad list-agents --task programmer
 
 # Show agent details
-squad show <agentId>
+open-composer squad show <agentId>
 
 # Compare agents
-squad compare <agent1Id> <agent2Id>
+open-composer squad compare <agent1Id> <agent2Id>
 
 # View registry stats
-squad stats
+open-composer squad stats
 
 # List all squads
-squad list-squads
+open-composer squad list-squads
 
 # Launch a squad
-squad launch <squadId> <task>
+open-composer squad launch <squadId> <task>
 ```
+
+For more detailed CLI documentation, see the main [open-composer CLI documentation](../../apps/cli/README.md).
 
 ## API Reference
 

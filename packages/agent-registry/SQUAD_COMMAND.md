@@ -7,7 +7,7 @@ The `squad` command is a CLI tool for managing custom agent squads with Pokemon-
 ## Installation
 
 ```bash
-# Install the package
+#  The squad command is part of the open-composer CLI
 bun add @open-composer/agent-registry
 
 # Or install globally
@@ -18,28 +18,28 @@ bun install -g @open-composer/agent-registry
 
 ```bash
 # Start interactive mode (recommended for beginners)
-squad interactive
+open-composer squad interactive
 
-# Create a quick squad for a specific task
-squad quick programmer --name "Code Squad" --launch
+# Create a quick open-composer squad for a specific task
+open-composer squad quick programmer --name "Code Squad" --launch
 
 # List all available agents
-squad list-agents
+open-composer squad list-agents
 
 # View registry statistics
-squad stats
+open-composer squad stats
 ```
 
 ## Commands
 
 ### Interactive Mode
 
-Launch the Pokemon-style interactive UI for squad management:
+Launch the Pokemon-style interactive UI for open-composer squad management:
 
 ```bash
-squad interactive
+open-composer squad interactive
 # or
-squad i
+open-composer squad i
 ```
 
 Features:
@@ -52,36 +52,36 @@ Features:
 
 ### Quick Squad
 
-Create a squad optimized for a specific task:
+Create a open-composer squad optimized for a specific task:
 
 ```bash
-squad quick <task> [options]
+open-composer squad quick <task> [options]
 
 # Examples:
-squad quick programmer
-squad quick planner --name "Planning Team"
-squad quick reviewer --launch
+open-composer squad quick programmer
+open-composer squad quick planner --name "Planning Team"
+open-composer squad quick reviewer --launch
 ```
 
 **Arguments:**
 - `<task>` - Task type: `planner`, `programmer`, `reviewer`, `router`, or `summarizer`
 
 **Options:**
-- `-n, --name <name>` - Custom squad name
-- `-l, --launch` - Launch squad immediately after creation
+- `-n, --name <name>` - Custom open-composer squad name
+- `-l, --launch` - Launch open-composer squad immediately after creation
 
 ### List Agents
 
 Display all available agents with optional filtering:
 
 ```bash
-squad list-agents [options]
+open-composer squad list-agents [options]
 
 # Examples:
-squad list-agents
-squad list-agents --tier legendary
-squad list-agents --provider anthropic
-squad list-agents --task programmer
+open-composer squad list-agents
+open-composer squad list-agents --tier legendary
+open-composer squad list-agents --provider anthropic
+open-composer squad list-agents --task programmer
 ```
 
 **Options:**
@@ -94,9 +94,9 @@ squad list-agents --task programmer
 Display all created squads:
 
 ```bash
-squad list-squads
+open-composer squad list-squads
 # or
-squad ls
+open-composer squad ls
 ```
 
 ### Show Agent Details
@@ -104,10 +104,10 @@ squad ls
 Display detailed information about a specific agent:
 
 ```bash
-squad show <agentId>
+open-composer squad show <agentId>
 
 # Example:
-squad show 550e8400-e29b-41d4-a716-446655440000
+open-composer squad show 550e8400-e29b-41d4-a716-446655440000
 ```
 
 Shows:
@@ -121,10 +121,10 @@ Shows:
 Compare two agents side-by-side:
 
 ```bash
-squad compare <agent1Id> <agent2Id>
+open-composer squad compare <agent1Id> <agent2Id>
 
 # Example:
-squad compare 550e8400-e29b-41d4-a716-446655440000 660f9500-f30c-52e5-b827-557766551111
+open-composer squad compare 550e8400-e29b-41d4-a716-446655440000 660f9500-f30c-52e5-b827-557766551111
 ```
 
 ### Registry Statistics
@@ -132,7 +132,7 @@ squad compare 550e8400-e29b-41d4-a716-446655440000 660f9500-f30c-52e5-b827-55776
 View overall registry statistics:
 
 ```bash
-squad stats
+open-composer squad stats
 ```
 
 Displays:
@@ -143,13 +143,13 @@ Displays:
 
 ### Launch Squad
 
-Execute an existing squad for a task:
+Execute an existing open-composer squad for a task:
 
 ```bash
-squad launch <squadId> <task>
+open-composer squad launch <squadId> <task>
 
 # Example:
-squad launch 770g0600-g40d-63f6-c938-668877662222 programmer
+open-composer squad launch 770g0600-g40d-63f6-c938-668877662222 programmer
 ```
 
 ## Agent Tiers
@@ -249,7 +249,7 @@ Agents are selected based on their task specialization and accuracy.
 
 ```bash
 # Creates a specialized squad
-squad quick programmer --name "Expert Coders"
+open-composer squad quick programmer --name "Expert Coders"
 ```
 
 #### ⚖️ Balanced
@@ -262,7 +262,7 @@ Agents are selected based on overall stats average.
 
 ```bash
 # In interactive mode, select "Balanced" distribution
-squad interactive
+open-composer squad interactive
 ```
 
 #### 🔄 Round Robin
@@ -275,7 +275,7 @@ Agents are used sequentially in order.
 
 ```bash
 # In interactive mode, select "Round Robin" distribution
-squad interactive
+open-composer squad interactive
 ```
 
 ## Advanced Usage
@@ -295,7 +295,7 @@ const registry = getAgentRegistry();
 // Get agents by task
 const programmers = registry.getAgentsByTask(LLMTask.PROGRAMMER);
 
-// Create squad launcher
+// Create open-composer squad launcher
 const launcher = getSquadLauncher();
 
 // Create quick squad
@@ -315,7 +315,7 @@ import { getAgentRegistry } from "@open-composer/agent-registry";
 
 const registry = getAgentRegistry();
 
-const squad = registry.createSquad({
+const open-composer squad = registry.createSquad({
   name: "Custom Squad",
   description: "Specialized configuration",
   agentIds: ["agent-1", "agent-2", "agent-3"],
@@ -363,7 +363,7 @@ Agents have types based on specializations:
 The system tracks agent performance:
 
 ```typescript
-// Automatic tracking on squad execution
+// Automatic tracking on open-composer squad execution
 const results = await launcher.launchSquad(teamId, context);
 
 // View performance stats
@@ -379,7 +379,7 @@ console.log(agent.performance);
 
 ## Integration with Open SWE
 
-The squad command integrates with open-swe patterns:
+The open-composer squad command integrates with open-swe patterns:
 
 ### Model Configuration
 ```typescript
@@ -416,14 +416,14 @@ enum LLMTask {
 
 ```bash
 # Create and launch a programming squad
-squad quick programmer --name "Dev Team" --launch
+open-composer squad quick programmer --name "Dev Team" --launch
 ```
 
 ### Example 2: Custom Review Team
 
 ```bash
 # Start interactive mode
-squad interactive
+open-composer squad interactive
 
 # Then select:
 # 1. Build Custom Squad
@@ -436,24 +436,24 @@ squad interactive
 
 ```bash
 # List agents by provider
-squad list-agents --provider anthropic
-squad list-agents --provider openai
+open-composer squad list-agents --provider anthropic
+open-composer squad list-agents --provider openai
 
 # Compare specific agents
-squad compare <anthropic-agent-id> <openai-agent-id>
+open-composer squad compare <anthropic-agent-id> <openai-agent-id>
 ```
 
 ### Example 4: Performance Analysis
 
 ```bash
 # View stats before
-squad stats
+open-composer squad stats
 
 # Launch squad
-squad launch <squad-id> programmer
+open-composer squad launch <squad-id> programmer
 
 # View stats after
-squad stats
+open-composer squad stats
 ```
 
 ## Troubleshooting
@@ -463,27 +463,27 @@ squad stats
 **Issue**: Agent not found
 ```bash
 # Solution: List all agents to find correct ID
-squad list-agents
+open-composer squad list-agents
 ```
 
 **Issue**: Squad launch fails
 ```bash
-# Solution: Check squad configuration
-squad list-squads
+# Solution: Check open-composer squad configuration
+open-composer squad list-squads
 
 # Verify agents can handle the task
-squad show <agent-id>
+open-composer squad show <agent-id>
 ```
 
 **Issue**: No agents for task
 ```bash
 # Solution: Check available agents for task
-squad list-agents --task programmer
+open-composer squad list-agents --task programmer
 ```
 
 ## Tips & Best Practices
 
-1. **Use Interactive Mode** for complex squad configurations
+1. **Use Interactive Mode** for complex open-composer squad configurations
 2. **Quick Squads** are great for rapid prototyping
 3. **Compare Agents** before creating custom squads
 4. **Monitor Performance** using registry stats

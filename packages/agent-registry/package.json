@@ -7,9 +7,6 @@
   "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
-  "bin": {
-    "squad": "./src/cli/squad-command.ts"
-  },
   "files": [
     "dist/**/*",
     "src/**/*",
@@ -20,7 +17,6 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "squad": "bun run ./src/cli/squad-command.ts",
     "test": "bun test",
     "type-check": "echo 'Type check skipped - uses Bun runtime types'"
   },
@@ -28,7 +24,6 @@
     "@langchain/core": "^0.3.0",
     "@langchain/langgraph": "^0.2.0",
     "chalk": "^5.3.0",
-    "commander": "^12.0.0",
     "inquirer": "^9.2.0",
     "sqlite3": "^5.1.6",
     "uuid": "^10.0.0",

@@ -1,6 +1,6 @@
 import inquirer from "inquirer";
 import chalk from "chalk";
-import type { LLMTask, OpenComposerAgent, SquadConfig } from "../types.js";
+import type { LLMTask, SquadConfig } from "../types.js";
 import { getAgentRegistry } from "../registry.js";
 import { getSquadLauncher } from "../squad-launcher.js";
 import { PokemonUI } from "./pokemon-ui.js";
