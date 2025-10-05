@@ -1,6 +1,9 @@
 {
   "extends": ["//"],
   "tasks": {
+    "build": {
+      "dependsOn": ["^build", "build:generate"]
+    },
     "prepublishOnly": {
       "dependsOn": ["^build"],
       "env": ["PUBLISH_PACKAGES", "RELEASE_ZIP_FILES", "GITHUB_SHA"]
