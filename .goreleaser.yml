@@ -14,7 +14,7 @@ archives:
     format: binary
 
 # Configure Homebrew tap
-homebrew:
+brews:
   - name: open-composer
 
     # Target repository for the tap
