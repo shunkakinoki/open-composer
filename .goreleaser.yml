@@ -7,7 +7,27 @@ version: 2
 builds:
   - skip: true
 
-archives: []
+archives:
+  - id: dummy-darwin-amd64
+    builds_info:
+      goos: [darwin]
+      goarch: [amd64]
+    format: binary
+  - id: dummy-darwin-arm64
+    builds_info:
+      goos: [darwin]
+      goarch: [arm64]
+    format: binary
+  - id: dummy-linux-amd64
+    builds_info:
+      goos: [linux]
+      goarch: [amd64]
+    format: binary
+  - id: dummy-linux-arm64
+    builds_info:
+      goos: [linux]
+      goarch: [arm64]
+    format: binary
 
 checksum:
   disable: true
@@ -21,7 +41,6 @@ snapshot:
 brews:
   - name: open-composer
 
-    # Skip archive dependencies since we use custom install script
     ids: []
     skip_upload: auto
 
