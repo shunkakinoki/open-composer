@@ -3,15 +3,10 @@ import type { TelemetryConfig } from "@open-composer/config";
 import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
-import type { ConfigServiceInterface } from "./config-service.js";
 import { ConfigService, ConfigLive } from "./config-service.js";
 
 // Get or create a persistent anonymous user ID using the config system
-function getOrCreateAnonymousId(): Effect.Effect<
-  string,
-  never,
-  ConfigService
-> {
+function getOrCreateAnonymousId() {
   return Effect.gen(function* () {
     const configService = yield* ConfigService;
     const config = yield* configService.getConfig();
