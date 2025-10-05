@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { describe, expect, test, beforeEach, beforeAll, afterAll } from "bun:test";
 import { readFileSync, writeFileSync, unlinkSync, existsSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,13 +49,26 @@ describe("version integration in build process", () => {
   let originalPackageJson: string | null = null;
   let originalVersionGenerated: string | null = null;
 
-  beforeEach(() => {
-    // Backup original files
+  beforeAll(() => {
+    // Backup original files once for all tests
     if (existsSync(packageJsonPath)) {
       originalPackageJson = readFileSync(packageJsonPath, "utf8");
     }
     if (existsSync(versionGeneratedPath)) {
       originalVersionGenerated = readFileSync(versionGeneratedPath, "utf8");
+    }
+  });
+
+  afterAll(() => {
+    // Restore original files once after all tests
+    if (originalPackageJson) {
+      writeFileSync(packageJsonPath, originalPackageJson, "utf8");
+    }
+
+    if (originalVersionGenerated) {
+      writeFileSync(versionGeneratedPath, originalVersionGenerated, "utf8");
+    } else if (existsSync(versionGeneratedPath)) {
+      unlinkSync(versionGeneratedPath);
     }
 
     // Clean dist directory
@@ -64,19 +77,8 @@ describe("version integration in build process", () => {
     }
   });
 
-  afterEach(() => {
-    // Restore original files
-    if (originalPackageJson) {
-      writeFileSync(packageJsonPath, originalPackageJson, "utf8");
-    }
-    
-    if (originalVersionGenerated) {
-      writeFileSync(versionGeneratedPath, originalVersionGenerated, "utf8");
-    } else if (existsSync(versionGeneratedPath)) {
-      unlinkSync(versionGeneratedPath);
-    }
-
-    // Clean dist directory
+  beforeEach(() => {
+    // Clean dist directory before each test
     if (existsSync(distPath)) {
       rmSync(distPath, { recursive: true, force: true });
     }
@@ -90,19 +92,26 @@ describe("version integration in build process", () => {
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
 
-    // Run the build process
-    const result = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
+    try {
+      // Run the build process
+      const result = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
 
-    expect(result.code).toBe(0);
+      expect(result.code).toBe(0);
 
-    // Check that version.generated.ts was created with the correct version
-    expect(existsSync(versionGeneratedPath)).toBe(true);
-    const generatedContent = readFileSync(versionGeneratedPath, "utf8");
-    expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
+      // Check that version.generated.ts was created with the correct version
+      expect(existsSync(versionGeneratedPath)).toBe(true);
+      const generatedContent = readFileSync(versionGeneratedPath, "utf8");
+      expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
 
-    // Check that dist/index.js was created
-    const distIndexPath = join(distPath, "index.js");
-    expect(existsSync(distIndexPath)).toBe(true);
+      // Check that dist/index.js was created
+      const distIndexPath = join(distPath, "index.js");
+      expect(existsSync(distIndexPath)).toBe(true);
+    } finally {
+      // Restore original package.json
+      if (originalPackageJson) {
+        writeFileSync(packageJsonPath, originalPackageJson, "utf8");
+      }
+    }
   });
 
   test("generate-version script should work with valid package.json", async () => {
@@ -128,14 +137,21 @@ describe("version integration in build process", () => {
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
 
-    // Run generate-version script to ensure it works with modified package.json
-    const result = await execAsync("bun", ["run", "scripts/generate-version.ts"], join(__dirname, "../.."));
-    expect(result.code).toBe(0);
+    try {
+      // Run generate-version script to ensure it works with modified package.json
+      const result = await execAsync("bun", ["run", "scripts/generate-version.ts"], join(__dirname, "../.."));
+      expect(result.code).toBe(0);
 
-    // Check that version.generated.ts was created with correct version
-    expect(existsSync(versionGeneratedPath)).toBe(true);
-    const generatedContent = readFileSync(versionGeneratedPath, "utf8");
-    expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
+      // Check that version.generated.ts was created with correct version
+      expect(existsSync(versionGeneratedPath)).toBe(true);
+      const generatedContent = readFileSync(versionGeneratedPath, "utf8");
+      expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
+    } finally {
+      // Restore original package.json
+      if (originalPackageJson) {
+        writeFileSync(packageJsonPath, originalPackageJson, "utf8");
+      }
+    }
   });
 
   test("build process should generate output files", async () => {
@@ -146,18 +162,25 @@ describe("version integration in build process", () => {
     packageJson.version = testVersion;
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
 
-    // Run the build process
-    const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
+    try {
+      // Run the build process
+      const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
 
-    expect(buildResult.code).toBe(0);
+      expect(buildResult.code).toBe(0);
 
-    // Check that version.generated.ts has the correct version
-    expect(existsSync(versionGeneratedPath)).toBe(true);
-    const generatedContent = readFileSync(versionGeneratedPath, "utf8");
-    expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
+      // Check that version.generated.ts has the correct version
+      expect(existsSync(versionGeneratedPath)).toBe(true);
+      const generatedContent = readFileSync(versionGeneratedPath, "utf8");
+      expect(generatedContent).toContain(`export const CLI_VERSION = "${testVersion}";`);
 
-    // Check that dist/index.js was created
-    const distIndexPath = join(distPath, "index.js");
-    expect(existsSync(distIndexPath)).toBe(true);
+      // Check that dist/index.js was created
+      const distIndexPath = join(distPath, "index.js");
+      expect(existsSync(distIndexPath)).toBe(true);
+    } finally {
+      // Restore original package.json
+      if (originalPackageJson) {
+        writeFileSync(packageJsonPath, originalPackageJson, "utf8");
+      }
+    }
   });
 });

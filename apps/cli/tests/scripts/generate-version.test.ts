@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
 
 // Get the current file directory
 const __filename = fileURLToPath(import.meta.url);
@@ -13,24 +12,8 @@ describe("generate-version.ts", () => {
   const outputPath = join(__dirname, "../../src/lib/version.generated.ts");
 
   test("should have generated version file after build", async () => {
-    // Check that the version file exists (should be created by build process)
-    // If it doesn't exist, generate it for the test
-    if (!existsSync(outputPath)) {
-      await new Promise((resolve, reject) => {
-        const child = spawn("bun", ["run", "scripts/generate-version.ts"], {
-          cwd: join(__dirname, "../.."),
-          stdio: "inherit"
-        });
-        child.on("close", (code) => {
-          if (code === 0) {
-            resolve(void 0);
-          } else {
-            reject(new Error(`Generate script failed with code ${code}`));
-          }
-        });
-        child.on("error", reject);
-      });
-    }
+    // Check that the version file exists (should be created by build process or other tests)
+    // If it doesn't exist, this test will fail, indicating the build process didn't run
     expect(existsSync(outputPath)).toBe(true);
   });
 
