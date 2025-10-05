@@ -21,47 +21,45 @@ describe("Opencode Sessions Parser", () => {
   });
 
   test("reads session JSON files", async () => {
-    const sessionFile = path.join(fixturesDir, "session-1.json");
+    const sessionFile = path.join(fixturesDir, "storage", "session", "project-1", "ses_session1.json");
     const content = await fs.readFile(sessionFile, "utf-8");
     const data = JSON.parse(content);
 
-    expect(data.info).toBeDefined();
-    expect(data.info.id).toBe("session-1");
-    expect(data.messages).toBeArray();
-    expect(data.messages.length).toBeGreaterThan(0);
+    expect(data.id).toBe("ses_session1");
+    expect(data.projectID).toBe("project-1");
+    expect(data.directory).toBeDefined();
+    expect(data.time).toBeDefined();
   });
 
   test("extracts session info from JSON", async () => {
-    const sessionFile = path.join(fixturesDir, "session-2.json");
+    const sessionFile = path.join(fixturesDir, "storage", "session", "project-1", "ses_session2.json");
     const content = await fs.readFile(sessionFile, "utf-8");
     const data = JSON.parse(content);
 
-    expect(data.info.id).toBe("session-2");
-    expect(data.info.timestamp).toBe(1704153600000);
-    expect(data.info.cwd).toBe("/Users/test/projects/web-app");
-    expect(data.info.repository).toBe("org/web-app");
-    expect(data.info.branch).toBe("feature/new-ui");
+    expect(data.id).toBe("ses_session2");
+    expect(data.time.created).toBe(1704153600000);
+    expect(data.directory).toBe("/Users/test/projects/web-app");
+    expect(data.projectID).toBe("project-1");
   });
 
-  test("extracts summary from first user message", async () => {
-    const sessionFile = path.join(fixturesDir, "session-2.json");
+  test("extracts summary from title", async () => {
+    const sessionFile = path.join(fixturesDir, "storage", "session", "project-1", "ses_session2.json");
     const content = await fs.readFile(sessionFile, "utf-8");
     const data = JSON.parse(content) as {
-      messages: Array<{ role: string; content: string }>;
+      title?: string;
     };
 
-    const firstUserMessage = data.messages.find((msg) => msg.role === "user");
-    expect(firstUserMessage).toBeDefined();
-    expect(firstUserMessage?.content).toStartWith("Add a new component");
+    expect(data.title).toBeDefined();
+    expect(data.title).toStartWith("Add a new component");
   });
 
-  test("handles sessions with no messages", async () => {
-    const sessionFile = path.join(fixturesDir, "session-3.json");
+  test("handles sessions with no title", async () => {
+    const sessionFile = path.join(fixturesDir, "storage", "session", "project-1", "ses_session3.json");
     const content = await fs.readFile(sessionFile, "utf-8");
     const data = JSON.parse(content);
 
-    expect(data.messages).toEqual([]);
-    expect(data.info.id).toBe("session-3");
+    expect(data.title).toBeUndefined();
+    expect(data.id).toBe("ses_session3");
   });
 
   test("parses all fixture sessions successfully", async () => {
