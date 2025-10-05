@@ -41,7 +41,6 @@ jobs:
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
       - name: Update Homebrew Tap
-        if: github.event_name != 'pull_request'
         run: ./scripts/update-homebrew-formula.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
