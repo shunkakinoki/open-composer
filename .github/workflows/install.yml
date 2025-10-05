@@ -39,7 +39,8 @@ jobs:
       - name: Install open-composer globally with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 30
+          retry_wait_seconds: 30
+          timeout_seconds: 300
           max_attempts: 10
           command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
@@ -66,7 +67,8 @@ jobs:
       - name: Test install.sh script with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 30
+          retry_wait_seconds: 30
+          timeout_seconds: 300
           max_attempts: 10
           command: bash install.sh
       - name: Verify open-composer command after script install
