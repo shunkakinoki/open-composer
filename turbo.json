@@ -17,6 +17,9 @@
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
+    "build:generate": {
+      "inputs": ["package.json"]
+    },
     "test": {
       "dependsOn": ["^build"],
       "inputs": ["tests/**"]
