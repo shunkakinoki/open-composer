@@ -14,11 +14,9 @@
     "**/tests/create-fixtures.ts",
     "bun-test-setup.ts"
   ],
-  "ignoreUnresolved": ["bun-types"],
-  "workspaces": {
-    "apps/*": {},
-    "agents/*": {},
-    "packages/*": {},
-    "workers/*": {}
+  "ignoreBinaries": ["microfrontends"],
+  "ignoreUnresolved": ["bun-types", "@effect/language-service"],
+  "ignoreExportsUsedInFile": {
+    "interface": true
   }
 }

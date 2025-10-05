@@ -32,7 +32,7 @@ export function buildTelemetryCommand(): CommandBuilder<"telemetry"> {
 // Command Implementations
 // -----------------------------------------------------------------------------
 
-export function buildEnableCommand() {
+function buildEnableCommand() {
   return Command.make("enable").pipe(
     Command.withDescription("Enable telemetry collection"),
     Command.withHandler(() =>
@@ -49,7 +49,7 @@ export function buildEnableCommand() {
   );
 }
 
-export function buildDisableCommand() {
+function buildDisableCommand() {
   return Command.make("disable").pipe(
     Command.withDescription("Disable telemetry collection"),
     Command.withHandler(() =>
@@ -64,7 +64,7 @@ export function buildDisableCommand() {
   );
 }
 
-export function buildStatusCommand() {
+function buildStatusCommand() {
   return Command.make("status").pipe(
     Command.withDescription("Show current telemetry status"),
     Command.withHandler(() =>
@@ -110,7 +110,7 @@ export function buildStatusCommand() {
   );
 }
 
-export function buildResetCommand() {
+function buildResetCommand() {
   return Command.make("reset").pipe(
     Command.withDescription("Reset telemetry consent (will prompt again)"),
     Command.withHandler(() =>

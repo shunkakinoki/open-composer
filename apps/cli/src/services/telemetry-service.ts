@@ -4,7 +4,7 @@ import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node";
 import { CLI_VERSION } from "../lib/version.js";
 import type { ConfigServiceInterface } from "./config-service.js";
-import { ConfigService } from "./config-service.js";
+import { ConfigService, ConfigLive } from "./config-service.js";
 
 // Get or create a persistent anonymous user ID using the config system
 function getOrCreateAnonymousId(): Effect.Effect<
@@ -251,17 +251,6 @@ export const trackCommand = (command: string, subcommand?: string) =>
     ),
   );
 
-export const trackError = (error: string, command?: string) =>
-  TelemetryService.pipe(
-    Effect.flatMap((telemetry) =>
-      telemetry.track("cli_error_occurred", {
-        error,
-        command,
-        timestamp: new Date().toISOString(),
-      }),
-    ),
-  );
-
 export const trackFeatureUsage = (
   feature: string,
   metadata?: Record<string, string | number | boolean | null | undefined>,
@@ -276,15 +265,46 @@ export const trackFeatureUsage = (
     ),
   );
 
-export const trackException = (error: Error, command?: string) =>
-  TelemetryService.pipe(
-    Effect.flatMap((telemetry) =>
-      telemetry.captureException(error, undefined, {
-        command,
-        timestamp: new Date().toISOString(),
-        error_name: error.name,
-        error_message: error.message,
-        error_stack: error.stack,
-      }),
-    ),
-  );
+// Merge TelemetryLive and ConfigLive layers for providing dependencies
+export const AppLayer = Layer.merge(TelemetryLive, ConfigLive);
+
+// Create simple async telemetry functions that internally provide their layers
+export const trackExceptionAsync = async (error: Error, command?: string) => {
+  try {
+    await Effect.runPromise(
+      TelemetryService.pipe(
+        Effect.flatMap((telemetry) =>
+          telemetry.captureException(error, undefined, {
+            command,
+            timestamp: new Date().toISOString(),
+            error_name: error.name,
+            error_message: error.message,
+            error_stack: error.stack,
+          })
+        ),
+        Effect.provide(AppLayer)
+      ) as Effect.Effect<void, never, never>
+    );
+  } catch {
+    // Ignore telemetry errors during error handling
+  }
+};
+
+export const trackErrorAsync = async (error: string, command?: string) => {
+  try {
+    await Effect.runPromise(
+      TelemetryService.pipe(
+        Effect.flatMap((telemetry) =>
+          telemetry.track("cli_error_occurred", {
+            error,
+            command,
+            timestamp: new Date().toISOString(),
+          })
+        ),
+        Effect.provide(AppLayer)
+      ) as Effect.Effect<void, never, never>
+    );
+  } catch {
+    // Ignore telemetry errors during error handling
+  }
+};

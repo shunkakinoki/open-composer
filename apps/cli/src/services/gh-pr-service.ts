@@ -15,9 +15,6 @@ import * as Effect from "effect/Effect";
 
 const execFileAsync = promisify(execFile);
 
-// Re-export types for backward compatibility
-export type { PRCreateOptions, PRCreateResult, PRStatus };
-
 export class GhPRService {
   // Allow overriding execFileAsync for testing
   execFileAsync: (

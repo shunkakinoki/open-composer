@@ -8,16 +8,16 @@ import { Git as GitTag } from "@open-composer/git";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-export interface GitCall {
+interface GitCall {
   readonly args: ReadonlyArray<string>;
   readonly options?: GitCommandOptions | undefined;
 }
 
-export type GitStubResponse =
+type GitStubResponse =
   | { readonly result: GitCommandResult }
   | { readonly error: GitCommandError };
 
-export interface GitStub {
+interface GitStub {
   readonly calls: GitCall[];
   readonly layer: Layer.Layer<never, never, typeof GitTag.Identifier>;
   readonly provide: <A, E, R>(
@@ -55,8 +55,4 @@ export const createGitStub = (
 
 export const success = (stdout: string, stderr = ""): GitStubResponse => ({
   result: { stdout, stderr },
-});
-
-export const failure = (error: GitCommandError): GitStubResponse => ({
-  error,
 });
