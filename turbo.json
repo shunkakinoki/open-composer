@@ -67,6 +67,12 @@
         "//#sort-package-json:fix"
       ]
     },
+    "//#__upgrade__": {
+      "dependsOn": [
+        "//#bun:upgrade",
+        "//#ncu:upgrade"
+      ]
+    },
     "//#biome:check:check": {
       "cache": false
     },
@@ -88,6 +94,12 @@
         "//#npm-package-json:fix",
         "//#sort-package-json:fix"
       ]
+    },
+    "//#bun:upgrade": {
+      "cache": false
+    },
+    "//#ncu:upgrade": {
+      "cache": false
     },
     "//#npm-package-json:check": {
       "cache": false

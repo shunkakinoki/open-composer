@@ -35,8 +35,10 @@
     "fix": "turbo run __fix__",
     "format": "turbo run __format__",
     "lint": "turbo run __lint__",
+    "ncu:upgrade": "bun run npm-check-updates:upgrade",
     "npm-check-updates:check": "npm-check-updates --workspaces",
     "npm-check-updates:upgrade": "npm-check-updates --workspaces --upgrade",
+    "bun:upgrade": "bun upgrade && VERSION=$(bun --version) && sed -i '' \"s/\\\"packageManager\\\": \\\"bun@[^\\\"]*\\\"/\\\"packageManager\\\": \\\"bun@$VERSION\\\"/\" package.json",
     "npm-package-json:check": "npmPkgJsonLint . --quiet",
     "npm-package-json:fix": "npmPkgJsonLint .",
     "prepublishOnly": "turbo run prepublishOnly",
@@ -47,6 +49,7 @@
     "test:coverage": "turbo run test -- --coverage",
     "test:update": "turbo run test -- --update-snapshots",
     "type-check": "turbo run type-check",
+    "upgrade": "turbo run __upgrade__",
     "version": "bun run changeset:version"
   },
   "devDependencies": {

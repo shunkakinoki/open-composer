@@ -29,7 +29,7 @@
     "@open-composer/agent-codex": "workspace:*",
     "@open-composer/agent-cursor": "workspace:*",
     "@open-composer/agent-opencode": "workspace:*",
-    "ai": "^4.1.7",
+    "ai": "^5.0.60",
     "effect": "^3.18.2"
   },
   "devDependencies": {
