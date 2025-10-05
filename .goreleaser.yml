@@ -8,8 +8,13 @@ version: 2
 builds:
   - skip: true
 
+# Skip archive creation since binaries are pre-built
+archives:
+  - id: skip-archives
+    format: binary
+
 # Configure Homebrew tap
-brews:
+homebrew:
   - name: open-composer
 
     # Target repository for the tap
