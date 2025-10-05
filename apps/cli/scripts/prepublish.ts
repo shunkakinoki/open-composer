@@ -82,9 +82,10 @@ function getBunTarget(os: string, arch: string): string {
 
 const binaries: Record<string, string> = {};
 // Parse version to handle formats like "open-composer@0.1.0" -> "0.1.0"
-const version = CLI_VERSION.includes("@")
-  ? CLI_VERSION.split("@")[1]
-  : CLI_VERSION;
+const versionString = String(CLI_VERSION);
+const version = versionString.includes("@")
+  ? versionString.split("@")[1]
+  : versionString;
 console.log(`Building CLI version ${version}`);
 
 // -----------------------------------------------------------------------------
@@ -122,7 +123,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name: packageName,
-        version: CLI_VERSION,
+        version: String(CLI_VERSION),
         main: `bin/${binaryName}`,
         os: [os === "win32" ? "win32" : os],
         cpu: [arch],
@@ -141,7 +142,7 @@ for (const [os, arch] of targets) {
   // Add the package to the binaries object
   // ---------------------------------------------------------------------------
 
-  binaries[packageName] = CLI_VERSION;
+  binaries[packageName] = String(CLI_VERSION);
 }
 
 console.log(`Binaries built: ${JSON.stringify(binaries)}`);
@@ -201,7 +202,7 @@ if (isRelease) {
           preinstall: "node ./preinstall.mjs",
           postinstall: "node ./postinstall.mjs",
         },
-        version: CLI_VERSION,
+        version: String(CLI_VERSION),
         optionalDependencies: binaries,
       },
       null,

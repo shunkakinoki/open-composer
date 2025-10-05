@@ -1,33 +1,33 @@
+// Read version from package.json directly
 import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Try to import the generated version first
-let generatedVersion: string | undefined;
-try {
-  const content = readFileSync(
-    new URL("./version.generated.ts", import.meta.url),
-    "utf8",
-  );
-  const versionMatch = content.match(/export const CLI_VERSION = "([^"]+)"/);
-  if (versionMatch?.[1]) {
-    generatedVersion = versionMatch[1];
-  }
-} catch {
-  // Generated file may not exist in development, will use fallback.
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-export const CLI_VERSION = (() => {
-  // If we have a generated version, use it
-  if (generatedVersion) {
-    return generatedVersion;
-  }
-
-  // Otherwise, try to read from package.json (development mode)
+function readVersion(): string {
   try {
-    const packageJson = JSON.parse(
-      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
-    );
+    const packageJsonPath = join(__dirname, "../../package.json");
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     return packageJson.version || "0.0.0";
   } catch {
+    // Fallback to default version if package.json can't be read
     return "0.0.0";
   }
-})();
+}
+
+// Create a version string class that reads fresh each time
+class VersionString {
+  toString() {
+    return readVersion();
+  }
+  valueOf() {
+    return readVersion();
+  }
+  [Symbol.toPrimitive](hint: string) {
+    return readVersion();
+  }
+}
+
+export const CLI_VERSION = new VersionString() as any as string;
