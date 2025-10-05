@@ -58,7 +58,7 @@ class OpenComposer < Formula
   end
 
   def install
-    # Determine the binary name based on OS and architecture
+    # Determine the OS and architecture to find the correct directory
     os = OS.mac? ? "darwin" : "linux"
     arch = Hardware::CPU.arch.to_s
 
@@ -74,7 +74,10 @@ class OpenComposer < Formula
                   "#{os}-#{arch}"
                 end
 
-    binary_dir = "@open-composer/cli-#{os_suffix}"
+    # The zip contains @open-composer/cli-{os}-{arch}/bin/open-composer
+    # We need to reference it with the @ symbol properly escaped
+    prefix_dir = "@open-composer"
+    binary_dir = "#{prefix_dir}/cli-#{os_suffix}"
 
     bin.install "#{binary_dir}/bin/open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
