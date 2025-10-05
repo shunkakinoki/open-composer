@@ -150,6 +150,6 @@
     },
     "//#sort-package-json:fix": {
       "cache": false
-    },
+    }
   }
 }
