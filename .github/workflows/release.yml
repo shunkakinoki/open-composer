@@ -2,6 +2,8 @@ name: Release
 on:
   release:
     types: [published]
+  pull_request:
+    branches: [go-release]
   workflow_dispatch:
     inputs:
       tag:
@@ -13,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   release-upload:
-    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '') && !contains(github.event.release.tag_name || github.event.inputs.tag, '@open-composer')
+    if: (startsWith(github.event.release.tag_name, 'open-composer@') || github.event.inputs.tag != '' || github.event_name == 'pull_request') && !contains(github.event.release.tag_name || github.event.inputs.tag, '@open-composer')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -23,7 +25,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ github.event.inputs.tag || github.event.pull_request.head.sha || github.ref }}
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@6f73775a21da47d08675b032253520edf31a4c9f
       - name: Build CLI Binary
@@ -31,6 +33,7 @@ jobs:
         env:
           RELEASE_ZIP_FILES: true
       - name: Upload Binary Assets
+        if: github.event_name != 'pull_request'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,11 +46,12 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean --skip=validate
+          args: ${{ github.event_name == 'pull_request' && 'release --clean --skip=validate --dry-run' || 'release --clean --skip=validate' }}
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-latest:
+    if: github.event_name != 'pull_request'
     needs: release-upload
     runs-on: ubuntu-latest
     timeout-minutes: 3
