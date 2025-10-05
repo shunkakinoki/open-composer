@@ -1,5 +1,5 @@
 import { Command } from "@effect/cli";
-import { submitFeedback } from "@open-composer/feedback-worker";
+import { submitFeedback } from "@open-composer/feedback";
 import * as Effect from "effect/Effect";
 import { render } from "ink";
 import React from "react";

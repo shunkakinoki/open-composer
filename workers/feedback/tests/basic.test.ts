@@ -2,12 +2,15 @@ import type { Feedback } from "@open-composer/feedback";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import worker, { type Env } from "../src/index.js";
 
+// Mock the Linear SDK
+vi.mock("@linear/sdk", () => ({
+  LinearClient: vi.fn().mockImplementation(() => ({
+    createIssue: vi.fn(),
+  })),
+}));
+
 // Mock environment for basic testing
 const mockEnv: Env = {
-  FEEDBACK_KV: {
-    get: vi.fn(),
-    put: vi.fn(),
-  } as any,
   LINEAR_API_KEY: "mock-linear-api-key",
   LINEAR_TEAM_ID: "mock-linear-team-id",
 };
@@ -50,10 +53,17 @@ describe("Feedback Worker - Basic Tests", () => {
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
   });
 
-  it("should process valid POST requests with email and message and return feedback object", async () => {
-    // Mock KV get to return empty array initially
-    (mockEnv.FEEDBACK_KV.get as any).mockResolvedValue(null);
-    (mockEnv.FEEDBACK_KV.put as any).mockResolvedValue(undefined);
+  it("should process valid POST requests with email and message and return feedback object with Linear issue", async () => {
+    // Mock Linear client
+    const mockLinearClient = {
+      createIssue: vi.fn().mockResolvedValue({
+        success: true,
+        issue: Promise.resolve({ id: "issue-456" }),
+      }),
+    };
+
+    const { LinearClient } = await import("@linear/sdk");
+    (LinearClient as any).mockImplementation(() => mockLinearClient);
 
     const requestBody = {
       email: "test@example.com",
@@ -74,22 +84,29 @@ describe("Feedback Worker - Basic Tests", () => {
     expect(response.headers.get("Content-Type")).toBe("application/json");
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
 
-    const responseBody = (await response.json()) as Feedback;
+    const responseBody = (await response.json()) as { feedback: Feedback; linearIssueId: string };
 
     // Validate response structure matches Feedback interface
-    expect(responseBody).toHaveProperty("id");
-    expect(responseBody.email).toBe(requestBody.email);
-    expect(responseBody.message).toBe(requestBody.message);
-    expect(responseBody).toHaveProperty("createdAt");
-    expect(typeof responseBody.id).toBe("string");
-    expect(typeof responseBody.createdAt).toBe("string");
+    expect(responseBody.feedback).toHaveProperty("id");
+    expect(responseBody.feedback.email).toBe(requestBody.email);
+    expect(responseBody.feedback.message).toBe(requestBody.message);
+    expect(responseBody.feedback).toHaveProperty("createdAt");
+    expect(typeof responseBody.feedback.id).toBe("string");
+    expect(typeof responseBody.feedback.createdAt).toBe("string");
 
-    // Verify KV storage was called
-    expect(mockEnv.FEEDBACK_KV.get).toHaveBeenCalledWith("feedbacks");
-    expect(mockEnv.FEEDBACK_KV.put).toHaveBeenCalledWith(
-      "feedbacks",
-      expect.stringContaining(requestBody.email),
-    );
+    // Validate Linear issue ID is returned
+    expect(responseBody.linearIssueId).toBe("issue-456");
+
+    // Verify response structure
+    expect(responseBody).toEqual({
+      feedback: {
+        id: expect.any(String),
+        email: requestBody.email,
+        message: requestBody.message,
+        createdAt: expect.any(String),
+      },
+      linearIssueId: "issue-456",
+    });
   });
 
   it("should handle invalid JSON parsing errors", async () => {
@@ -151,53 +168,4 @@ describe("Feedback Worker - Basic Tests", () => {
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
   });
 
-  it("should append feedback to existing feedbacks in KV storage", async () => {
-    const existingFeedbacks: Feedback[] = [
-      {
-        id: "existing_1",
-        email: "existing@example.com",
-        message: "Existing feedback",
-        createdAt: "2024-01-01T00:00:00.000Z",
-      },
-    ];
-
-    (mockEnv.FEEDBACK_KV.get as any).mockResolvedValue(
-      JSON.stringify(existingFeedbacks),
-    );
-    (mockEnv.FEEDBACK_KV.put as any).mockResolvedValue(undefined);
-
-    const requestBody = {
-      email: "new@example.com",
-      message: "New feedback message",
-    };
-
-    const request = new Request("https://example.com/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const response = await worker.fetch(request, mockEnv, mockCtx);
-
-    expect(response.status).toBe(200);
-
-    // Verify the put was called with both existing and new feedback
-    expect(mockEnv.FEEDBACK_KV.put).toHaveBeenCalledWith(
-      "feedbacks",
-      expect.stringContaining("existing@example.com"),
-    );
-    expect(mockEnv.FEEDBACK_KV.put).toHaveBeenCalledWith(
-      "feedbacks",
-      expect.stringContaining("new@example.com"),
-    );
-
-    // Parse the stored data to verify structure
-    const putCall = (mockEnv.FEEDBACK_KV.put as any).mock.calls[0];
-    const storedData = JSON.parse(putCall[1] as string) as Feedback[];
-    expect(storedData).toHaveLength(2);
-    expect(storedData[0].email).toBe("existing@example.com");
-    expect(storedData[1].email).toBe("new@example.com");
-  });
 });
