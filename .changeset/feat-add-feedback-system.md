@@ -1,4 +1,5 @@
 ---
+"@open-composer/feedback": minor
 "@open-composer/feedback-worker": minor
 ---
 
