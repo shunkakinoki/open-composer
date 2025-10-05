@@ -78,12 +78,13 @@ describe("version integration in build process", () => {
   });
 
   beforeEach(() => {
-    // Clean dist directory and version file before each test for a fresh state
+    // Clean dist directory before each test
     if (existsSync(distPath)) {
       rmSync(distPath, { recursive: true, force: true });
     }
-    if (existsSync(versionGeneratedPath)) {
-      unlinkSync(versionGeneratedPath);
+    // Restore original package.json before each test
+    if (originalPackageJson) {
+      writeFileSync(packageJsonPath, originalPackageJson, "utf8");
     }
   });
 
