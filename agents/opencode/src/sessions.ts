@@ -18,20 +18,25 @@ export interface OpencodeSession {
   status: "active" | "completed" | "failed";
 }
 
-interface SessionInfo {
-  id?: string;
-  timestamp?: number;
-  cwd?: string;
-  repository?: string;
-  branch?: string;
-  [key: string]: unknown;
+interface OpencodeSessionFile {
+  id: string;
+  version: string;
+  projectID: string;
+  directory: string;
+  title?: string;
+  time: {
+    created: number;
+    updated: number;
+  };
 }
 
-interface SessionMessage {
-  role?: string;
-  content?: string;
-  timestamp?: number;
-  [key: string]: unknown;
+interface OpencodeProjectFile {
+  id: string;
+  worktree: string;
+  vcs?: string;
+  time: {
+    created: number;
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -51,69 +56,101 @@ export const parseOpencodeSessions = (): Effect.Effect<
 > =>
   Effect.gen(function* () {
     const opencodeDir = getOpencodeDataDir();
+    const storageDir = path.join(opencodeDir, "storage");
+    const sessionDir = path.join(storageDir, "session");
+    const projectDir = path.join(storageDir, "project");
 
-    // Check if directory exists
-    const dirExists = yield* Effect.tryPromise({
-      try: () => fs.access(opencodeDir).then(() => true),
+    // Check if session directory exists
+    const sessionDirExists = yield* Effect.tryPromise({
+      try: () => fs.access(sessionDir).then(() => true),
       catch: () => false,
     }).pipe(Effect.orElse(() => Effect.succeed(false)));
 
-    if (!dirExists) {
+    if (!sessionDirExists) {
       return [];
     }
 
-    // List all files in the opencode data directory
-    const files = yield* Effect.tryPromise({
-      try: () => fs.readdir(opencodeDir, { withFileTypes: true }),
+    // Read all project metadata to map projectID to repository info
+    const projectMap = new Map<string, OpencodeProjectFile>();
+    const projectDirExists = yield* Effect.tryPromise({
+      try: () => fs.access(projectDir).then(() => true),
+      catch: () => false,
+    }).pipe(Effect.orElse(() => Effect.succeed(false)));
+
+    if (projectDirExists) {
+      const projectFiles = yield* Effect.tryPromise({
+        try: () => fs.readdir(projectDir, { withFileTypes: true }),
+        catch: () => [],
+      }).pipe(Effect.orElse(() => Effect.succeed([])));
+
+      for (const file of projectFiles) {
+        if (!file.isFile() || !file.name.endsWith(".json")) continue;
+
+        const projectData = yield* Effect.tryPromise({
+          try: async () => {
+            const content = await fs.readFile(path.join(projectDir, file.name), "utf-8");
+            return JSON.parse(content) as OpencodeProjectFile;
+          },
+          catch: () => null,
+        }).pipe(Effect.orElse(() => Effect.succeed(null)));
+
+        if (projectData?.id) {
+          projectMap.set(projectData.id, projectData);
+        }
+      }
+    }
+
+    // List all project directories in session directory
+    const projectDirs = yield* Effect.tryPromise({
+      try: () => fs.readdir(sessionDir, { withFileTypes: true }),
       catch: (error) =>
         new Error(
-          `Failed to read opencode directory: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to read session directory: ${error instanceof Error ? error.message : String(error)}`,
         ),
     }).pipe(Effect.orElse(() => Effect.succeed([])));
 
     const sessions: OpencodeSession[] = [];
 
-    // Look for session JSON files
-    for (const file of files) {
-      if (!file.isFile()) continue;
-      if (!file.name.endsWith(".json")) continue;
+    // Iterate through each project directory
+    for (const projectDirEntry of projectDirs) {
+      if (!projectDirEntry.isDirectory()) continue;
 
-      const filePath = path.join(opencodeDir, file.name);
-      const sessionData = yield* Effect.tryPromise({
-        try: async () => {
-          const content = await fs.readFile(filePath, "utf-8");
-          return JSON.parse(content);
-        },
-        catch: () => new Error(`Failed to read session file: ${file.name}`),
-      }).pipe(Effect.orElse(() => Effect.succeed(null)));
+      const projectSessionDir = path.join(sessionDir, projectDirEntry.name);
 
-      if (!sessionData) continue;
+      // Read all session files in this project directory
+      const sessionFiles = yield* Effect.tryPromise({
+        try: () => fs.readdir(projectSessionDir, { withFileTypes: true }),
+        catch: () => [],
+      }).pipe(Effect.orElse(() => Effect.succeed([])));
 
-      // Try to extract session info and messages
-      const info = sessionData.info as SessionInfo | undefined;
-      const messages =
-        (sessionData.messages as SessionMessage[] | undefined) || [];
+      for (const sessionFile of sessionFiles) {
+        if (!sessionFile.isFile() || !sessionFile.name.endsWith(".json")) continue;
 
-      // Extract summary from first user message
-      const firstUserMessage = messages.find((msg) => msg.role === "user");
-      const summary = firstUserMessage?.content
-        ? firstUserMessage.content.substring(0, 100)
-        : undefined;
+        const sessionFilePath = path.join(projectSessionDir, sessionFile.name);
+        const sessionData = yield* Effect.tryPromise({
+          try: async () => {
+            const content = await fs.readFile(sessionFilePath, "utf-8");
+            return JSON.parse(content) as OpencodeSessionFile;
+          },
+          catch: () => null,
+        }).pipe(Effect.orElse(() => Effect.succeed(null)));
 
-      // Determine status (if session has messages, it's active or completed)
-      const status: "active" | "completed" | "failed" =
-        messages.length > 0 ? "completed" : "active";
+        if (!sessionData) continue;
 
-      sessions.push({
-        id: info?.id || file.name.replace(".json", ""),
-        agent: "opencode",
-        timestamp: new Date(info?.timestamp || 0),
-        cwd: info?.cwd,
-        repository: info?.repository,
-        branch: info?.branch,
-        summary,
-        status,
-      });
+        // Get project metadata for this session
+        const projectMeta = projectMap.get(sessionData.projectID);
+
+        sessions.push({
+          id: sessionData.id,
+          agent: "opencode",
+          timestamp: new Date(sessionData.time.created),
+          cwd: sessionData.directory,
+          repository: projectMeta?.worktree || sessionData.directory,
+          branch: undefined, // Opencode doesn't store branch in session files
+          summary: sessionData.title,
+          status: "completed", // If it exists, it's been created
+        });
+      }
     }
 
     return sessions.sort(

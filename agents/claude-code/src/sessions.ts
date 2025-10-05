@@ -18,13 +18,16 @@ export interface ClaudeCodeSession {
   status: "active" | "completed" | "failed";
 }
 
-interface SessionMetadata {
-  id?: string;
-  timestamp?: number;
+interface ClaudeCodeJSONLEntry {
+  sessionId?: string;
   cwd?: string;
-  repository?: string;
-  branch?: string;
-  messageCount?: number;
+  gitBranch?: string;
+  timestamp?: string;
+  type?: string;
+  message?: {
+    role?: string;
+    content?: string;
+  };
   [key: string]: unknown;
 }
 
@@ -32,63 +35,111 @@ interface SessionMetadata {
 // Claude Code Session Parser
 // -----------------------------------------------------------------------------
 
-// Note: Claude Code stores sessions in binary format (LevelDB/IndexedDB)
-// Location: ~/Library/Application Support/Claude/Session Storage/ (macOS)
-//           ~/.config/Claude/Session Storage/ (Linux)
-//
-// The session data is stored in LevelDB format (.ldb files) which requires
-// special parsing libraries to read.
-//
-// For testing purposes, we also support reading from a JSON cache file
-// at ~/.claude-code/sessions.json if it exists
+// Claude Code stores sessions as JSONL files in project directories
+// Location: ~/.claude/projects/{project-dir}/{sessionId}.jsonl
+// Each JSONL file contains multiple JSON objects, one per line
 
 export const parseClaudeCodeSessions = (): Effect.Effect<
   ClaudeCodeSession[],
   Error
 > =>
   Effect.gen(function* () {
-    // Try to read from cache file first (for testing)
-    const cacheDir = path.join(homedir(), ".claude-code");
-    const cacheFile = path.join(cacheDir, "sessions.json");
+    const claudeProjectsDir = path.join(homedir(), ".claude", "projects");
 
-    const cacheExists = yield* Effect.tryPromise({
-      try: () => fs.access(cacheFile).then(() => true),
+    // Check if projects directory exists
+    const projectsDirExists = yield* Effect.tryPromise({
+      try: () => fs.access(claudeProjectsDir).then(() => true),
       catch: () => false,
     }).pipe(Effect.orElse(() => Effect.succeed(false)));
 
-    if (cacheExists) {
-      const sessionData = yield* Effect.tryPromise({
-        try: async () => {
-          const content = await fs.readFile(cacheFile, "utf-8");
-          return JSON.parse(content) as SessionMetadata[];
-        },
-        catch: (error) =>
-          new Error(
-            `Failed to read sessions cache: ${error instanceof Error ? error.message : String(error)}`,
-          ),
-      }).pipe(Effect.orElse(() => Effect.succeed([])));
-
-      const sessions: ClaudeCodeSession[] = sessionData.map((meta) => ({
-        id: meta.id || `claude-code-${Date.now()}`,
-        agent: "claude-code" as const,
-        timestamp: new Date(meta.timestamp || Date.now()),
-        cwd: meta.cwd,
-        repository: meta.repository,
-        branch: meta.branch,
-        summary: meta.messageCount
-          ? `Claude Code session: ${meta.messageCount} messages`
-          : "Claude Code session",
-        status: (meta.messageCount || 0) > 0 ? "completed" : "active",
-      }));
-
-      return sessions.sort(
-        (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
-      );
+    if (!projectsDirExists) {
+      return [];
     }
 
-    // TODO: Implement LevelDB parsing for production use
-    // - Add level-js or similar library to parse LevelDB
-    // - Extract session data from IndexedDB
-    // - Parse conversation history and metadata
-    return [];
+    // List all project directories
+    const projectDirs = yield* Effect.tryPromise({
+      try: () => fs.readdir(claudeProjectsDir, { withFileTypes: true }),
+      catch: (error) =>
+        new Error(
+          `Failed to read Claude projects directory: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+    }).pipe(Effect.orElse(() => Effect.succeed([])));
+
+    const sessions: ClaudeCodeSession[] = [];
+
+    // Iterate through each project directory
+    for (const projectDir of projectDirs) {
+      if (!projectDir.isDirectory()) continue;
+
+      const projectPath = path.join(claudeProjectsDir, projectDir.name);
+
+      // Read all JSONL files in this project directory
+      const sessionFiles = yield* Effect.tryPromise({
+        try: () => fs.readdir(projectPath, { withFileTypes: true }),
+        catch: () => [],
+      }).pipe(Effect.orElse(() => Effect.succeed([])));
+
+      for (const sessionFile of sessionFiles) {
+        if (!sessionFile.isFile() || !sessionFile.name.endsWith(".jsonl")) continue;
+
+        const sessionFilePath = path.join(projectPath, sessionFile.name);
+        const sessionId = sessionFile.name.replace(".jsonl", "");
+
+        // Read JSONL file and parse entries
+        const fileContent = yield* Effect.tryPromise({
+          try: () => fs.readFile(sessionFilePath, "utf-8"),
+          catch: () => null,
+        }).pipe(Effect.orElse(() => Effect.succeed(null)));
+
+        if (!fileContent) continue;
+
+        // Parse JSONL (one JSON object per line)
+        const lines = fileContent.trim().split("\n");
+        const entries: ClaudeCodeJSONLEntry[] = [];
+
+        for (const line of lines) {
+          try {
+            const entry = JSON.parse(line) as ClaudeCodeJSONLEntry;
+            entries.push(entry);
+          } catch {
+            // Skip invalid JSON lines
+            continue;
+          }
+        }
+
+        // Extract session metadata from entries
+        const firstEntry = entries.find((e) => e.cwd && e.sessionId);
+        const userMessages = entries.filter((e) => e.type === "user" && e.message?.role === "user");
+
+        if (!firstEntry) continue;
+
+        // Decode project directory name to get repository path
+        // Format: -Users-shunkakinoki-path-to-repo -> /Users/shunkakinoki/path/to/repo
+        let repository = firstEntry.cwd;
+        if (projectDir.name.startsWith("-")) {
+          repository = projectDir.name.slice(1).replace(/-/g, "/");
+        }
+
+        // Get first user message as summary
+        const firstUserMessage = userMessages[0]?.message?.content;
+        const summary = firstUserMessage && typeof firstUserMessage === "string"
+          ? firstUserMessage.substring(0, 100)
+          : undefined;
+
+        sessions.push({
+          id: sessionId,
+          agent: "claude-code",
+          timestamp: firstEntry.timestamp ? new Date(firstEntry.timestamp) : new Date(0),
+          cwd: firstEntry.cwd,
+          repository,
+          branch: firstEntry.gitBranch,
+          summary,
+          status: userMessages.length > 0 ? "completed" : "active",
+        });
+      }
+    }
+
+    return sessions.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
   });

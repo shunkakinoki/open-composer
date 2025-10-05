@@ -8,8 +8,6 @@ import {
 } from "../src/sessions.js";
 
 describe("Claude Code Sessions Parser", () => {
-  const fixturesDir = path.join(__dirname, "fixtures", ".claude-code");
-
   beforeAll(() => {
     // Mock homedir to point to our fixtures directory
     mock.module("node:os", () => ({
@@ -22,39 +20,43 @@ describe("Claude Code Sessions Parser", () => {
     expect(result).toBeDefined();
   });
 
-  test("reads sessions from JSON cache file", async () => {
-    const cacheFile = path.join(fixturesDir, "sessions.json");
-    const content = await fs.readFile(cacheFile, "utf-8");
-    const data = JSON.parse(content);
+  test("reads sessions from JSONL files", async () => {
+    const projectDir = path.join(__dirname, "fixtures", ".claude", "projects", "test-project");
+    const files = await fs.readdir(projectDir);
+    const jsonlFiles = files.filter(f => f.endsWith(".jsonl"));
 
-    expect(data).toBeArray();
-    expect(data.length).toBe(3);
-    expect(data[0].id).toBe("session-1");
+    expect(jsonlFiles).toBeArray();
+    expect(jsonlFiles.length).toBe(3);
+    expect(jsonlFiles).toContain("session-1.jsonl");
   });
 
   test("parses session metadata correctly", async () => {
-    const cacheFile = path.join(fixturesDir, "sessions.json");
-    const content = await fs.readFile(cacheFile, "utf-8");
-    const data = JSON.parse(content);
+    const sessionFile = path.join(__dirname, "fixtures", ".claude", "projects", "test-project", "session-1.jsonl");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const lines = content.trim().split("\n");
 
-    expect(data[0].timestamp).toBe(1704067200000);
-    expect(data[0].cwd).toBe("/Users/test/projects/web-app");
-    expect(data[0].repository).toBe("user/web-app");
-    expect(data[0].branch).toBe("main");
-    expect(data[0].messageCount).toBe(5);
+    expect(lines.length).toBeGreaterThan(0);
+    const firstEntry = JSON.parse(lines[1]);
+    expect(firstEntry.cwd).toBe("/Users/test/projects/web-app");
+    expect(firstEntry.sessionId).toBe("session-1");
+    expect(firstEntry.gitBranch).toBe("main");
   });
 
   test("handles sessions with no messages", async () => {
-    const cacheFile = path.join(fixturesDir, "sessions.json");
-    const content = await fs.readFile(cacheFile, "utf-8");
-    const data = JSON.parse(content) as Array<{
-      id: string;
-      messageCount: number;
-    }>;
+    const sessionFile = path.join(__dirname, "fixtures", ".claude", "projects", "test-project", "session-3.jsonl");
+    const content = await fs.readFile(sessionFile, "utf-8");
+    const lines = content.trim().split("\n");
 
-    const emptySession = data.find((s) => s.messageCount === 0);
-    expect(emptySession).toBeDefined();
-    expect(emptySession?.id).toBe("session-3");
+    const userMessages = lines.filter(line => {
+      try {
+        const entry = JSON.parse(line);
+        return entry.type === "user" && entry.message?.role === "user";
+      } catch {
+        return false;
+      }
+    });
+
+    expect(userMessages.length).toBe(0);
   });
 
   test("parses all fixture sessions successfully", async () => {
@@ -70,18 +72,18 @@ describe("Claude Code Sessions Parser", () => {
     );
   });
 
-  test("generates correct summaries with message counts", async () => {
+  test("generates correct summaries from first user message", async () => {
     const effect = parseClaudeCodeSessions();
     const sessions = await Effect.runPromise(effect);
 
     const session1 = sessions.find((s) => s.id === "session-1");
-    expect(session1?.summary).toContain("5 messages");
+    expect(session1?.summary).toContain("Help me build a login form");
 
     const session2 = sessions.find((s) => s.id === "session-2");
-    expect(session2?.summary).toContain("3 messages");
+    expect(session2?.summary).toContain("Create an API endpoint");
 
     const session3 = sessions.find((s) => s.id === "session-3");
-    expect(session3?.summary).toBe("Claude Code session");
+    expect(session3?.summary).toBeUndefined();
   });
 
   test("determines status based on message count", async () => {

@@ -1,0 +1,11 @@
+{
+  "id": "ses_session1",
+  "version": "0.14.1",
+  "projectID": "project-1",
+  "directory": "/Users/test/projects/web-app",
+  "title": "Build a login component",
+  "time": {
+    "created": 1704067200000,
+    "updated": 1704067300000
+  }
+}

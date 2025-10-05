@@ -1,6 +1,5 @@
-import { Command, Options } from "@effect/cli";
+import { Command } from "@effect/cli";
 import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
 import {
   trackCommand,
   trackFeatureUsage,
@@ -30,102 +29,54 @@ export const buildAISessionsCommand = (): CommandBuilder<"ai-sessions"> => ({
 // -----------------------------------------------------------------------------
 
 function buildListCommand() {
-  const agentOption = Options.text("agent").pipe(
-    Options.optional,
-    Options.withDescription(
-      "Filter by agent type (codex, cursor-agent, claude-code)",
-    ),
-  );
-
-  const limitOption = Options.integer("limit").pipe(
-    Options.withDefault(50),
-    Options.withDescription(
-      "Maximum number of sessions to display (default: 50)",
-    ),
-  );
-
-  return Command.make("list", { agent: agentOption, limit: limitOption }).pipe(
+  return Command.make("list").pipe(
     Command.withDescription("List all AI agent sessions from all sources"),
-    Command.withHandler(({ agent, limit }) =>
+    Command.withHandler(() =>
       Effect.gen(function* () {
         yield* trackCommand("ai-sessions", "list");
         yield* trackFeatureUsage("ai_sessions_list");
 
-        const { AISessionsService } = yield* Effect.promise(
-          () => import("@open-composer/ai-sessions"),
-        );
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const [{ render }, React, { AISessionsList }] = await Promise.all([
+              import("ink"),
+              import("react"),
+              import("../components/AISessionsList.js"),
+            ]);
 
-        const service = new AISessionsService();
-        let sessions = yield* service.getAllSessions();
-
-        // Apply agent filter if provided
-        const agentFilter = Option.getOrNull(agent);
-        if (agentFilter) {
-          sessions = sessions.filter((s) => s.agent === agentFilter);
-        }
-
-        if (sessions.length === 0) {
-          console.log("No AI sessions found.");
-          return;
-        }
-
-        // Get limit value (limit already has a default of 50)
-        const limitValue = limit;
-
-        // Print header
-        console.log("\n🤖 AI Agent Sessions\n");
-        if (agentFilter) {
-          console.log(`Filter: ${agentFilter}\n`);
-        }
-        console.log(
-          `${"Agent".padEnd(20)} ${"Status".padEnd(12)} ${"Time".padEnd(15)} ${"Repository/Path".padEnd(50)}`,
-        );
-        console.log("-".repeat(100));
-
-        // Print sessions
-        const displaySessions = sessions.slice(0, limitValue);
-        for (const session of displaySessions) {
-          const agentStr = session.agent.padEnd(20);
-          const statusStr =
-            `${getStatusIcon(session.status)} ${session.status}`.padEnd(12);
-          const timeStr = formatTimestamp(session.timestamp).padEnd(15);
-          const repoStr = (session.repository || session.cwd || "-")
-            .slice(-50)
-            .padEnd(50);
-          console.log(`${agentStr} ${statusStr} ${timeStr} ${repoStr}`);
-        }
-
-        console.log(
-          `\nTotal: ${sessions.length} sessions${limitValue < sessions.length ? ` (showing ${limitValue})` : ""}`,
-        );
+            return new Promise<void>((resolve, reject) => {
+              const { waitUntilExit } = render(
+                React.createElement(AISessionsList, {
+                  onComplete: () => {
+                    resolve();
+                  },
+                  onCancel: () => {
+                    reject(new Error("AI sessions list cancelled by user"));
+                  },
+                }),
+                {
+                  exitOnCtrlC: true,
+                  patchConsole: false,
+                },
+              );
+              waitUntilExit().catch(reject);
+            });
+          },
+          catch: (error) => {
+            if (
+              error instanceof Error &&
+              error.message === "AI sessions list cancelled by user"
+            ) {
+              return error;
+            }
+            return new Error(
+              `Failed to display AI sessions: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          },
+        });
       }),
     ),
   );
-}
-
-function formatTimestamp(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return "just now";
-}
-
-function getStatusIcon(status: string): string {
-  switch (status) {
-    case "active":
-      return "●";
-    case "completed":
-      return "✓";
-    case "failed":
-      return "✗";
-    default:
-      return "○";
-  }
 }
