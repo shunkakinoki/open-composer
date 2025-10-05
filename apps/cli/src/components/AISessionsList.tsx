@@ -1,5 +1,5 @@
-import type { AISession } from "@open-composer/ai-sessions";
-import { AISessionsService } from "@open-composer/ai-sessions";
+import type { AISession } from "@open-composer/agent-sessions";
+import { AISessionsService } from "@open-composer/agent-sessions";
 import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";

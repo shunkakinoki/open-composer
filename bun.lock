@@ -63,6 +63,25 @@
         "typescript": "^5.9.3",
       },
     },
+    "agents/registry": {
+      "name": "@open-composer/agent-registry",
+      "version": "0.1.0",
+      "dependencies": {
+        "@langchain/core": "^0.3.78",
+        "@langchain/langgraph": "^0.4.9",
+        "chalk": "^5.6.2",
+        "inquirer": "^12.9.6",
+        "sqlite3": "^5.1.7",
+        "uuid": "^13.0.0",
+        "zod": "^4.1.11",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.2",
+        "@types/uuid": "^11.0.0",
+        "typescript": "^5.9.3",
+      },
+    },
     "agents/router": {
       "name": "@open-composer/agent-router",
       "version": "0.2.1",
@@ -81,6 +100,25 @@
         "typescript": "^5.9.3",
       },
     },
+    "agents/sessions": {
+      "name": "@open-composer/agent-sessions",
+      "version": "0.1.0",
+      "dependencies": {
+        "@ai-sdk/openai": "^2.0.42",
+        "@ai-sdk/provider": "^2.0.0",
+        "@open-composer/agent-claude-code": "workspace:*",
+        "@open-composer/agent-codex": "workspace:*",
+        "@open-composer/agent-cursor": "workspace:*",
+        "@open-composer/agent-opencode": "workspace:*",
+        "ai": "^5.0.60",
+        "effect": "^3.18.2",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
+        "@types/node": "^24.6.2",
+        "typescript": "^5.9.3",
+      },
+    },
     "agents/types": {
       "name": "@open-composer/agent-types",
       "version": "0.1.0",
@@ -94,7 +132,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.8.13",
+      "version": "0.8.14",
       "bin": {
         "oc": "./src/index.ts",
         "open-composer": "./src/index.ts",
@@ -108,7 +146,7 @@
         "@effect/printer-ansi": "^0.46.0",
         "@open-composer/agent-registry": "workspace:*",
         "@open-composer/agent-router": "workspace:*",
-        "@open-composer/ai-sessions": "workspace:*",
+        "@open-composer/agent-sessions": "workspace:*",
         "@open-composer/analytics": "workspace:*",
         "@open-composer/cache": "workspace:*",
         "@open-composer/config": "workspace:*",
@@ -174,44 +212,6 @@
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "tailwindcss": "^4.1.14",
-        "typescript": "^5.9.3",
-      },
-    },
-    "packages/agent-registry": {
-      "name": "@open-composer/agent-registry",
-      "version": "0.1.0",
-      "dependencies": {
-        "@langchain/core": "^0.3.78",
-        "@langchain/langgraph": "^0.4.9",
-        "chalk": "^5.6.2",
-        "inquirer": "^12.9.6",
-        "sqlite3": "^5.1.7",
-        "uuid": "^13.0.0",
-        "zod": "^4.1.11",
-      },
-      "devDependencies": {
-        "@types/bun": "^1.2.23",
-        "@types/node": "^24.6.2",
-        "@types/uuid": "^11.0.0",
-        "typescript": "^5.9.3",
-      },
-    },
-    "packages/ai-sessions": {
-      "name": "@open-composer/ai-sessions",
-      "version": "0.1.0",
-      "dependencies": {
-        "@ai-sdk/openai": "^2.0.42",
-        "@ai-sdk/provider": "^2.0.0",
-        "@open-composer/agent-claude-code": "workspace:*",
-        "@open-composer/agent-codex": "workspace:*",
-        "@open-composer/agent-cursor": "workspace:*",
-        "@open-composer/agent-opencode": "workspace:*",
-        "ai": "^5.0.60",
-        "effect": "^3.18.2",
-      },
-      "devDependencies": {
-        "@types/bun": "^1.2.23",
-        "@types/node": "^24.6.2",
         "typescript": "^5.9.3",
       },
     },
@@ -755,13 +755,13 @@
 
     "@open-composer/agent-opencode": ["@open-composer/agent-opencode@workspace:agents/opencode"],
 
-    "@open-composer/agent-registry": ["@open-composer/agent-registry@workspace:packages/agent-registry"],
+    "@open-composer/agent-registry": ["@open-composer/agent-registry@workspace:agents/registry"],
 
     "@open-composer/agent-router": ["@open-composer/agent-router@workspace:agents/router"],
 
-    "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
+    "@open-composer/agent-sessions": ["@open-composer/agent-sessions@workspace:agents/sessions"],
 
-    "@open-composer/ai-sessions": ["@open-composer/ai-sessions@workspace:packages/ai-sessions"],
+    "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
 
     "@open-composer/analytics": ["@open-composer/analytics@workspace:packages/analytics"],
 
