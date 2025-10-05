@@ -74,7 +74,7 @@ class OpenComposer < Formula
                   "#{os}-#{arch}"
                 end
 
-    binary_dir = "open-composer-cli-#{os_suffix}"
+    binary_dir = "@open-composer/cli-#{os_suffix}"
 
     bin.install "#{binary_dir}/bin/open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
