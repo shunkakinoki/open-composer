@@ -1,0 +1,10 @@
+name = "feedback-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+account_id = "121992ad6957cb0370fbda3384957564"
+
+[observability.logs]
+enabled = true

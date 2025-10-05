@@ -29,6 +29,7 @@ import { buildAISessionsCommand } from "./ai-sessions-command.js";
 import { buildAISessionsViewerCommand } from "./ai-sessions-viewer-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
+import { buildFeedbackCommand } from "./feedback.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildOrchestratorCommand } from "./orchestrator-command.js";
@@ -73,6 +74,7 @@ const ALL_COMMAND_BUILDERS = [
   buildAISessionsViewerCommand,
   buildCacheCommand,
   buildConfigCommand,
+  buildFeedbackCommand,
   buildGHPRCommand,
   buildGitWorktreeCommand,
   buildOrchestratorCommand,

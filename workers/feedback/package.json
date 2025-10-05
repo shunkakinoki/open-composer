@@ -1,0 +1,41 @@
+{
+  "name": "@open-composer/feedback-worker",
+  "version": "0.1.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "src/**/*",
+    "tests/**/*",
+    "wrangler.toml",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "test": "bun vitest --run",
+    "test:watch": "bun vitest --watch",
+    "type-check": "tsc --build"
+  },
+  "dependencies": {
+    "@linear/sdk": "^45.0.0",
+    "@open-composer/feedback": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.9.10",
+    "@cloudflare/workers-types": "^4.20251004.0",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.42.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
