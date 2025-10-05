@@ -1,12 +1,12 @@
 {
   "extends": ["//"],
   "tasks": {
-    "test": {
-      "dependsOn": ["build", "^build"]
-    },
     "prepublishOnly": {
       "dependsOn": ["^build"],
       "env": ["PUBLISH_PACKAGES", "RELEASE_ZIP_FILES", "GITHUB_SHA"]
+    },
+    "test": {
+      "dependsOn": ["^build", "build"]
     }
   }
 }
