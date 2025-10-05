@@ -1,6 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "CI",
@@ -13,27 +15,50 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "build/**"
+      ]
+    },
+    "build:generate": {
+      "inputs": [
+        "package.json"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"],
-      "inputs": ["tests/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "tests/**"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "type-check": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": []
     },
     "clean": {
       "cache": false
     },
     "prepublishOnly": {
-      "dependsOn": ["^build", "^prepublishOnly"]
+      "dependsOn": [
+        "^build",
+        "^prepublishOnly"
+      ]
     },
     "__all__": {
       "dependsOn": [
@@ -45,10 +70,17 @@
       ]
     },
     "//#__lint__": {
-      "dependsOn": ["//#__check__", "//#__fix__"]
+      "dependsOn": [
+        "//#__check__"
+      ]
     },
     "//#__format__": {
-      "dependsOn": ["//#__fix__"]
+      "dependsOn": [
+        "//#biome:check:fix",
+        "//#biome:format:fix",
+        "//#npm-package-json:fix",
+        "//#sort-package-json:fix"
+      ]
     },
     "//#__check__": {
       "dependsOn": [
@@ -56,7 +88,8 @@
         "//#biome:check:check",
         "//#biome:format:check",
         "//#npm-package-json:check",
-        "//#sort-package-json:check"
+        "//#sort-package-json:check",
+        "//#knip:check"
       ]
     },
     "//#__fix__": {
@@ -64,7 +97,14 @@
         "//#biome:check:fix",
         "//#biome:format:fix",
         "//#npm-package-json:fix",
-        "//#sort-package-json:fix"
+        "//#sort-package-json:fix",
+        "//#knip:fix"
+      ]
+    },
+    "//#__upgrade__": {
+      "dependsOn": [
+        "//#bun:upgrade",
+        "//#ncu:upgrade"
       ]
     },
     "//#biome:check:check": {
@@ -88,6 +128,18 @@
         "//#npm-package-json:fix",
         "//#sort-package-json:fix"
       ]
+    },
+    "//#bun:upgrade": {
+      "cache": false
+    },
+    "//#knip:check": {
+      "cache": false
+    },
+    "//#knip:fix": {
+      "cache": false
+    },
+    "//#ncu:upgrade": {
+      "cache": false
     },
     "//#npm-package-json:check": {
       "cache": false

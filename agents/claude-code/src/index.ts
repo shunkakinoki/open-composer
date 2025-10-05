@@ -109,3 +109,5 @@ const checkClaudeCode: AgentChecker = {
 };
 
 export default checkClaudeCode;
+export * from "./sessions.js";
+export * from "./parser.js";

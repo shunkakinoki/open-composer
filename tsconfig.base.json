@@ -34,7 +34,6 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "ES2022",
-    "types": [],
     "plugins": [
       {
         "name": "@effect/language-service"

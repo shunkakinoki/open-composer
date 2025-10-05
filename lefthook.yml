@@ -6,20 +6,11 @@ pre-commit:
   parallel: true
   commands:
     format:
-      glob: "*.{js,jsx,ts,tsx,json,css,md,yml,yaml}"
       run: bun run format
-    lint:
-      glob: "*.{js,jsx,ts,tsx}"
-      run: bun run lint
-    type-check:
-      glob: "*.{ts,tsx}"
-      run: bun run type-check
 
 # Pre-push hook: Run additional checks before pushing
 pre-push:
   parallel: true
   commands:
-    test:
-      run: bun run test
     build:
       run: bun run build

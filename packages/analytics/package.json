@@ -1,0 +1,31 @@
+{
+  "name": "@open-composer/analytics",
+  "version": "0.1.0",
+  "description": "Analytics and performance tracking for OpenComposer agents",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "test": "bun test",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-composer/agent-registry": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.23",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

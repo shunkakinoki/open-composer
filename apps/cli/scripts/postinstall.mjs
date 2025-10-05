@@ -113,13 +113,8 @@ function installBinary() {
     }
     console.log(`Installed binary: ${binaryPath} -> ${destinationBinary}`);
 
-    // On Windows, ensure the .cmd wrapper exists and points to the .exe
-    if (isWindows) {
-      const cmdScriptPath = path.join(binDir, "open-composer.cmd");
-      const cmdContent = `@ECHO OFF\r\n"%~dp0\\open-composer.exe" %*\r\n`;
-      fs.writeFileSync(cmdScriptPath, cmdContent, { encoding: "utf8" });
-      console.log("Updated open-composer.cmd wrapper for Windows");
-    }
+    // On Windows, the .cmd wrapper is already in place from the package
+    // No need to update it as it handles finding the binary itself
   } else {
     console.error(`No binary found at ${binaryPath}`);
     process.exit(1);

@@ -1,5 +1,52 @@
 # open-composer
 
+## 0.8.16
+
+### Patch Changes
+
+- [#289](https://github.com/shunkakinoki/open-composer/pull/289) [`3f636ae`](https://github.com/shunkakinoki/open-composer/commit/3f636ae5e025a044ac835458b2cab54dbe7e8e47) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Lean telemetry service
+
+## 0.8.15
+
+### Patch Changes
+
+- [#285](https://github.com/shunkakinoki/open-composer/pull/285) [`9cfbc39`](https://github.com/shunkakinoki/open-composer/commit/9cfbc395a93c5f83dca857a2ce5f4cb423833458) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Bump release
+
+## 0.8.14
+
+### Patch Changes
+
+- [#280](https://github.com/shunkakinoki/open-composer/pull/280) [`3284baf`](https://github.com/shunkakinoki/open-composer/commit/3284bafab882235eab7a0bab3771dc67b653ffc7) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add upgrade command
+
+## 0.8.13
+
+### Patch Changes
+
+- [#276](https://github.com/shunkakinoki/open-composer/pull/276) [`ca1392b`](https://github.com/shunkakinoki/open-composer/commit/ca1392bada6cb3aff2e0676f29562884310487f6) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add bump release
+
+## 0.8.12
+
+### Patch Changes
+
+- [#268](https://github.com/shunkakinoki/open-composer/pull/268) [`477692b`](https://github.com/shunkakinoki/open-composer/commit/477692bfeecd757343b36a4f67242adc22337c78) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Bump release
+
+## 0.8.11
+
+### Patch Changes
+
+- [#266](https://github.com/shunkakinoki/open-composer/pull/266) [`16fa97f`](https://github.com/shunkakinoki/open-composer/commit/16fa97f8a5b38251b09df738d3b9a0b7802eeb8a) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Bump release
+
+## 0.8.10
+
+### Patch Changes
+
+- [#261](https://github.com/shunkakinoki/open-composer/pull/261) [`ecd317b`](https://github.com/shunkakinoki/open-composer/commit/ecd317beae2308354aa21ea6fabe33d91f7d71f3) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add Windows support to install.sh script testing and fix Homebrew tap generation
+
+  - Add windows-latest to install-e2e-script job matrix in CI workflow
+  - Fix Homebrew configuration to properly generate formulas for Linux and macOS platforms
+  - Remove inconsistent url_template which caused 404 errors
+  - Ensure correct binary naming scheme across all supported platforms
+
 ## 0.8.9
 
 ### Patch Changes

@@ -42,7 +42,7 @@ export const buildRunCommand = (): CommandBuilder<"run"> => ({
 // -----------------------------------------------------------------------------
 
 // Function to get available agents from agent router
-export const getAvailableAgentNames: Effect.Effect<
+const getAvailableAgentNamesInternal: Effect.Effect<
   readonly string[],
   never,
   CacheServiceInterface
@@ -129,7 +129,7 @@ function buildRunCommandInternal() {
           yield* executeRun(runConfig);
         } else {
           // Interactive mode - prompt for agent selection
-          const availableAgentNames = yield* getAvailableAgentNames;
+          const availableAgentNames = yield* getAvailableAgentNamesInternal;
           const runConfig = yield* Effect.tryPromise({
             try: async () => {
               return new Promise<RunConfig>((resolve, reject) => {
@@ -382,7 +382,7 @@ function showRunOutput(
     );
 
     // Get available agents and show agents not running
-    const availableAgents = yield* getAvailableAgentNames;
+    const availableAgents = yield* getAvailableAgentNamesInternal;
     const notRunningAgents = availableAgents.filter(
       (agent: string) => agent !== result.agent,
     );

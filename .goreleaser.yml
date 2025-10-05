@@ -1,0 +1,70 @@
+# GoReleaser configuration for Homebrew tap
+# https://goreleaser.com/customization/homebrew/
+
+version: 2
+
+# Since binaries are already built by Bun in the release workflow,
+# we use GoReleaser only for Homebrew tap management
+builds:
+  - skip: true
+
+# Skip archive creation since binaries are pre-built
+archives:
+  - id: skip-archives
+    format: binary
+
+# Configure Homebrew tap
+brews:
+  - name: open-composer
+
+    # Target repository for the tap
+    repository:
+      owner: shunkakinoki
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+
+    # Download strategy - fetch pre-built binaries from GitHub releases
+    download_strategy: CurlDownloadStrategy
+
+    # Install script to extract and install the binary
+    install: |
+      # Get current platform and architecture
+      os = OS.mac? ? "darwin" : "linux"
+      arch = Hardware::CPU.arch.to_s
+
+      # Handle architecture naming differences
+      arch = case arch
+             when "x86_64" then "x64"
+             when "arm64" then "arm64"
+             else arch
+             end
+
+      # Handle OS naming differences and ARM special case
+      os_suffix = if os == "linux" && arch == "arm64"
+                   "linux-aarch64-musl"
+                 else
+                   "#{os}-#{arch}"
+                 end
+
+      binary_name = "open-composer-cli-#{os_suffix}"
+
+      # Download and extract the binary
+      system "curl", "-fsSL", "-o", "#{binary_name}.zip",
+        "https://github.com/shunkakinoki/open-composer/releases/download/{{ .Tag }}/#{binary_name}.zip"
+      system "unzip", "-q", "#{binary_name}.zip"
+
+      # Install the binary
+      bin.install "#{binary_name}/bin/open-composer"
+
+      # Create symlinks for alternate names
+      bin.install_symlink bin/"open-composer" => "oc"
+      bin.install_symlink bin/"open-composer" => "opencomposer"
+
+    # Test to verify installation
+    test: |
+      system "#{bin}/open-composer", "--version"
+
+    # Metadata
+    homepage: "https://github.com/shunkakinoki/open-composer"
+    description: "Open Composer CLI - AI-powered development workflow tool"
+    license: "MIT"

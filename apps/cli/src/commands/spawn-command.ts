@@ -36,7 +36,7 @@ export const buildSpawnCommand = (): CommandBuilder<"spawn"> => ({
 // -----------------------------------------------------------------------------
 
 // Function to get available agents from agent router
-export const getAvailableAgentNames: Effect.Effect<
+const getAvailableAgentNames: Effect.Effect<
   readonly string[],
   never,
   CacheServiceInterface

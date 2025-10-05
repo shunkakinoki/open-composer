@@ -297,8 +297,8 @@ const upgradeFromGitHub = (
       });
 
       // Move binary to target location (overwriting existing)
-      // The binary is extracted to a nested path in the zip: @open-composer/cli-${platformStr}/bin/opencomposer[.exe]
-      const packageDir = `@open-composer/cli-${platformStr}`;
+      // The binary is extracted to a nested path in the zip: open-composer/cli-${platformStr}/bin/opencomposer[.exe]
+      const packageDir = `open-composer/cli-${platformStr}`;
       const extractedBinaryName = platformStr.startsWith("windows")
         ? "opencomposer.exe"
         : "opencomposer";

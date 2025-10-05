@@ -180,6 +180,11 @@ install_from_github() {
     mv "$extracted_binary" "$target_binary" || return 1
     chmod +x "$target_binary" || return 1
     success "Installed ${PACKAGE_NAME} to ${target_binary}"
+
+    # Create aliases
+    ln -sf "$target_binary" "${BIN_DIR}/oc" || warn "Failed to create 'oc' alias"
+    ln -sf "$target_binary" "${BIN_DIR}/opencomposer" || warn "Failed to create 'opencomposer' alias"
+    info "Created aliases: oc, opencomposer"
   else
     return 1
   fi
@@ -221,14 +226,27 @@ update_path() {
 verify_installation() {
   info "Verifying installation..."
 
-  if command_exists open-composer; then
+  # Check if binary exists at expected location
+  if [ -f "${BIN_DIR}/open-composer" ]; then
     local version
-    version=$(open-composer --version 2>&1 | head -n 1 || echo "unknown")
-    success "open-composer is installed and available in PATH"
+    version=$("${BIN_DIR}/open-composer" --version 2>&1 | head -n 1 || echo "unknown")
+    success "open-composer is installed at ${BIN_DIR}/open-composer"
     info "Version: $version"
+
+    # Check if aliases were created
+    if [ -L "${BIN_DIR}/oc" ] && [ -L "${BIN_DIR}/opencomposer" ]; then
+      success "Aliases 'oc' and 'opencomposer' were created"
+    fi
+
+    # Check if in PATH (informational only)
+    if command_exists open-composer; then
+      success "open-composer is available in current PATH"
+    else
+      warn "open-composer is not yet in your current shell PATH"
+      info "You may need to restart your shell or run: export PATH=\"\$PATH:${BIN_DIR}\""
+    fi
   else
-    warn "open-composer command not found in PATH"
-    info "You may need to restart your shell or add $BIN_DIR to your PATH"
+    error "Installation verification failed: binary not found at ${BIN_DIR}/open-composer"
   fi
 }
 
@@ -251,22 +269,14 @@ main() {
   version=$(get_latest_version)
   info "Latest version: $version"
 
-  # Prioritize GitHub releases installation
+  # Install from GitHub releases
   info "Installing from GitHub releases..."
-  if install_from_github "$version" "$platform"; then
-    # Update PATH for GitHub releases installation
-    update_path
-  else
-    warn "GitHub releases installation failed, falling back to npm"
-
-    # Fallback to npm installation
-    if check_npm; then
-      info "Installing via npm..."
-      install_via_npm
-    else
-      error "Both GitHub releases and npm installation failed. Please check your internet connection and try again."
-    fi
+  if ! install_from_github "$version" "$platform"; then
+    error "GitHub releases installation failed. Please check your internet connection and try again."
   fi
+
+  # Update PATH for GitHub releases installation
+  update_path
 
   echo ""
   verify_installation

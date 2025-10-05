@@ -1,0 +1,42 @@
+{
+  "name": "@open-composer/agent-sessions",
+  "version": "0.1.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "dev": "bun run ./src/index.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:update-snapshot": "bun test --updateSnapshot",
+    "test:watch": "bun test --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.42",
+    "@open-composer/agent-claude-code": "workspace:*",
+    "@open-composer/agent-codex": "workspace:*",
+    "@open-composer/agent-cursor": "workspace:*",
+    "@open-composer/agent-opencode": "workspace:*",
+    "ai": "^5.0.60",
+    "effect": "^3.18.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

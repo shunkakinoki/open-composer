@@ -187,8 +187,12 @@ export const promptForTelemetryConsent = () =>
       process.env.CONTINUOUS_INTEGRATION ||
       process.env.GITHUB_ACTIONS;
 
-    if (isTestMode || isCI) {
-      // Non-interactive environment, default to false
+    // Check if stdin is a TTY (interactive terminal)
+    // When running via `curl | bash` or in non-interactive contexts, this will be false
+    const isInteractive = process.stdin.isTTY === true;
+
+    if (isTestMode || isCI || !isInteractive) {
+      // Non-interactive environment, default to false without prompting
       yield* _(configService.setTelemetryConsent(false));
       return false;
     }
@@ -203,10 +207,30 @@ export const promptForTelemetryConsent = () =>
           );
 
           return new Promise<boolean>((resolve, reject) => {
+            let resolved = false;
+
+            // Failsafe timeout: if the prompt doesn't respond within 30 seconds, auto-resolve to false
+            const timeoutId = setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                console.warn(
+                  "Telemetry consent prompt timed out, defaulting to disabled",
+                );
+                configService
+                  .setTelemetryConsent(false)
+                  .pipe(Effect.runPromise)
+                  .then(() => resolve(false))
+                  .catch(() => resolve(false));
+              }
+            }, 30000);
+
             try {
               const { waitUntilExit } = render(
                 React.createElement(TelemetryConsentPrompt, {
                   onConsent: (consent: boolean) => {
+                    if (resolved) return;
+                    resolved = true;
+                    clearTimeout(timeoutId);
                     // Ensure consent is recorded before resolving
                     configService
                       .setTelemetryConsent(consent)
@@ -220,6 +244,9 @@ export const promptForTelemetryConsent = () =>
                       });
                   },
                   onCancel: () => {
+                    if (resolved) return;
+                    resolved = true;
+                    clearTimeout(timeoutId);
                     // Ensure consent is recorded as false when cancelled
                     configService
                       .setTelemetryConsent(false)
@@ -237,6 +264,9 @@ export const promptForTelemetryConsent = () =>
 
               waitUntilExit()
                 .then(() => {
+                  if (resolved) return;
+                  resolved = true;
+                  clearTimeout(timeoutId);
                   // If we reach here without resolving, ensure consent is recorded as false
                   configService
                     .setTelemetryConsent(false)
@@ -249,6 +279,9 @@ export const promptForTelemetryConsent = () =>
                     });
                 })
                 .catch((error) => {
+                  if (resolved) return;
+                  resolved = true;
+                  clearTimeout(timeoutId);
                   console.error("waitUntilExit error:", error);
                   configService
                     .setTelemetryConsent(false)
@@ -261,6 +294,9 @@ export const promptForTelemetryConsent = () =>
                     });
                 });
             } catch (error) {
+              if (resolved) return;
+              resolved = true;
+              clearTimeout(timeoutId);
               reject(error);
             }
           });

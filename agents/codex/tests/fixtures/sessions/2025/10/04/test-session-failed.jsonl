@@ -1,0 +1,4 @@
+{"timestamp":"2025-10-04T11:00:00.000Z","type":"session_meta","payload":{"id":"test-session-failed-456","timestamp":"2025-10-04T11:00:00.000Z","cwd":"/Users/test/another-project","originator":"codex_cli","cli_version":"0.42.0","instructions":"Fix the failing tests","git":{"commit_hash":"def789ghi012","branch":"main","repository_url":"https://github.com/test/another-project.git"}}}
+{"timestamp":"2025-10-04T11:00:01.000Z","type":"event_msg","payload":{"type":"user_message","message":"Fix the failing integration tests","kind":"plain"}}
+{"timestamp":"2025-10-04T11:00:02.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"text","text":"I'll analyze the failing tests."}]}}
+{"timestamp":"2025-10-04T11:00:03.000Z","type":"error","payload":{"message":"Failed to read test file","code":"ENOENT"}}

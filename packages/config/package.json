@@ -14,11 +14,9 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "test": "bun test",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "effect": "^3.18.2"

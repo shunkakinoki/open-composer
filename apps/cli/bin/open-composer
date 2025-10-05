@@ -1,9 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env sh
 set -e
 
 # -----------------------------------------------------------------------------
 # Determine binary path
 # -----------------------------------------------------------------------------
+
+# Get the script's directory
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 
 # Use OPENCOMPOSER_BIN_PATH if set, otherwise determine binary path
 if [ -n "$OPENCOMPOSER_BIN_PATH" ]; then
@@ -35,16 +38,16 @@ else
   [ "$platform" = "win32" ] && binary="open-composer.exe"
 
   # ---------------------------------------------------------------------------
-  # Assume binary is in ./apps/cli/node_modules/@open-composer/cli-<platform>-<arch>/bin/
+  # Look for binary in multiple locations
   # ---------------------------------------------------------------------------
 
-  resolved="$(dirname "$0")/../node_modules/@open-composer/cli-${platform}-${arch}/bin/${binary}"
-
-  # ---------------------------------------------------------------------------
-  # Check if the binary exists
-  # ---------------------------------------------------------------------------
-
-  if [ ! -f "$resolved" ]; then
+  # First check if binary exists in the same directory (postinstall places it here)
+  if [ -f "$script_dir/$binary" ]; then
+    resolved="$script_dir/$binary"
+  # Then check in node_modules (development mode)
+  elif [ -f "$script_dir/../node_modules/@open-composer/cli-${platform}-${arch}/bin/${binary}" ]; then
+    resolved="$script_dir/../node_modules/@open-composer/cli-${platform}-${arch}/bin/${binary}"
+  else
     echo "Error: Binary not found for @open-composer/cli-${platform}-${arch}. Please ensure the correct version is installed." >&2
     exit 1
   fi

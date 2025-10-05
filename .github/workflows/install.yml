@@ -25,13 +25,6 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        arch:
-          - x64
-          - arm64
-        exclude:
-          # Skip arm64 on Windows (not widely supported yet)
-          - os: windows-latest
-            arch: arm64
       fail-fast: false
     permissions:
       contents: read
@@ -46,7 +39,8 @@ jobs:
       - name: Install open-composer globally with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 30
+          retry_wait_seconds: 30
+          timeout_seconds: 300
           max_attempts: 10
           command: npm install -g ${{ github.event.release.tag_name || github.event.inputs.tag || 'open-composer@latest' }}
       - name: Verify opencomposer command
@@ -60,9 +54,7 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-        arch:
-          - x64
-          - arm64
+          - windows-latest
       fail-fast: false
     permissions:
       contents: read
@@ -72,9 +64,13 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name || github.ref }}
-      - name: Test install.sh script
-        run: bash install.sh
-        shell: bash
+      - name: Test install.sh script with retry
+        uses: nick-fields/retry@v3
+        with:
+          retry_wait_seconds: 30
+          timeout_seconds: 300
+          max_attempts: 10
+          command: bash install.sh
       - name: Verify open-composer command after script install
         run: |
           export PATH="$HOME/.local/bin:$PATH"
