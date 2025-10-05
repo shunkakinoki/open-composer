@@ -10,6 +10,8 @@
     "**/scripts/preinstall.mjs",
     "**/*.generated.*",
     "**/tests/setup.ts",
+    "**/tests/types.d.ts",
+    "**/tests/create-fixtures.ts",
     "bun-test-setup.ts"
   ],
   "ignoreUnresolved": ["bun-types"],
