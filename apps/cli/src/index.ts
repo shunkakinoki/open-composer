@@ -69,18 +69,49 @@ if (import.meta.main) {
   const isConfigClear =
     process.argv.includes("config") && process.argv.includes("clear");
 
+  // Check if this is a help or version command (skip heavy initialization)
+  // These commands should be fast and not require database or telemetry setup
+  const isInfoCommand =
+    process.argv.includes("--help") ||
+    process.argv.includes("-h") ||
+    process.argv.includes("--version") ||
+    process.argv.includes("-v") ||
+    process.argv.includes("help");
+
+  // Failsafe: Global timeout to prevent hanging indefinitely
+  // This is a last resort if Effect timeouts don't trigger
+  if (!isInfoCommand) {
+    const globalTimeout = setTimeout(() => {
+      console.error(
+        "\n⚠️  CLI initialization timed out after 60 seconds.",
+        "\nThis may indicate a database lock, slow filesystem, or system issue.",
+        "\nPlease try again or report this issue at:",
+        "\nhttps://github.com/shunkakinoki/open-composer/issues\n",
+      );
+      process.exit(1);
+    }, 60000); // 60 second hard limit
+
+    // Clear timeout when process exits normally
+    process.on("exit", () => clearTimeout(globalTimeout));
+  }
+
   const program = Effect.provide(
-    initializeDatabase.pipe(
-      Effect.flatMap(() =>
-        cli(process.argv).pipe(
-          // Prompt for telemetry consent on first run (skip for config clear)
-          Effect.tap(() =>
-            isConfigClear ? Effect.void : promptForTelemetryConsent(),
+    isInfoCommand
+      ? // For info commands, skip database init and telemetry to ensure fast response
+        cli(process.argv).pipe(Effect.flatMap(() => Effect.void))
+      : // For regular commands, initialize database and check telemetry consent
+        // Both initializeDatabase and promptForTelemetryConsent have built-in timeouts and failsafes
+        initializeDatabase.pipe(
+          Effect.flatMap(() =>
+            cli(process.argv).pipe(
+              // Prompt for telemetry consent on first run (skip for config clear)
+              Effect.tap(() =>
+                isConfigClear ? Effect.void : promptForTelemetryConsent(),
+              ),
+              Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
+            ),
           ),
-          Effect.flatMap(() => Effect.void), // Convert the result to void for the CLI
         ),
-      ),
-    ),
     CliLive,
   );
 

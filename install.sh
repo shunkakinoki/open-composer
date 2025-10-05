@@ -226,21 +226,27 @@ update_path() {
 verify_installation() {
   info "Verifying installation..."
 
-  if command_exists open-composer; then
+  # Check if binary exists at expected location
+  if [ -f "${BIN_DIR}/open-composer" ]; then
     local version
-    version=$(open-composer --version 2>&1 | head -n 1 || echo "unknown")
-    success "open-composer is installed and available in PATH"
+    version=$("${BIN_DIR}/open-composer" --version 2>&1 | head -n 1 || echo "unknown")
+    success "open-composer is installed at ${BIN_DIR}/open-composer"
     info "Version: $version"
 
-    # Verify aliases
-    if command_exists oc && command_exists opencomposer; then
-      success "Aliases 'oc' and 'opencomposer' are available"
+    # Check if aliases were created
+    if [ -L "${BIN_DIR}/oc" ] && [ -L "${BIN_DIR}/opencomposer" ]; then
+      success "Aliases 'oc' and 'opencomposer' were created"
+    fi
+
+    # Check if in PATH (informational only)
+    if command_exists open-composer; then
+      success "open-composer is available in current PATH"
     else
-      warn "Some aliases may not be available in PATH"
+      warn "open-composer is not yet in your current shell PATH"
+      info "You may need to restart your shell or run: export PATH=\"\$PATH:${BIN_DIR}\""
     fi
   else
-    warn "open-composer command not found in PATH"
-    info "You may need to restart your shell or add $BIN_DIR to your PATH"
+    error "Installation verification failed: binary not found at ${BIN_DIR}/open-composer"
   fi
 }
 

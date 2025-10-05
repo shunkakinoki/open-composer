@@ -255,3 +255,191 @@ describe("Config Operations", () => {
     });
   });
 });
+
+describe("Telemetry Prompt Safeguards", () => {
+  beforeEach(async () => {
+    // Create unique test directory for each test
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    mockConfigDir = join(tmpdir(), `open-composer-config-test-${testId}`);
+    mockConfigPath = join(mockConfigDir, "config.json");
+    await mkdir(mockConfigDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    // Clean up test directory and restore environment
+    try {
+      await rm(mockConfigDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+  });
+
+  test.serial("promptForTelemetryConsent detects non-TTY environment and completes quickly", async () => {
+    // Import the actual service
+    const { promptForTelemetryConsent, ConfigLive } = await import(
+      "../../src/services/config-service.js"
+    );
+    const { Effect } = await import("effect");
+
+    // Override config path for this test - start with clean config (no existing consent)
+    process.env.OPEN_COMPOSER_CONFIG_FILE = mockConfigPath;
+
+    // Write empty config to ensure no existing consent
+    await writeFile(
+      mockConfigPath,
+      JSON.stringify({
+        version: "1.0.0",
+        createdAt: "2024-01-01T00:00:00.000Z",
+        updatedAt: "2024-01-01T00:00:00.000Z",
+      }),
+      "utf-8",
+    );
+
+    // Mock stdin as non-TTY
+    const originalIsTTY = process.stdin.isTTY;
+    Object.defineProperty(process.stdin, "isTTY", {
+      value: false,
+      configurable: true,
+    });
+
+    try {
+      const startTime = Date.now();
+
+      // This should return immediately without prompting
+      const result = await Effect.runPromise(
+        promptForTelemetryConsent().pipe(Effect.provide(ConfigLive)),
+      );
+
+      const duration = Date.now() - startTime;
+
+      // The key assertion: Should complete instantly (< 1 second) without hanging
+      // This proves the TTY detection works and prevents hanging
+      expect(duration).toBeLessThan(1000);
+
+      // Result should be boolean (either from cache or newly set)
+      expect(typeof result).toBe("boolean");
+    } finally {
+      // Restore stdin
+      Object.defineProperty(process.stdin, "isTTY", {
+        value: originalIsTTY,
+        configurable: true,
+      });
+      delete process.env.OPEN_COMPOSER_CONFIG_FILE;
+    }
+  });
+
+  test.serial("promptForTelemetryConsent detects CI environment and completes quickly", async () => {
+    const { promptForTelemetryConsent, ConfigLive } = await import(
+      "../../src/services/config-service.js"
+    );
+    const { Effect } = await import("effect");
+
+    process.env.OPEN_COMPOSER_CONFIG_FILE = mockConfigPath;
+    process.env.CI = "true";
+
+    // Write empty config to ensure no existing consent
+    await writeFile(
+      mockConfigPath,
+      JSON.stringify({
+        version: "1.0.0",
+        createdAt: "2024-01-01T00:00:00.000Z",
+        updatedAt: "2024-01-01T00:00:00.000Z",
+      }),
+      "utf-8",
+    );
+
+    try {
+      const startTime = Date.now();
+
+      const result = await Effect.runPromise(
+        promptForTelemetryConsent().pipe(Effect.provide(ConfigLive)),
+      );
+
+      const duration = Date.now() - startTime;
+
+      // The key assertion: Should complete instantly without hanging
+      expect(duration).toBeLessThan(1000);
+      expect(typeof result).toBe("boolean");
+    } finally {
+      delete process.env.CI;
+      delete process.env.OPEN_COMPOSER_CONFIG_FILE;
+    }
+  });
+
+  test.serial(
+    "promptForTelemetryConsent skips prompt when already consented",
+    async () => {
+      const { promptForTelemetryConsent, ConfigLive } = await import(
+        "../../src/services/config-service.js"
+      );
+      const { Effect } = await import("effect");
+
+      process.env.OPEN_COMPOSER_CONFIG_FILE = mockConfigPath;
+
+      // Pre-set consent
+      await testSetTelemetryConsent(true);
+
+      try {
+        const startTime = Date.now();
+
+        const result = await Effect.runPromise(
+          promptForTelemetryConsent().pipe(Effect.provide(ConfigLive)),
+        );
+
+        const duration = Date.now() - startTime;
+
+        // Should return immediately without prompting
+        expect(duration).toBeLessThan(1000);
+        expect(result).toBe(true);
+      } finally {
+        delete process.env.OPEN_COMPOSER_CONFIG_FILE;
+      }
+    },
+  );
+
+  test.serial(
+    "promptForTelemetryConsent completes within reasonable time (never hangs)",
+    async () => {
+      const { promptForTelemetryConsent, ConfigLive } = await import(
+        "../../src/services/config-service.js"
+      );
+      const { Effect } = await import("effect");
+
+      process.env.OPEN_COMPOSER_CONFIG_FILE = mockConfigPath;
+      process.env.CI = "true"; // Use CI mode to avoid actual prompt
+
+      // Write empty config to ensure no existing consent
+      await writeFile(
+        mockConfigPath,
+        JSON.stringify({
+          version: "1.0.0",
+          createdAt: "2024-01-01T00:00:00.000Z",
+          updatedAt: "2024-01-01T00:00:00.000Z",
+        }),
+        "utf-8",
+      );
+
+      try {
+        // Add an external timeout to ensure the function completes
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Function hung for > 35 seconds")), 35000),
+        );
+
+        const effectPromise = Effect.runPromise(
+          promptForTelemetryConsent().pipe(Effect.provide(ConfigLive)),
+        );
+
+        // Race between the effect and our test timeout
+        const result = await Promise.race([effectPromise, timeoutPromise]);
+
+        // If we get here, the function completed (didn't hang)
+        // The actual value doesn't matter - what matters is it completed
+        expect(typeof result).toBe("boolean");
+      } finally {
+        delete process.env.CI;
+        delete process.env.OPEN_COMPOSER_CONFIG_FILE;
+      }
+    },
+    { timeout: 40000 },
+  );
+});

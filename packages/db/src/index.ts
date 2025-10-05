@@ -39,49 +39,117 @@ const MIGRATIONS = [
 
 const SqliteClientLive = Layer.unwrapEffect(
   Effect.gen(function* () {
+    // Add timeout to directory creation to prevent hanging on slow/network filesystems
     yield* Effect.tryPromise(() =>
       mkdir(databaseDirectory.value, { recursive: true }),
+    ).pipe(
+      Effect.timeout("5 seconds"),
+      Effect.catchTag("TimeoutException", () =>
+        Effect.fail(
+          new Error(
+            `Failed to create database directory within timeout: ${databaseDirectory.value}`,
+          ),
+        ),
+      ),
     );
+
+    // Return the SQLite layer
+    // Note: The actual database connection happens lazily when queries are executed
+    // The initializeDatabase function has its own timeout to catch connection hangs
     return SqliteClient.layer({
       filename: databaseFile.value,
+      // Create the database if it doesn't exist
+      create: true,
+      // Allow read-write operations
+      readwrite: true,
     });
   }),
 );
 
 /**
  * Initializes the database by running migrations
+ * Wrapped with timeout to prevent hanging
  */
-export const initializeDatabase = Effect.gen(function* () {
+const initializeDatabaseCore = Effect.gen(function* () {
   const sql = yield* SqlClient.SqlClient;
 
   // Create migrations table if it doesn't exist
+  // Wrap in timeout to prevent hanging on database locks
   yield* sql`
     CREATE TABLE IF NOT EXISTS effect_sql_migrations (
       migration_id INTEGER PRIMARY KEY NOT NULL,
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       name VARCHAR(255) NOT NULL
     )
-  `;
+  `.pipe(
+    Effect.timeout("3 seconds"),
+    Effect.catchTag("TimeoutException", () =>
+      Effect.fail(
+        new Error("Timed out creating migrations table - database may be locked"),
+      ),
+    ),
+  );
 
   // Run each migration in order, tracking them
   for (const migration of MIGRATIONS) {
-    // Check if migration already ran
+    // Check if migration already ran - with timeout
     const existing = yield* sql`
       SELECT migration_id FROM effect_sql_migrations WHERE migration_id = ${migration.id}
-    `;
+    `.pipe(
+      Effect.timeout("3 seconds"),
+      Effect.catchTag("TimeoutException", () =>
+        Effect.fail(
+          new Error(
+            `Timed out checking migration ${migration.id} - database may be locked`,
+          ),
+        ),
+      ),
+    );
 
     if (existing.length === 0) {
-      // Run the migration
-      yield* migration.effect;
+      // Run the migration with timeout
+      yield* migration.effect.pipe(
+        Effect.timeout("5 seconds"),
+        Effect.catchTag("TimeoutException", () =>
+          Effect.fail(
+            new Error(
+              `Migration ${migration.id} (${migration.name}) timed out after 5 seconds`,
+            ),
+          ),
+        ),
+      );
 
-      // Record the migration
+      // Record the migration with timeout
       yield* sql`
         INSERT INTO effect_sql_migrations (migration_id, name, created_at)
         VALUES (${migration.id}, ${migration.name}, ${new Date().toISOString()})
-      `;
+      `.pipe(
+        Effect.timeout("3 seconds"),
+        Effect.catchTag("TimeoutException", () =>
+          Effect.fail(
+            new Error(
+              `Timed out recording migration ${migration.id} - database may be locked`,
+            ),
+          ),
+        ),
+      );
     }
   }
 });
+
+/**
+ * Initializes the database with a timeout to prevent hanging
+ */
+export const initializeDatabase = initializeDatabaseCore.pipe(
+  Effect.timeout("10 seconds"),
+  Effect.catchTag("TimeoutException", () =>
+    Effect.fail(
+      new Error(
+        "Database initialization timed out after 10 seconds. This may indicate a database lock or slow filesystem.",
+      ),
+    ),
+  ),
+);
 
 const DrizzleLive = SqliteDrizzle.layer.pipe(Layer.provide(SqliteClientLive));
 
