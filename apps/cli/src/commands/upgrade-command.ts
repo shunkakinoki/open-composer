@@ -143,7 +143,7 @@ function detectPlatform(): string {
       platformStr = "linux";
       break;
     case "darwin":
-      platformStr = "macos";
+      platformStr = "darwin";
       break;
     case "win32":
       platformStr = "windows";
@@ -176,9 +176,9 @@ function getBinaryName(platformStr: string): string {
       return "open-composer-cli-linux-x64";
     case "linux-arm64":
       return "open-composer-cli-linux-aarch64-musl";
-    case "macos-x64":
+    case "darwin-x64":
       return "open-composer-cli-darwin-x64";
-    case "macos-arm64":
+    case "darwin-arm64":
       return "open-composer-cli-darwin-arm64";
     case "windows-x64":
       return "open-composer-cli-win32-x64";
@@ -297,11 +297,11 @@ const upgradeFromGitHub = (
       });
 
       // Move binary to target location (overwriting existing)
-      // The binary is extracted to a nested path in the zip: open-composer/cli-${platformStr}/bin/opencomposer[.exe]
-      const packageDir = `open-composer/cli-${platformStr}`;
+      // The binary is extracted to a nested path in the zip: @open-composer/cli-${platformStr}/bin/open-composer[.exe]
+      const packageDir = `@open-composer/cli-${platformStr}`;
       const extractedBinaryName = platformStr.startsWith("windows")
-        ? "opencomposer.exe"
-        : "opencomposer";
+        ? "open-composer.exe"
+        : "open-composer";
       const extractedBinary = join(
         INSTALL_DIR,
         packageDir,
