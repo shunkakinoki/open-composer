@@ -17,17 +17,4 @@ function readVersion(): string {
   }
 }
 
-// Create a version string class that reads fresh each time
-class VersionString {
-  toString() {
-    return readVersion();
-  }
-  valueOf() {
-    return readVersion();
-  }
-  [Symbol.toPrimitive](hint: string) {
-    return readVersion();
-  }
-}
-
-export const CLI_VERSION = new VersionString() as any as string;
+export const CLI_VERSION = readVersion();
