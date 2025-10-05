@@ -21,8 +21,6 @@ jobs:
         uses: shunkakinoki/actions/.github/actions/setup-bun@6f73775a21da47d08675b032253520edf31a4c9f
       - name: Build
         run: bun run build
-      - name: Type Check
-        run: bun run type-check
   bun-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -37,6 +35,8 @@ jobs:
         run: bun run format
       - name: Lint
         run: bun run lint
+      - name: Type Check
+        run: bun run type-check
   bun-test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
