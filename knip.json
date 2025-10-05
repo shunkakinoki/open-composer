@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": [
+    "**/.conductor/**",
+    "**/.git/**",
+    "**/.*",
+    ".git",
+    "**/.git/hooks/**",
+    "**/scripts/postinstall.mjs",
+    "**/scripts/preinstall.mjs",
+    "**/*.generated.*",
+    "**/tests/setup.ts",
+    "bun-test-setup.ts"
+  ],
+  "ignoreUnresolved": ["bun-types"],
+  "workspaces": {
+    "apps/*": {},
+    "agents/*": {},
+    "packages/*": {},
+    "workers/*": {}
+  }
+}
