@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.14
+
+### Patch Changes
+
+- [#280](https://github.com/shunkakinoki/open-composer/pull/280) [`3284baf`](https://github.com/shunkakinoki/open-composer/commit/3284bafab882235eab7a0bab3771dc67b653ffc7) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add upgrade command
+
 ## 0.8.13
 
 ### Patch Changes
