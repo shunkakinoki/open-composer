@@ -3,19 +3,28 @@
 
 version: 2
 
-# Since binaries are already built by Bun in the release workflow,
-# we use GoReleaser only for Homebrew tap management
+# Disable all build-related features since binaries are pre-built by Bun
 builds:
   - skip: true
 
-# Skip archive creation since binaries are pre-built
 archives:
-  - id: skip-archives
-    format: binary
+  - format: binary
+
+checksum:
+  disable: true
+
+snapshot:
+  version_template: "{{ .Tag }}"
 
 # Configure Homebrew tap
-brews:
+# NOTE: This formula uses a custom install script that downloads pre-built
+# binaries from GitHub releases, so it doesn't depend on GoReleaser's archives
+homebrew:
   - name: open-composer
+
+    # Skip archive dependencies since we use custom install script
+    ids: []
+    skip_upload: auto
 
     # Target repository for the tap
     repository:
