@@ -32,6 +32,7 @@ import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
+import { buildFeedbackCommand } from "./feedback.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildRunCommand } from "./run-command.js";
@@ -86,6 +87,7 @@ const ALL_COMMAND_BUILDERS = [
   buildAgentsCommand,
   buildCacheCommand,
   buildConfigCommand,
+  buildFeedbackCommand,
   buildGHPRCommand,
   buildGitWorktreeCommand,
   buildRunCommand,

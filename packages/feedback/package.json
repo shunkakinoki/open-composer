@@ -1,0 +1,32 @@
+{
+  "name": "@open-composer/feedback",
+  "version": "0.1.0",
+  "repository": "https://github.com/shunkakinoki/open-composer",
+  "license": "MIT",
+  "author": "Shun Kakinoki",
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "./src/index.ts",
+  "files": [
+    "src/**/*",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "dev": "bun run ./src/index.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:update-snapshot": "bun test --updateSnapshot",
+    "test:watch": "bun test --watch",
+    "type-check": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.23",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
