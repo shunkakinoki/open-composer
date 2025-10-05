@@ -41,13 +41,9 @@ jobs:
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
       - name: Update Homebrew Tap
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean --skip=validate
+        if: github.event_name != 'pull_request'
+        run: ./scripts/update-homebrew-formula.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-latest:
     if: github.event_name != 'pull_request'
