@@ -3,8 +3,6 @@ import {
   getAgentRegistry,
   getSquadLauncher,
   LLMTask,
-  PokemonUI,
-  startSquadSelector,
 } from "@open-composer/agent-registry";
 import * as Effect from "effect/Effect";
 import * as Console from "effect/Console";
@@ -14,6 +12,8 @@ import {
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
+import { PokemonUI } from "../utils/pokemon-ui.js";
+import { startSquadSelector } from "../utils/squad-selector.js";
 
 // -----------------------------------------------------------------------------
 // Command Builder

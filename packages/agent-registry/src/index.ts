@@ -50,10 +50,6 @@ export type {
   SquadExecutionResult,
 } from "./squad-launcher.js";
 
-// UI Components
-export { PokemonUI } from "./ui/pokemon-ui.js";
-export { SquadSelector, startSquadSelector } from "./ui/squad-selector.js";
-
 // Default exports for convenience
 export {
   getAgentRegistry as default,

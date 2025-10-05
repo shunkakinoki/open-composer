@@ -109,6 +109,7 @@
         "@open-composer/agent-registry": "workspace:*",
         "@open-composer/agent-router": "workspace:*",
         "@open-composer/ai-sessions": "workspace:*",
+        "@open-composer/analytics": "workspace:*",
         "@open-composer/cache": "workspace:*",
         "@open-composer/config": "workspace:*",
         "@open-composer/db": "workspace:*",
@@ -211,6 +212,17 @@
       "devDependencies": {
         "@types/bun": "^1.2.23",
         "@types/node": "^24.6.2",
+        "typescript": "^5.9.3",
+      },
+    },
+    "packages/analytics": {
+      "name": "@open-composer/analytics",
+      "version": "0.1.0",
+      "dependencies": {
+        "@open-composer/agent-registry": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.23",
         "typescript": "^5.9.3",
       },
     },
@@ -724,6 +736,8 @@
     "@open-composer/agent-types": ["@open-composer/agent-types@workspace:agents/types"],
 
     "@open-composer/ai-sessions": ["@open-composer/ai-sessions@workspace:packages/ai-sessions"],
+
+    "@open-composer/analytics": ["@open-composer/analytics@workspace:packages/analytics"],
 
     "@open-composer/cache": ["@open-composer/cache@workspace:packages/cache"],
 

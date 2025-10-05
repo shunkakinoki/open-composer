@@ -39,6 +39,7 @@
     "@open-composer/agent-registry": "workspace:*",
     "@open-composer/agent-router": "workspace:*",
     "@open-composer/ai-sessions": "workspace:*",
+    "@open-composer/analytics": "workspace:*",
     "@open-composer/cache": "workspace:*",
     "@open-composer/config": "workspace:*",
     "@open-composer/db": "workspace:*",
