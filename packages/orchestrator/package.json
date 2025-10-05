@@ -15,14 +15,11 @@
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=node",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
     "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/provider": "^2.0.0",
     "@langchain/core": "^0.3.78",
     "@langchain/langgraph": "^0.4.9",
     "ai": "^5.0.60",

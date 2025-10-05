@@ -93,7 +93,7 @@ async function runInteractivePlan(): Promise<OrchestratorPlanConfig> {
   });
 }
 
-export function buildPlanCommand() {
+function buildPlanCommand() {
   const objectiveArg = Options.text("objective").pipe(
     Options.optional,
     Options.withDescription("Project objective or goal"),

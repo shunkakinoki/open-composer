@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/provider": "^2.0.0",
     "@open-composer/agent-claude-code": "workspace:*",
     "@open-composer/agent-codex": "workspace:*",
     "@open-composer/agent-cursor": "workspace:*",
