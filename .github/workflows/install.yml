@@ -76,11 +76,37 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           open-composer --version
         shell: bash
+  install-e2e-brew:
+    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    runs-on: macos-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Setup Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - name: Add shunkakinoki/homebrew-tap
+        run: brew tap shunkakinoki/homebrew-tap
+      - name: Install open-composer via brew with retry
+        uses: nick-fields/retry@v3
+        with:
+          retry_wait_seconds: 30
+          timeout_seconds: 300
+          max_attempts: 10
+          command: brew install open-composer
+      - name: Verify open-composer command after brew install
+        run: open-composer --version
   install-check:
     if: always()
     needs:
       - install-e2e-cli
       - install-e2e-script
+      - install-e2e-brew
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -88,4 +114,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: install-e2e-cli,install-e2e-script
+          allowed-skips: install-e2e-cli,install-e2e-script,install-e2e-brew
