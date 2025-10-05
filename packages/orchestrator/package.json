@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/provider": "^2.0.0",
     "@langchain/core": "^0.3.78",
     "@langchain/langgraph": "^0.4.9",
     "ai": "^5.0.60",
