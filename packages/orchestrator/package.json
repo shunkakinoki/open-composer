@@ -14,20 +14,20 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "bun test",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/provider": "^2.0.0",
-    "@langchain/core": "^0.3.0",
-    "@langchain/langgraph": "^0.2.0",
-    "ai": "^4.1.7",
+    "@langchain/core": "^0.3.78",
+    "@langchain/langgraph": "^0.4.9",
+    "ai": "^5.0.60",
     "effect": "^3.18.2",
-    "zod": "^3.22.0"
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",

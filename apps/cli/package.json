@@ -20,7 +20,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "bun run scripts/generate-version.ts && bun build ./src/index.ts --outdir ./dist --target=bun",
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node",
+    "build:generate": "bun run scripts/generate-version.ts",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run scripts/prepublish.ts",
     "publish": "bun run prepublishOnly",
@@ -28,7 +29,7 @@
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@effect/cli": "^0.71.0",
@@ -63,7 +64,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/bun": "^1.2.23",
-    "@types/inquirer": "^9.0.7",
+    "@types/inquirer": "^9.0.9",
     "@types/node": "^24.6.2",
     "@types/react": "^19.2.0",
     "typescript": "^5.9.3"

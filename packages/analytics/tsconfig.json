@@ -5,10 +5,5 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["**/__tests__/**", "**/*.test.ts"],
-  "references": [
-    {
-      "path": "../agent-registry"
-    }
-  ]
+  "exclude": ["**/__tests__/**", "**/*.test.ts"]
 }

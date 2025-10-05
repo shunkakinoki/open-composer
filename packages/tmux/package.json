@@ -20,7 +20,7 @@
     "test:coverage": "bun test --coverage",
     "test:update-snapshot": "bun test --updateSnapshot",
     "test:watch": "bun test --watch",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "effect": "^3.18.2"
