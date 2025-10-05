@@ -71,13 +71,15 @@
     },
     "//#__lint__": {
       "dependsOn": [
-        "//#__check__",
-        "//#__fix__"
+        "//#__check__"
       ]
     },
     "//#__format__": {
       "dependsOn": [
-        "//#__fix__"
+        "//#biome:check:fix",
+        "//#biome:format:fix",
+        "//#npm-package-json:fix",
+        "//#sort-package-json:fix"
       ]
     },
     "//#__check__": {
