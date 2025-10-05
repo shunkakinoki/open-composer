@@ -3,7 +3,7 @@ on:
   release:
     types: [published]
   pull_request:
-    branches: [go-release]
+    branches: [pr-287]
   workflow_dispatch:
     inputs:
       tag:
