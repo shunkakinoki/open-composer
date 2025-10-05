@@ -43,6 +43,7 @@ import { buildSessionCommand } from "./session-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
+import { buildSquadCommand } from "./squad-command.js";
 import { buildStackCommand } from "./stack-command.js";
 import { buildStatusCommand } from "./status-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
@@ -101,6 +102,7 @@ const ALL_COMMAND_BUILDERS = [
   buildSessionsCommand,
   buildSettingsCommand,
   buildSpawnCommand,
+  buildSquadCommand,
   buildStackCommand,
   buildStatusCommand,
   buildTelemetryCommand,

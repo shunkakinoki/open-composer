@@ -36,8 +36,10 @@
     "@effect/platform-bun": "^0.81.1",
     "@effect/printer": "^0.46.0",
     "@effect/printer-ansi": "^0.46.0",
+    "@open-composer/agent-registry": "workspace:*",
     "@open-composer/agent-router": "workspace:*",
     "@open-composer/ai-sessions": "workspace:*",
+    "@open-composer/analytics": "workspace:*",
     "@open-composer/cache": "workspace:*",
     "@open-composer/config": "workspace:*",
     "@open-composer/db": "workspace:*",
@@ -61,6 +63,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/bun": "^1.2.23",
+    "@types/inquirer": "^9.0.7",
     "@types/node": "^24.6.2",
     "@types/react": "^19.2.0",
     "typescript": "^5.9.3"
