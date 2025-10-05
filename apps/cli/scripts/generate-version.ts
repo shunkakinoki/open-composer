@@ -1,11 +1,16 @@
 #!/usr/bin/env bun
 /// <reference types="bun-types" />
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Get the current file directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Read the version from package.json
-const packageJsonPath = join(import.meta.dir, "../package.json");
+const packageJsonPath = join(__dirname, "../package.json");
 const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
 const version = packageJson.version;
 
@@ -15,7 +20,7 @@ export const CLI_VERSION = "${version}";
 `;
 
 // Write the version file
-const outputPath = join(import.meta.dir, "../src/lib/version.generated.ts");
-await Bun.write(outputPath, versionFileContent);
+const outputPath = join(__dirname, "../src/lib/version.generated.ts");
+writeFileSync(outputPath, versionFileContent, "utf8");
 
 console.log(`Generated version.generated.ts with version: ${version}`);
