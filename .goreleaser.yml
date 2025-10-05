@@ -6,28 +6,15 @@ version: 2
 # Disable all build-related features since binaries are pre-built by Bun
 builds:
   - skip: true
+    id: all
+    goos: [darwin, linux]
+    goarch: [amd64, arm64, arm]
 
 archives:
-  - id: dummy-darwin-amd64
-    builds_info:
-      goos: [darwin]
-      goarch: [amd64]
+  - id: all
+    builds: [all]
     format: binary
-  - id: dummy-darwin-arm64
-    builds_info:
-      goos: [darwin]
-      goarch: [arm64]
-    format: binary
-  - id: dummy-linux-amd64
-    builds_info:
-      goos: [linux]
-      goarch: [amd64]
-    format: binary
-  - id: dummy-linux-arm64
-    builds_info:
-      goos: [linux]
-      goarch: [arm64]
-    format: binary
+    files: []
 
 checksum:
   disable: true
@@ -41,8 +28,7 @@ snapshot:
 brews:
   - name: open-composer
 
-    ids: []
-    skip_upload: auto
+    ids: [all]
 
     # Target repository for the tap
     repository:
