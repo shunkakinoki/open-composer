@@ -18,7 +18,7 @@ export interface StackNode {
   readonly parent?: string;
 }
 
-export interface StackSettings {
+interface StackSettings {
   readonly remote: string;
 }
 
@@ -33,12 +33,12 @@ export interface StackStatus {
   readonly children: ReadonlyArray<string>;
 }
 
-export interface CreateBranchInput {
+interface CreateBranchInput {
   readonly name: string;
   readonly base?: string;
 }
 
-export interface ConfigInput {
+interface ConfigInput {
   readonly remote: string;
 }
 

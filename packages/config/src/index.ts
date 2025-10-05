@@ -41,9 +41,10 @@ export interface ConfigServiceInterface {
 }
 
 // Config service tag
-export const ConfigService = Context.GenericTag<ConfigServiceInterface>(
-  "@open-composer/config/ConfigService",
-);
+export class ConfigService extends Context.Tag("@open-composer/config/ConfigService")<
+  ConfigService,
+  ConfigServiceInterface
+>() {}
 
 // Helper functions for common operations
 export const getTelemetryConsent = () =>

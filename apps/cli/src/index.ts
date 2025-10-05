@@ -6,12 +6,12 @@ import {
 } from "@effect/cli/ValidationError";
 import { initializeDatabase } from "@open-composer/db";
 import * as Effect from "effect/Effect";
+import { Layer } from "effect";
 import { CliLive, cli } from "./lib/cli.js";
 import {
-  ConfigLive,
   promptForTelemetryConsent,
 } from "./services/config-service.js";
-import { TelemetryLive, trackException } from "./services/telemetry-service.js";
+import { AppLayer, trackExceptionAsync, trackErrorAsync } from "./services/telemetry-service.js";
 
 // -----------------------------------------------------------------------------
 // Exports
@@ -33,15 +33,9 @@ if (import.meta.main) {
   process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception:", error);
     // Track the exception with telemetry if available (async, non-blocking)
-    trackException(error, "uncaught_exception")
-      .pipe(
-        Effect.provide(TelemetryLive),
-        Effect.provide(ConfigLive),
-        Effect.runPromise,
-      )
-      .catch(() => {
-        // Ignore telemetry errors during error handling
-      });
+    trackExceptionAsync(error, "uncaught_exception");
+    // Also track as a string error for aggregate analytics
+    trackErrorAsync(error.toString(), "uncaught_exception");
     process.exit(1);
   });
 
@@ -49,15 +43,9 @@ if (import.meta.main) {
     const error = reason instanceof Error ? reason : new Error(String(reason));
     console.error("Unhandled Rejection at:", promise, "reason:", error);
     // Track the exception with telemetry if available (async, non-blocking)
-    trackException(error, "unhandled_rejection")
-      .pipe(
-        Effect.provide(TelemetryLive),
-        Effect.provide(ConfigLive),
-        Effect.runPromise,
-      )
-      .catch(() => {
-        // Ignore telemetry errors during error handling
-      });
+    trackExceptionAsync(error, "unhandled_rejection");
+    // Also track as a string error for aggregate analytics
+    trackErrorAsync(error.message, "unhandled_rejection");
     process.exit(1);
   });
 
@@ -112,7 +100,7 @@ if (import.meta.main) {
             ),
           ),
         ),
-    CliLive,
+    Layer.merge(CliLive, AppLayer), // Provide CliLive and merged AppLayer
   );
 
   const runnable = program as Effect.Effect<
@@ -128,6 +116,8 @@ if (import.meta.main) {
       // For other errors, print and exit with code 1
       if (!isValidationError(error)) {
         console.error("CLI Error:", error.message || error);
+        // Track the CLI error with telemetry if available (async, non-blocking)
+        trackErrorAsync(error.message || error.toString(), "program_execution");
       }
       process.exit(1);
     });

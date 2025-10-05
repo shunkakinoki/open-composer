@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "ignore": [
+    "**/.conductor/**",
+    "**/.git/**",
+    "**/.*",
+    ".git",
+    "**/.git/hooks/**",
+    "**/scripts/postinstall.mjs",
+    "**/scripts/preinstall.mjs",
+    "**/*.generated.*",
+    "**/tests/setup.ts",
+    "**/tests/types.d.ts",
+    "**/tests/create-fixtures.ts",
+    "bun-test-setup.ts"
+  ],
+  "ignoreBinaries": ["microfrontends"],
+  "ignoreDependencies": ["tailwindcss"],
+  "ignoreUnresolved": ["bun-types", "@effect/language-service"],
+  "ignoreExportsUsedInFile": {
+    "interface": true
+  }
+}

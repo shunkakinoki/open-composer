@@ -13,7 +13,7 @@ type WhereCondition = {
 /**
  * Creates a mock database instance for testing
  */
-export function createMockDb() {
+function createMockDb() {
   const storage: {
     sessions: Session[];
   } = {

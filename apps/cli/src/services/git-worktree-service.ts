@@ -32,8 +32,6 @@ export interface PruneGitWorktreeOptions {
   readonly expire?: string;
 }
 
-export type GitWorktreeCliServices = GitService;
-
 export class GitWorktreeService {
   constructor(private readonly cwd: string) {}
 
