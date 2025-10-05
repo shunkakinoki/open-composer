@@ -14,13 +14,15 @@ describe("generate-version.ts", () => {
 
   beforeAll(() => {
     // Generate the version file before running tests
-    const result = spawnSync("bun", ["run", "scripts/generate-version.ts"], {
+    const scriptPath = join(__dirname, "../../scripts/generate-version.ts");
+    const result = spawnSync("bun", [scriptPath], {
       cwd: join(__dirname, "../.."),
       encoding: "utf8",
     });
 
     if (result.status !== 0) {
-      throw new Error(`Failed to generate version file: ${result.stderr}`);
+      console.error("Failed to generate version file:", result.stderr || result.error);
+      throw new Error(`Failed to generate version file: ${result.stderr || result.error}`);
     }
   });
 
