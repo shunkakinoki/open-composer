@@ -1,8 +1,7 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 
 // Get the current file directory
 const __filename = fileURLToPath(import.meta.url);
@@ -11,20 +10,6 @@ const __dirname = dirname(__filename);
 describe("generate-version.ts", () => {
   const packageJsonPath = join(__dirname, "../../package.json");
   const outputPath = join(__dirname, "../../src/lib/version.generated.ts");
-
-  beforeAll(() => {
-    // Generate the version file before running tests
-    const scriptPath = join(__dirname, "../../scripts/generate-version.ts");
-    const result = spawnSync("bun", [scriptPath], {
-      cwd: join(__dirname, "../.."),
-      encoding: "utf8",
-    });
-
-    if (result.status !== 0) {
-      console.error("Failed to generate version file:", result.stderr || result.error);
-      throw new Error(`Failed to generate version file: ${result.stderr || result.error}`);
-    }
-  });
 
   test("should have generated version file after build", () => {
     expect(existsSync(outputPath)).toBe(true);
