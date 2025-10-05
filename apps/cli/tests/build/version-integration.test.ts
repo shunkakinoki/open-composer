@@ -166,4 +166,27 @@ describe.skipIf(process.env.CI === "true")("version integration in build process
     const distIndexPath = join(distPath, "index.js");
     expect(existsSync(distIndexPath)).toBe(true);
   });
+
+  test("built binary should return correct version with --version flag", async () => {
+    const testVersion = "4.5.6-beta.1";
+
+    // Update package.json with test version
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    packageJson.version = testVersion;
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), "utf8");
+
+    // Run the build process
+    const buildResult = await execAsync("bun", ["run", "build"], join(__dirname, "../.."));
+    expect(buildResult.code).toBe(0);
+
+    // Execute the built binary with --version
+    const distIndexPath = join(distPath, "index.js");
+    const versionResult = await execAsync("bun", [distIndexPath, "--version"], join(__dirname, "../.."));
+
+    // Check that the version command succeeded
+    expect(versionResult.code).toBe(0);
+
+    // Check that the output contains the correct version
+    expect(versionResult.stdout.trim()).toBe(testVersion);
+  });
 });
