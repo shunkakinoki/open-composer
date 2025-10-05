@@ -18,7 +18,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "bun test",
-    "type-check": "echo 'Type check skipped - uses Bun runtime types'"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@langchain/core": "^0.3.78",

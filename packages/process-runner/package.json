@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "bun-pty": "^0.3.2",

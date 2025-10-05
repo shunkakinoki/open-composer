@@ -18,7 +18,7 @@
     "lint": "biome check .",
     "lint:fix": "tsc",
     "test": "bun test",
-    "type-check": "tsc --build"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "effect": "^3.18.2"
