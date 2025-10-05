@@ -1,5 +1,33 @@
-// Import the generated version directly
-import { CLI_VERSION as generatedVersion } from "./version.generated.js";
+// Read version from package.json directly
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Export the generated version, with fallback to package.json if needed
-export const CLI_VERSION = generatedVersion || "0.0.0";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+function readVersion(): string {
+  try {
+    const packageJsonPath = join(__dirname, "../../package.json");
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    return packageJson.version || "0.0.0";
+  } catch {
+    // Fallback to default version if package.json can't be read
+    return "0.0.0";
+  }
+}
+
+// Create a version string class that reads fresh each time
+class VersionString {
+  toString() {
+    return readVersion();
+  }
+  valueOf() {
+    return readVersion();
+  }
+  [Symbol.toPrimitive](hint: string) {
+    return readVersion();
+  }
+}
+
+export const CLI_VERSION = new VersionString() as any as string;
