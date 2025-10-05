@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.18
+
+### Patch Changes
+
+- [#298](https://github.com/shunkakinoki/open-composer/pull/298) [`0840ac6`](https://github.com/shunkakinoki/open-composer/commit/0840ac645a72cd16d0e6ab35cca071f37f19b9ee) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Fix brew release
+
 ## 0.8.17
 
 ### Patch Changes
