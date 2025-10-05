@@ -18,7 +18,7 @@ snapshot:
 # Configure Homebrew tap
 # NOTE: This formula uses a custom install script that downloads pre-built
 # binaries from GitHub releases, so it doesn't depend on GoReleaser's archives
-homebrew:
+brews:
   - name: open-composer
 
     # Skip archive dependencies since we use custom install script
