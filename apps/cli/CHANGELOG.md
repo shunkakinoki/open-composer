@@ -1,5 +1,12 @@
 # open-composer
 
+## 0.8.17
+
+### Patch Changes
+
+- Updated dependencies [[`0e495fc`](https://github.com/shunkakinoki/open-composer/commit/0e495fc2572e47e0b7566decab848431f4245e05)]:
+  - @open-composer/feedback@0.2.0
+
 ## 0.8.16
 
 ### Patch Changes
