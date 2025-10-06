@@ -7,7 +7,7 @@ describe("Command Execution Strategies", () => {
 
   beforeEach(async () => {
     const serviceEffect = ProcessRunnerService.make({
-      sessionDir: "/tmp/test-process-runner-sessions",
+      runDir: "/tmp/test-process-runner-runs",
       logDir: "/tmp/test-process-runner-logs",
     });
     service = await Effect.runPromise(serviceEffect);
@@ -15,111 +15,111 @@ describe("Command Execution Strategies", () => {
 
   describe("Direct Command Execution", () => {
     it("should execute sleep command directly", async () => {
-      const sessionEffect = service.newSession("test-sleep", "sleep 2");
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runEffect = service.newRun("test-sleep", "sleep 2");
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-sleep");
-      expect(sessionInfo.command).toBe("sleep 2");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
-      expect(sessionInfo.logFile).toContain("test-sleep");
+      expect(runInfo.runName).toBe("test-sleep");
+      expect(runInfo.command).toBe("sleep 2");
+      expect(runInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.logFile).toContain("test-sleep");
 
       // Give it a moment to start and verify it's running
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // For PTY processes, check if the session is still active in our tracking
-      // The bash process may exit but the session should remain until killed
-      const sessions = await Effect.runPromise(service.listSessions());
-      const session = sessions.find((s) => s.sessionName === "test-sleep");
-      expect(session).toBeDefined();
-      expect(session?.sessionName).toBe("test-sleep");
+      // For PTY processes, check if the run is still active in our tracking
+      // The bash process may exit but the run should remain until killed
+      const runs = await Effect.runPromise(service.listRuns());
+      const run = runs.find((s) => s.runName === "test-sleep");
+      expect(run).toBeDefined();
+      expect(run?.runName).toBe("test-sleep");
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-sleep"));
+      await Effect.runPromise(service.killRun("test-sleep"));
     });
 
     it("should execute ping command directly", async () => {
-      const sessionEffect = service.newSession(
+      const runEffect = service.newRun(
         "test-ping",
         "ping -c 3 127.0.0.1",
       );
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-ping");
-      expect(sessionInfo.command).toBe("ping -c 3 127.0.0.1");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.runName).toBe("test-ping");
+      expect(runInfo.command).toBe("ping -c 3 127.0.0.1");
+      expect(runInfo.pid).toBeGreaterThan(0);
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-ping"));
+      await Effect.runPromise(service.killRun("test-ping"));
     });
   });
 
   describe("Shell Command Execution", () => {
     it("should use shell for complex commands", async () => {
-      const sessionEffect = service.newSession(
+      const runEffect = service.newRun(
         "test-complex",
         "echo 'start' && sleep 1 && echo 'end'",
       );
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-complex");
-      expect(sessionInfo.command).toBe("echo 'start' && sleep 1 && echo 'end'");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.runName).toBe("test-complex");
+      expect(runInfo.command).toBe("echo 'start' && sleep 1 && echo 'end'");
+      expect(runInfo.pid).toBeGreaterThan(0);
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-complex"));
+      await Effect.runPromise(service.killRun("test-complex"));
     });
 
     it("should use shell for commands with pipes", async () => {
-      const sessionEffect = service.newSession(
+      const runEffect = service.newRun(
         "test-pipe",
         "echo 'hello' | grep hello",
       );
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-pipe");
-      expect(sessionInfo.command).toBe("echo 'hello' | grep hello");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.runName).toBe("test-pipe");
+      expect(runInfo.command).toBe("echo 'hello' | grep hello");
+      expect(runInfo.pid).toBeGreaterThan(0);
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-pipe"));
+      await Effect.runPromise(service.killRun("test-pipe"));
     });
   });
 
   describe("Edge Cases", () => {
     it("should handle commands with quotes", async () => {
-      const sessionEffect = service.newSession(
+      const runEffect = service.newRun(
         "test-quotes",
         "echo 'hello world'",
       );
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-quotes");
-      expect(sessionInfo.command).toBe("echo 'hello world'");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.runName).toBe("test-quotes");
+      expect(runInfo.command).toBe("echo 'hello world'");
+      expect(runInfo.pid).toBeGreaterThan(0);
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-quotes"));
+      await Effect.runPromise(service.killRun("test-quotes"));
     });
 
     it("should handle long-running processes", async () => {
-      const sessionEffect = service.newSession("test-long", "sleep 5");
-      const sessionInfo = await Effect.runPromise(sessionEffect);
+      const runEffect = service.newRun("test-long", "sleep 5");
+      const runInfo = await Effect.runPromise(runEffect);
 
-      expect(sessionInfo.sessionName).toBe("test-long");
-      expect(sessionInfo.command).toBe("sleep 5");
-      expect(sessionInfo.pid).toBeGreaterThan(0);
+      expect(runInfo.runName).toBe("test-long");
+      expect(runInfo.command).toBe("sleep 5");
+      expect(runInfo.pid).toBeGreaterThan(0);
 
-      // Verify the session is tracked and active
+      // Verify the run is tracked and active
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const sessions = await Effect.runPromise(service.listSessions());
-      const session = sessions.find((s) => s.sessionName === "test-long");
-      expect(session).toBeDefined();
-      expect(session?.sessionName).toBe("test-long");
-      expect(session?.command).toBe("sleep 5");
+      const runs = await Effect.runPromise(service.listRuns());
+      const run = runs.find((s) => s.runName === "test-long");
+      expect(run).toBeDefined();
+      expect(run?.runName).toBe("test-long");
+      expect(run?.command).toBe("sleep 5");
 
       // Clean up
-      await Effect.runPromise(service.killSession("test-long"));
+      await Effect.runPromise(service.killRun("test-long"));
     });
   });
 });

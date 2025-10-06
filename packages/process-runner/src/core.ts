@@ -11,29 +11,29 @@ import {
   type ProcessRunnerError,
   ProcessRunnerError as ProcessRunnerErrorValue,
   type ProcessRunnerOptions,
-  type ProcessSessionInfo,
+  type ProcessRunInfo,
   type PtyProcess,
-  type SessionResources,
+  type RunResources,
 } from "./types.js";
-import { validateCommand, validateSessionName, withTimeout } from "./utils.js";
+import { validateCommand, validateRunName, withTimeout } from "./utils.js";
 
 // Re-export types for convenience
-export type { ProcessRunnerOptions, ProcessSessionInfo };
+export type { ProcessRunnerOptions, ProcessRunInfo };
 export { ProcessRunnerErrorValue as ProcessRunnerError };
 
 export class ProcessRunnerService {
-  private readonly sessionDir: string;
+  private readonly runDir: string;
   private readonly logDir: string;
-  private readonly resources: Map<string, SessionResources> = new Map(); // Track all resources per session
+  private readonly resources: Map<string, RunResources> = new Map(); // Track all resources per run
   private readonly lockFile: string;
 
   constructor(options?: ProcessRunnerOptions) {
-    this.sessionDir =
-      options?.sessionDir ??
-      process.env.OPEN_COMPOSER_SESSION_DIR ??
+    this.runDir =
+      options?.runDir ??
+      process.env.OPEN_COMPOSER_RUN_DIR ??
       path.resolve(os.homedir(), ".open-composer");
     this.logDir = options?.logDir ?? process.env.TMPDIR ?? "/tmp";
-    this.lockFile = path.join(this.sessionDir, "sessions.lock");
+    this.lockFile = path.join(this.runDir, "runs.lock");
   }
 
   private acquireLock(): Effect.Effect<void, ProcessRunnerError> {
@@ -100,11 +100,11 @@ export class ProcessRunnerService {
     return Effect.sync(() => new ProcessRunnerService(options));
   }
 
-  private initializeSessionDir(): Effect.Effect<void, ProcessRunnerError> {
+  private initializeRunDir(): Effect.Effect<void, ProcessRunnerError> {
     return Effect.tryPromise({
       try: async () => {
-        // Create both session and log directories
-        await fs.mkdir(this.sessionDir, { recursive: true });
+        // Create both run and log directories
+        await fs.mkdir(this.runDir, { recursive: true });
         await fs.mkdir(this.logDir, { recursive: true });
       },
       catch: (error) =>
@@ -114,15 +114,15 @@ export class ProcessRunnerService {
     });
   }
 
-  private readSessions(): Effect.Effect<
-    ProcessSessionInfo[],
+  private readRuns(): Effect.Effect<
+    ProcessRunInfo[],
     ProcessRunnerError
   > {
     return Effect.tryPromise({
       try: async () => {
-        const sessionFile = path.join(this.sessionDir, "sessions.json");
+        const runFile = path.join(this.runDir, "runs.json");
         try {
-          const data = await fs.readFile(sessionFile, "utf-8");
+          const data = await fs.readFile(runFile, "utf-8");
 
           // Try to parse JSON
           let parsed: unknown;
@@ -131,29 +131,29 @@ export class ProcessRunnerService {
           } catch (parseError) {
             await Effect.runPromise(
               Console.warn(
-                `Corrupted sessions.json file, attempting recovery: ${parseError}`,
+                `Corrupted runs.json file, attempting recovery: ${parseError}`,
               ),
             );
 
             // Try to recover by finding valid JSON objects
-            const recovered = this.recoverCorruptedSessions(data);
+            const recovered = this.recoverCorruptedRuns(data);
             if (recovered.length > 0) {
               await Effect.runPromise(
                 Console.log(
-                  `Recovered ${recovered.length} sessions from corrupted file`,
+                  `Recovered ${recovered.length} runs from corrupted file`,
                 ),
               );
               // Save the recovered data
-              await this.writeSessions(recovered);
+              await Effect.runPromise(this.writeRuns(recovered));
               return recovered;
             }
 
             // If recovery fails, backup the corrupted file and start fresh
-            const backupFile = `${sessionFile}.corrupted.${Date.now()}`;
+            const backupFile = `${runFile}.corrupted.${Date.now()}`;
             await fs.writeFile(backupFile, data);
             await Effect.runPromise(
               Console.warn(
-                `Backed up corrupted sessions to ${backupFile}, starting with empty sessions`,
+                `Backed up corrupted runs to ${backupFile}, starting with empty runs`,
               ),
             );
             return [];
@@ -161,24 +161,24 @@ export class ProcessRunnerService {
 
           // Validate the parsed data structure
           if (!Array.isArray(parsed)) {
-            throw new Error("Sessions file does not contain an array");
+            throw new Error("Runs file does not contain an array");
           }
 
-          // Validate each session object
-          const validSessions: ProcessSessionInfo[] = [];
-          for (const session of parsed as ProcessSessionInfo[]) {
-            if (this.isValidSessionInfo(session)) {
-              validSessions.push(session);
+          // Validate each run object
+          const validRuns: ProcessRunInfo[] = [];
+          for (const run of parsed as ProcessRunInfo[]) {
+            if (this.isValidRunInfo(run)) {
+              validRuns.push(run);
             } else {
               await Effect.runPromise(
                 Console.warn(
-                  `Skipping invalid session: ${JSON.stringify(session)}`,
+                  `Skipping invalid run: ${JSON.stringify(run)}`,
                 ),
               );
             }
           }
 
-          return this.dedupeSessions(validSessions);
+          return this.dedupeRuns(validRuns);
         } catch (error) {
           if (
             error instanceof Error &&
@@ -193,24 +193,24 @@ export class ProcessRunnerService {
       },
       catch: (error) =>
         ProcessRunnerErrorValue(
-          `Failed to read sessions: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to read runs: ${error instanceof Error ? error.message : String(error)}`,
         ),
     });
   }
 
-  private recoverCorruptedSessions(data: string): ProcessSessionInfo[] {
+  private recoverCorruptedRuns(data: string): ProcessRunInfo[] {
     try {
       // Try to extract valid JSON objects from the corrupted data
-      const sessions: ProcessSessionInfo[] = [];
+      const runs: ProcessRunInfo[] = [];
       const lines = data.split("\n");
 
       for (const line of lines) {
         const trimmed = line.trim();
         if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
           try {
-            const session = JSON.parse(trimmed);
-            if (this.isValidSessionInfo(session)) {
-              sessions.push(session);
+            const run = JSON.parse(trimmed);
+            if (this.isValidRunInfo(run)) {
+              runs.push(run);
             }
           } catch {
             // Skip invalid JSON objects
@@ -218,23 +218,23 @@ export class ProcessRunnerService {
         }
       }
 
-      return sessions;
+      return runs;
     } catch {
       return [];
     }
   }
 
-  private isValidSessionInfo(obj: unknown): obj is ProcessSessionInfo {
+  private isValidRunInfo(obj: unknown): obj is ProcessRunInfo {
     if (!obj || typeof obj !== "object") return false;
 
     const candidate = obj as Record<string, unknown>;
 
     return (
-      typeof candidate.sessionName === "string" &&
+      typeof candidate.runName === "string" &&
       typeof candidate.pid === "number" &&
       typeof candidate.command === "string" &&
       typeof candidate.logFile === "string" &&
-      candidate.sessionName.length > 0 &&
+      candidate.runName.length > 0 &&
       candidate.command.length > 0 &&
       candidate.logFile.length > 0 &&
       Number.isInteger(candidate.pid) &&
@@ -242,28 +242,28 @@ export class ProcessRunnerService {
     );
   }
 
-  private writeSessions(
-    sessions: ProcessSessionInfo[],
+  private writeRuns(
+    runs: ProcessRunInfo[],
   ): Effect.Effect<void, ProcessRunnerError> {
     return Effect.flatMap(this.acquireLock(), () =>
       withTimeout(
         Effect.tryPromise({
           try: async () => {
             // Ensure directory exists
-            await fs.mkdir(this.sessionDir, { recursive: true });
+            await fs.mkdir(this.runDir, { recursive: true });
 
-            const sessionFile = path.join(this.sessionDir, "sessions.json");
+            const runFile = path.join(this.runDir, "runs.json");
 
-            // Write the sessions to file
-            await fs.writeFile(sessionFile, JSON.stringify(sessions, null, 2));
+            // Write the runs to file
+            await fs.writeFile(runFile, JSON.stringify(runs, null, 2));
           },
           catch: (error) =>
             ProcessRunnerErrorValue(
-              `Failed to write session metadata: ${error instanceof Error ? error.message : String(error)}`,
+              `Failed to write run metadata: ${error instanceof Error ? error.message : String(error)}`,
             ),
         }),
         DEFAULT_TIMEOUTS.FILE_OPERATION,
-        "Session file write operation timed out",
+        "Run file write operation timed out",
       ),
     ).pipe(
       Effect.tapError(() => this.releaseLock()), // Release lock on error
@@ -271,33 +271,33 @@ export class ProcessRunnerService {
     );
   }
 
-  private modifySessions(
-    modifier: (sessions: ProcessSessionInfo[]) => ProcessSessionInfo[],
+  private modifyRuns(
+    modifier: (runs: ProcessRunInfo[]) => ProcessRunInfo[],
   ): Effect.Effect<void, ProcessRunnerError> {
     return Effect.flatMap(this.acquireLock(), () =>
-      Effect.flatMap(this.readSessions(), (currentSessions) => {
-        const modifiedSessions = modifier(currentSessions);
+      Effect.flatMap(this.readRuns(), (currentRuns) => {
+        const modifiedRuns = modifier(currentRuns);
         return withTimeout(
           Effect.tryPromise({
             try: async () => {
               // Ensure directory exists
-              await fs.mkdir(this.sessionDir, { recursive: true });
+              await fs.mkdir(this.runDir, { recursive: true });
 
-              const sessionFile = path.join(this.sessionDir, "sessions.json");
+              const runFile = path.join(this.runDir, "runs.json");
 
-              // Write the modified sessions to file
+              // Write the modified runs to file
               await fs.writeFile(
-                sessionFile,
-                JSON.stringify(modifiedSessions, null, 2),
+                runFile,
+                JSON.stringify(modifiedRuns, null, 2),
               );
             },
             catch: (error) =>
               ProcessRunnerErrorValue(
-                `Failed to write session metadata: ${error instanceof Error ? error.message : String(error)}`,
+                `Failed to write run metadata: ${error instanceof Error ? error.message : String(error)}`,
               ),
           }),
           DEFAULT_TIMEOUTS.FILE_OPERATION,
-          "Session file write operation timed out",
+          "Run file write operation timed out",
         );
       }),
     ).pipe(
@@ -306,21 +306,21 @@ export class ProcessRunnerService {
     );
   }
 
-  newSession(
-    sessionName: string,
+  newRun(
+    runName: string,
     command: string,
-  ): Effect.Effect<ProcessSessionInfo, ProcessRunnerError> {
+  ): Effect.Effect<ProcessRunInfo, ProcessRunnerError> {
     return Effect.flatMap(
-      validateSessionName(sessionName),
-      (validSessionName) =>
+      validateRunName(runName),
+      (validRunName) =>
         Effect.flatMap(validateCommand(command), (validCommand) =>
-          Effect.flatMap(this.initializeSessionDir(), () =>
+          Effect.flatMap(this.initializeRunDir(), () =>
             withTimeout(
               Effect.tryPromise({
                 try: async () => {
                   const logFile = path.join(
                     this.logDir,
-                    `${validSessionName}-${Date.now()}.log`,
+                    `${validRunName}-${Date.now()}.log`,
                   );
 
                   // Use already imported childSpawn from top of file
@@ -330,7 +330,7 @@ export class ProcessRunnerService {
                   // const _mainCmd = cmdParts[0];
                   // const _cmdArgs = cmdParts.slice(1);
 
-                  // Always use PTY for true interactivity - this ensures all sessions support input/output
+                  // Always use PTY for true interactivity - this ensures all runs support input/output
                   let term: PtyProcess;
 
                   try {
@@ -347,7 +347,7 @@ export class ProcessRunnerService {
                     const scriptContent = `#!/bin/bash\n${validCommand}\nexit\n`;
                     const tempScriptPath = path.join(
                       os.tmpdir(),
-                      `script-${validSessionName}-${Date.now()}.sh`,
+                      `script-${validRunName}-${Date.now()}.sh`,
                     );
 
                     fsSync.writeFileSync(tempScriptPath, scriptContent, {
@@ -367,7 +367,7 @@ export class ProcessRunnerService {
                       } catch (_error) {
                         // Ignore cleanup errors
                       }
-                      this.cleanupSession(validSessionName);
+                      this.cleanupRun(validRunName);
                     });
 
                     // Set up log capture
@@ -391,7 +391,7 @@ export class ProcessRunnerService {
                   // For detached processes, we don't capture stdout/stderr directly
                   // Instead, logs are managed through file watching during attachment
                   // Set up cleanup on process exit
-                  const cleanup = () => this.cleanupSession(validSessionName);
+                  const cleanup = () => this.cleanupRun(validRunName);
                   term.onExit(cleanup);
 
                   // Create a dummy log writer for compatibility
@@ -400,8 +400,8 @@ export class ProcessRunnerService {
                     close: () => {},
                   };
 
-                  // Store all resources for this session
-                  const resources: SessionResources = {
+                  // Store all resources for this run
+                  const resources: RunResources = {
                     pty: term,
                     logStream: {
                       write: logWriter.write,
@@ -410,7 +410,7 @@ export class ProcessRunnerService {
                     bytesWritten: 0, // Will be tracked by logWriter
                     logFile,
                   };
-                  this.resources.set(validSessionName, resources);
+                  this.resources.set(validRunName, resources);
 
                   // Return immediately - detached process runs independently
                   return { term, pid, logFile };
@@ -421,25 +421,25 @@ export class ProcessRunnerService {
                   ),
               }),
               DEFAULT_TIMEOUTS.PROCESS_SPAWN,
-              `Process spawn timed out for session ${validSessionName}`,
+              `Process spawn timed out for run ${validRunName}`,
             ),
           ).pipe(
             Effect.flatMap(({ pid, logFile }) => {
-              const sessionInfo: ProcessSessionInfo = {
-                sessionName: validSessionName,
+              const runInfo: ProcessRunInfo = {
+                runName: validRunName,
                 pid,
                 command: validCommand,
                 logFile,
               };
               return Effect.map(
-                this.modifySessions((sessions) => {
-                  const filtered = sessions.filter(
-                    (session) => session.sessionName !== validSessionName,
+                this.modifyRuns((runs) => {
+                  const filtered = runs.filter(
+                    (run) => run.runName !== validRunName,
                   );
-                  filtered.push(sessionInfo);
+                  filtered.push(runInfo);
                   return filtered;
                 }),
-                () => sessionInfo,
+                () => runInfo,
               );
             }),
           ),
@@ -447,39 +447,39 @@ export class ProcessRunnerService {
     );
   }
 
-  attachSession(
-    sessionName: string,
+  attachRun(
+    runName: string,
     options: { lines?: number; search?: string } = {},
   ): Effect.Effect<boolean, ProcessRunnerError> {
     return Effect.flatMap(
-      validateSessionName(sessionName),
-      (validSessionName) =>
-        Effect.flatMap(this.readSessions(), (sessions) => {
-          const session = this.findLatestSessionEntry(
-            sessions,
-            validSessionName,
+      validateRunName(runName),
+      (validRunName) =>
+        Effect.flatMap(this.readRuns(), (runs) => {
+          const run = this.findLatestRunEntry(
+            runs,
+            validRunName,
           );
-          if (!session) {
+          if (!run) {
             return Effect.fail(
-              ProcessRunnerErrorValue(`Session ${validSessionName} not found`),
+              ProcessRunnerErrorValue(`Run ${validRunName} not found`),
             );
           }
 
           return Effect.flatMap(
-            this.isProcessRunning(session.pid, session.command),
+            this.isProcessRunning(run.pid, run.command),
             (isRunning) => {
               if (!isRunning) {
-                return this.handleCompletedSession(
-                  validSessionName,
-                  session,
+                return this.handleCompletedRun(
+                  validRunName,
+                  run,
                   options,
                 ).pipe(Effect.as(false));
               }
 
               return Effect.async<boolean, ProcessRunnerError>((resume) => {
-                this.attachToSession(
-                  validSessionName,
-                  session,
+                this.attachToRun(
+                  validRunName,
+                  run,
                   options,
                   resume,
                 ).catch((error) => {
@@ -498,31 +498,31 @@ export class ProcessRunnerService {
     );
   }
 
-  private async attachToSession(
-    sessionName: string,
-    session: ProcessSessionInfo,
+  private async attachToRun(
+    runName: string,
+    run: ProcessRunInfo,
     options: { lines?: number; search?: string },
     resume: (effect: Effect.Effect<boolean, ProcessRunnerError>) => void,
   ): Promise<void> {
     try {
-      await this.displayLogSnapshot(session, options);
+      await this.displayLogSnapshot(run, options);
 
       // Try to use existing PTY from resources first
-      const existingResources = this.resources.get(sessionName);
+      const existingResources = this.resources.get(runName);
       if (existingResources) {
-        this.attachToPty(sessionName, resume);
+        this.attachToPty(runName, resume);
         return;
       }
 
       // Since PTY is not available in current instance, we'll stream the log file
       // and provide a message to the user
       await Effect.runPromise(
-        Console.log(`Attaching to session: ${sessionName} (Ctrl+C to detach)`),
+        Console.log(`Attaching to run: ${runName} (Ctrl+C to detach)`),
       );
       await Effect.runPromise(
-        Console.log(`Following log output from: ${session.logFile}`),
+        Console.log(`Following log output from: ${run.logFile}`),
       );
-      await Effect.runPromise(Console.log(`Original PID: ${session.pid}`));
+      await Effect.runPromise(Console.log(`Original PID: ${run.pid}`));
       await Effect.runPromise(
         Console.log(
           "Note: You can see live output but cannot send input to the original process.",
@@ -530,12 +530,12 @@ export class ProcessRunnerService {
       );
       await Effect.runPromise(
         Console.log(
-          "To fully interact with the session, restart it or use a different terminal multiplexer.\n",
+          "To fully interact with the run, restart it or use a different terminal multiplexer.\n",
         ),
       );
 
       let position = await fs
-        .stat(session.logFile)
+        .stat(run.logFile)
         .then((stats) => stats.size)
         .catch(() => 0);
 
@@ -550,7 +550,7 @@ export class ProcessRunnerService {
         }
         reading = true;
         try {
-          const handle = await fs.open(session.logFile, "r");
+          const handle = await fs.open(run.logFile, "r");
           try {
             const stats = await handle.stat();
             if (stats.size < position) {
@@ -569,7 +569,7 @@ export class ProcessRunnerService {
         } catch (error) {
           await Effect.runPromise(
             Console.warn(
-              `Failed to read live log updates for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+              `Failed to read live log updates for ${runName}: ${error instanceof Error ? error.message : String(error)}`,
             ),
           );
         } finally {
@@ -583,7 +583,7 @@ export class ProcessRunnerService {
       };
 
       const watcher = fsSync.watch(
-        session.logFile,
+        run.logFile,
         { persistent: true },
         () => {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -595,7 +595,7 @@ export class ProcessRunnerService {
         if (!watcherClosed) {
           await Effect.runPromise(
             Console.warn(
-              `File watcher error for ${sessionName}: ${error instanceof Error ? error.message : String(error)}`,
+              `File watcher error for ${runName}: ${error instanceof Error ? error.message : String(error)}`,
             ),
           );
         }
@@ -627,7 +627,7 @@ export class ProcessRunnerService {
       detachHandler = async () => {
         if (!isExiting) {
           isExiting = true;
-          await Effect.runPromise(Console.log("\nDetaching from session..."));
+          await Effect.runPromise(Console.log("\nDetaching from run..."));
           cleanup(true);
           resume(Effect.succeed(true));
         }
@@ -654,15 +654,15 @@ export class ProcessRunnerService {
       resume(
         Effect.fail(
           ProcessRunnerErrorValue(
-            `Failed to attach to session: ${error instanceof Error ? error.message : String(error)}`,
+            `Failed to attach to run: ${error instanceof Error ? error.message : String(error)}`,
           ),
         ),
       );
     }
   }
 
-  private cleanupSession(sessionName: string): void {
-    const resources = this.resources.get(sessionName);
+  private cleanupRun(runName: string): void {
+    const resources = this.resources.get(runName);
     if (resources) {
       try {
         // Close log stream
@@ -679,25 +679,25 @@ export class ProcessRunnerService {
         }
 
         // Remove from resource tracking
-        this.resources.delete(sessionName);
+        this.resources.delete(runName);
       } catch (error) {
         // Log cleanup errors but don't throw
         Effect.runSync(
-          Console.warn(`Failed to cleanup session ${sessionName}:`, error),
+          Console.warn(`Failed to cleanup run ${runName}:`, error),
         );
       }
     }
   }
 
   private attachToPty(
-    sessionName: string,
+    runName: string,
     resume: (effect: Effect.Effect<boolean, ProcessRunnerError>) => void,
   ) {
-    const resources = this.resources.get(sessionName);
+    const resources = this.resources.get(runName);
     if (!resources) {
       resume(
         Effect.fail(
-          ProcessRunnerErrorValue(`PTY for session ${sessionName} not found`),
+          ProcessRunnerErrorValue(`PTY for run ${runName} not found`),
         ),
       );
       return;
@@ -705,11 +705,11 @@ export class ProcessRunnerService {
 
     const { pty: term } = resources;
 
-    Effect.runSync(Console.log(`🔗 Connected to session: ${sessionName}`));
+    Effect.runSync(Console.log(`🔗 Connected to run: ${runName}`));
     Effect.runSync(
-      Console.log("💡 Press Ctrl+C to detach (session will continue running)"),
+      Console.log("💡 Press Ctrl+C to detach (run will continue running)"),
     );
-    Effect.runSync(Console.log("💡 Type 'exit' to end the session"));
+    Effect.runSync(Console.log("💡 Type 'exit' to end the run"));
     Effect.runSync(Console.log(`${"─".repeat(60)}\n`));
 
     // Set up raw mode for proper terminal interaction
@@ -728,10 +728,10 @@ export class ProcessRunnerService {
 
       // Check for Ctrl+C (0x03)
       if (data.length === 1 && data[0] === 3) {
-        // Detach from session immediately
+        // Detach from run immediately
         detached = true;
         cleanup();
-        resume(Effect.succeed(false)); // false indicates detach, not session end
+        resume(Effect.succeed(false)); // false indicates detach, not run end
         return;
       }
       term.write(data.toString());
@@ -755,10 +755,10 @@ export class ProcessRunnerService {
       process.removeListener("SIGTERM", interruptHandler);
 
       Effect.runSync(Console.log(`\n${"─".repeat(60)}`));
-      Effect.runSync(Console.log(`📤 Detached from session: ${sessionName}`));
+      Effect.runSync(Console.log(`📤 Detached from run: ${runName}`));
     };
 
-    // Handle session exit
+    // Handle run exit
     const exitHandler = ({ exitCode }: { exitCode?: number }) => {
       if (detached) return;
       detached = true;
@@ -768,7 +768,7 @@ export class ProcessRunnerService {
           ? Effect.succeed(true)
           : Effect.fail(
               ProcessRunnerErrorValue(
-                `Session exited with code ${exitCode}`,
+                `Run exited with code ${exitCode}`,
                 exitCode ?? undefined,
               ),
             ),
@@ -790,37 +790,37 @@ export class ProcessRunnerService {
     process.on("SIGTERM", interruptHandler);
   }
 
-  listSessions(): Effect.Effect<ProcessSessionInfo[], ProcessRunnerError> {
-    return this.readSessions();
+  listRuns(): Effect.Effect<ProcessRunInfo[], ProcessRunnerError> {
+    return this.readRuns();
   }
 
-  killSession(sessionName: string): Effect.Effect<void, ProcessRunnerError> {
+  killRun(runName: string): Effect.Effect<void, ProcessRunnerError> {
     return Effect.flatMap(
-      validateSessionName(sessionName),
-      (validSessionName) =>
+      validateRunName(runName),
+      (validRunName) =>
         Effect.flatMap(
-          this.modifySessions((sessions) => {
-            const session = this.findLatestSessionEntry(
-              sessions,
-              validSessionName,
+          this.modifyRuns((runs) => {
+            const run = this.findLatestRunEntry(
+              runs,
+              validRunName,
             );
-            if (!session) {
-              throw new Error(`Session ${validSessionName} not found`);
+            if (!run) {
+              throw new Error(`Run ${validRunName} not found`);
             }
 
-            const resources = this.resources.get(validSessionName);
+            const resources = this.resources.get(validRunName);
             if (resources) {
               // Kill the PTY process
               resources.pty.kill("SIGTERM");
 
               // Schedule cleanup after a short delay to allow PTY to exit gracefully
               resources.cleanupTimeout = setTimeout(() => {
-                this.cleanupSession(validSessionName);
+                this.cleanupRun(validRunName);
               }, 1000);
             } else {
               // Fallback: try to kill by PID if PTY not found
               try {
-                process.kill(session.pid, "SIGTERM");
+                process.kill(run.pid, "SIGTERM");
               } catch (error) {
                 // If the process is already dead, that's fine
                 if (
@@ -831,14 +831,14 @@ export class ProcessRunnerService {
                   // Process not found (already dead) - this is OK
                 } else {
                   throw new Error(
-                    `Failed to kill process ${session.pid}: ${error instanceof Error ? error.message : String(error)}`,
+                    `Failed to kill process ${run.pid}: ${error instanceof Error ? error.message : String(error)}`,
                   );
                 }
               }
             }
 
-            // Filter out the killed session
-            return sessions.filter((s) => s.sessionName !== validSessionName);
+            // Filter out the killed run
+            return runs.filter((s) => s.runName !== validRunName);
           }),
           () => Effect.succeed(void 0),
         ),
@@ -921,7 +921,7 @@ export class ProcessRunnerService {
   }
 
   private displayLogSnapshot(
-    session: ProcessSessionInfo,
+    run: ProcessRunInfo,
     options: { lines?: number; search?: string },
     fallbackCommand: string[] | null = null,
   ): Promise<void> {
@@ -936,7 +936,7 @@ export class ProcessRunnerService {
       text.endsWith("\n") ? text : `${text}\n`;
 
     return fs
-      .readFile(session.logFile, "utf-8")
+      .readFile(run.logFile, "utf-8")
       .then((contents) => {
         if (contents.length === 0) {
           return;
@@ -986,74 +986,74 @@ export class ProcessRunnerService {
       });
   }
 
-  private handleCompletedSession(
-    sessionName: string,
-    session: ProcessSessionInfo,
+  private handleCompletedRun(
+    runName: string,
+    run: ProcessRunInfo,
     options: { lines?: number; search?: string },
   ): Effect.Effect<void, ProcessRunnerError> {
     return Effect.tryPromise({
       try: async () => {
         await Effect.runPromise(
           Console.log(
-            `Session ${sessionName} is not running (last PID ${session.pid}).`,
+            `Run ${runName} is not running (last PID ${run.pid}).`,
           ),
         );
-        await Effect.runPromise(Console.log(`Command was: ${session.command}`));
+        await Effect.runPromise(Console.log(`Command was: ${run.command}`));
 
         const logExists = await fs
-          .access(session.logFile)
+          .access(run.logFile)
           .then(() => true)
           .catch(() => false);
 
         if (!logExists) {
           await Effect.runPromise(
-            Console.log("No log output is available for this session."),
+            Console.log("No log output is available for this run."),
           );
           await Effect.runPromise(
             Console.log(
-              "The session may have failed to start or exited immediately.",
+              "The run may have failed to start or exited immediately.",
             ),
           );
           return;
         }
 
-        await this.displayLogSnapshot(session, options, [
+        await this.displayLogSnapshot(run, options, [
           "cat",
-          session.logFile,
+          run.logFile,
         ]);
 
-        await Effect.runPromise(Console.log("\n--- end of session log ---\n"));
+        await Effect.runPromise(Console.log("\n--- end of run log ---\n"));
       },
       catch: (error) =>
         ProcessRunnerErrorValue(
-          `Failed to read session logs: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to read run logs: ${error instanceof Error ? error.message : String(error)}`,
         ),
     });
   }
 
-  private dedupeSessions(sessions: ProcessSessionInfo[]): ProcessSessionInfo[] {
+  private dedupeRuns(runs: ProcessRunInfo[]): ProcessRunInfo[] {
     const seen = new Set<string>();
-    const deduped: ProcessSessionInfo[] = [];
+    const deduped: ProcessRunInfo[] = [];
 
-    for (let index = sessions.length - 1; index >= 0; index--) {
-      const session = sessions[index];
-      if (!seen.has(session.sessionName)) {
-        seen.add(session.sessionName);
-        deduped.unshift(session);
+    for (let index = runs.length - 1; index >= 0; index--) {
+      const run = runs[index];
+      if (!seen.has(run.runName)) {
+        seen.add(run.runName);
+        deduped.unshift(run);
       }
     }
 
     return deduped;
   }
 
-  private findLatestSessionEntry(
-    sessions: ProcessSessionInfo[],
-    sessionName: string,
-  ): ProcessSessionInfo | undefined {
-    for (let index = sessions.length - 1; index >= 0; index--) {
-      const session = sessions[index];
-      if (session.sessionName === sessionName) {
-        return session;
+  private findLatestRunEntry(
+    runs: ProcessRunInfo[],
+    runName: string,
+  ): ProcessRunInfo | undefined {
+    for (let index = runs.length - 1; index >= 0; index--) {
+      const run = runs[index];
+      if (run.runName === runName) {
+        return run;
       }
     }
     return undefined;

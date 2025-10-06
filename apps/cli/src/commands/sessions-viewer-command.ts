@@ -11,18 +11,18 @@ import type { CommandBuilder } from "../types/commands.js";
 // Command Builder
 // -----------------------------------------------------------------------------
 
-export const buildAISessionsViewerCommand =
-  (): CommandBuilder<"ai-sessions-viewer"> => ({
+export const buildSessionsViewerCommand =
+  (): CommandBuilder<"sessions-viewer"> => ({
     command: () =>
-      Command.make("ai-sessions-viewer").pipe(
+      Command.make("sessions-viewer").pipe(
         Command.withDescription(
-          "View AI session conversations with streaming support",
+          "View AI Agent session conversations with streaming support",
         ),
         Command.withSubcommands([buildViewCommand()]),
       ),
     metadata: {
-      name: "ai-sessions-viewer",
-      description: "View AI session conversations with streaming",
+      name: "sessions-viewer",
+      description: "View AI Agent session conversations with streaming",
     },
   });
 
@@ -37,7 +37,7 @@ function buildViewCommand() {
 
   const summaryOption = Options.boolean("summary").pipe(
     Options.withDefault(false),
-    Options.withDescription("Generate AI-powered summary of the conversation"),
+    Options.withDescription("Generate Agent-powered summary of the conversation"),
   );
 
   const modelOption = Options.text("model").pipe(
@@ -52,20 +52,20 @@ function buildViewCommand() {
     summary: summaryOption,
     model: modelOption,
   }).pipe(
-    Command.withDescription("View a specific AI session conversation"),
+    Command.withDescription("View a specific Agent session conversation"),
     Command.withHandler(({ sessionId, summary, model }) =>
       Effect.gen(function* () {
-        yield* trackCommand("ai-sessions-viewer", "view");
-        yield* trackFeatureUsage("ai_sessions_viewer_view", {
+        yield* trackCommand("sessions-viewer", "view");
+        yield* trackFeatureUsage("sessions_viewer_view", {
           with_summary: summary,
           has_custom_model: Option.isSome(model),
         });
 
-        const { AISessionsService, streamConversation } = yield* Effect.promise(
+        const { AgentSessionsService, streamConversation } = yield* Effect.promise(
           () => import("@open-composer/agent-sessions"),
         );
 
-        const service = new AISessionsService();
+        const service = new AgentSessionsService();
         const sessions = yield* service.getAllSessions();
 
         // Find the session

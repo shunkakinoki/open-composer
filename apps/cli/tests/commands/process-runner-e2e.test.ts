@@ -27,8 +27,8 @@ const runCli = (
     const env = {
       ...process.env,
       TMPDIR: testWorkDir,
-      // Set session directory to the test working directory
-      OPEN_COMPOSER_SESSION_DIR: testWorkDir,
+      // Set run directory to the test working directory
+      OPEN_COMPOSER_RUN_DIR: testWorkDir,
       // Set test mode to avoid interactive prompts
       BUN_TEST: "1",
     };
@@ -94,40 +94,40 @@ describe("Process Runner E2E Tests", () => {
     it("should spawn a process and allow live stdio interaction", async () => {
       // Spawn a long-running process that echoes input
       const spawnResult = await runCli(
-        ["session", "spawn", "test-interactive-session", "echo 'hello world'"],
+        ["run", "spawn", "test-interactive-run", "echo 'hello world'"],
         { timeout: 2000 },
       );
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned session: test-interactive-session",
+        "Spawned run: test-interactive-run",
       );
       expect(stripAnsi(spawnResult.stdout)).toContain("PID:");
       expect(stripAnsi(spawnResult.stdout)).toContain("Log file:");
 
-      // List sessions to verify it was created
-      const listResult = await runCli(["session", "list"]);
+      // List runs to verify it was created
+      const listResult = await runCli(["run", "list"]);
       expect(listResult.code).toBe(0);
       expect(stripAnsi(listResult.stdout)).toContain(
-        "test-interactive-session",
+        "test-interactive-run",
       );
 
       // Clean up
       const killResult = await runCli([
-        "session",
+        "run",
         "kill",
-        "test-interactive-session",
+        "test-interactive-run",
       ]);
       expect(killResult.code).toBe(0);
       expect(stripAnsi(killResult.stdout)).toContain(
-        "Killed session: test-interactive-session",
+        "Killed run: test-interactive-run",
       );
     });
 
     it("should handle process that exits immediately", async () => {
       // Spawn a process that exits immediately
       const spawnResult = await runCli([
-        "session",
+        "run",
         "spawn",
         "test-short-lived",
         "echo 'Hello from short-lived process'",
@@ -135,12 +135,12 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned session: test-short-lived",
+        "Spawned run: test-short-lived",
       );
 
       // The process should exit quickly, so it might not show in list
-      // But the session should still be created initially
-      const listResult = await runCli(["session", "list"]);
+      // But the run should still be created initially
+      const listResult = await runCli(["run", "list"]);
       expect(listResult.code).toBe(0);
       // Process may or may not be in list depending on timing
     });
@@ -148,7 +148,7 @@ describe("Process Runner E2E Tests", () => {
     it("should support attaching to running processes", async () => {
       // Spawn a process that stays alive and produces output
       const spawnResult = await runCli(
-        ["session", "spawn", "test-attach-session", "echo 'Process started'"],
+        ["run", "spawn", "test-attach-run", "echo 'Process started'"],
         { timeout: 15000 },
       );
 
@@ -161,7 +161,7 @@ describe("Process Runner E2E Tests", () => {
       // Note: In a real E2E test, we might need to handle the interactive nature differently
       // For now, we'll just verify the attach command doesn't error
       const attachResult = await runCli(
-        ["session", "attach", "test-attach-session"],
+        ["run", "attach", "test-attach-run"],
         { timeout: 3000 },
       );
 
@@ -173,9 +173,9 @@ describe("Process Runner E2E Tests", () => {
 
       // Clean up
       const killResult = await runCli([
-        "session",
+        "run",
         "kill",
-        "test-attach-session",
+        "test-attach-run",
       ]);
       expect(killResult.code).toBe(0);
     });
@@ -188,7 +188,7 @@ describe("Process Runner E2E Tests", () => {
 
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
           "test-lightweight",
           "echo 'Testing lightweight implementation'",
@@ -198,7 +198,7 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned session: test-lightweight",
+        "Spawned run: test-lightweight",
       );
 
       // Verify no external binary dependencies are mentioned in output
@@ -207,19 +207,19 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(spawnResult.stderr)).not.toContain("command not found");
 
       // Clean up
-      await runCli(["session", "kill", "test-lightweight"]);
+      await runCli(["run", "kill", "test-lightweight"]);
     });
 
     it("should handle process lifecycle without external process managers", async () => {
       // Test complete lifecycle: spawn -> list -> kill
-      const sessionName = "test-lifecycle";
+      const runName = "test-lifecycle";
 
       // Spawn
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
-          sessionName,
+          runName,
           "echo 'running'", // Simple process
         ],
         { timeout: 15000 },
@@ -227,18 +227,18 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // List - should show the process
-      const listResult1 = await runCli(["session", "list"]);
+      const listResult1 = await runCli(["run", "list"]);
       expect(listResult1.code).toBe(0);
-      expect(stripAnsi(listResult1.stdout)).toContain(sessionName);
+      expect(stripAnsi(listResult1.stdout)).toContain(runName);
 
       // Kill
-      const killResult = await runCli(["session", "kill", sessionName]);
+      const killResult = await runCli(["run", "kill", runName]);
       expect(killResult.code).toBe(0);
 
       // List again - should not show the process
-      const listResult2 = await runCli(["session", "list"]);
+      const listResult2 = await runCli(["run", "list"]);
       expect(listResult2.code).toBe(0);
-      expect(stripAnsi(listResult2.stdout)).not.toContain(sessionName);
+      expect(stripAnsi(listResult2.stdout)).not.toContain(runName);
     });
   });
 
@@ -249,14 +249,14 @@ describe("Process Runner E2E Tests", () => {
       expect(helpResult.code).toBe(0);
 
       const helpText = stripAnsi(helpResult.stdout);
-      expect(helpText).toContain("session");
+      expect(helpText).toContain("run");
     });
 
     it("should handle command line arguments correctly", async () => {
-      // Test session spawn with all arguments
+      // Test run spawn with all arguments
       const result = await runCli(
         [
-          "session",
+          "run",
           "spawn",
           "--log-dir",
           join(testWorkDir, "custom-logs"),
@@ -267,74 +267,74 @@ describe("Process Runner E2E Tests", () => {
       );
 
       expect(result.code).toBe(0);
-      expect(stripAnsi(result.stdout)).toContain("Spawned session: test-args");
+      expect(stripAnsi(result.stdout)).toContain("Spawned run: test-args");
 
       // Clean up
-      await runCli(["session", "kill", "test-args"]);
+      await runCli(["run", "kill", "test-args"]);
     });
 
     it("should provide helpful error messages for invalid commands", async () => {
-      // Test with non-existent session
+      // Test with non-existent run
       const attachResult = await runCli([
-        "session",
+        "run",
         "attach",
-        "non-existent-session",
+        "non-existent-run",
       ]);
       expect(attachResult.code).toBe(1);
       // Error messages are handled by the CLI framework, just check exit code
 
-      // Test kill with non-existent session
+      // Test kill with non-existent run
       const killResult = await runCli([
-        "session",
+        "run",
         "kill",
-        "non-existent-session",
+        "non-existent-run",
       ]);
       expect(killResult.code).toBe(1);
       // Error messages are handled by the CLI framework, just check exit code
     });
   });
 
-  describe("Persistent Sessions", () => {
-    it("should persist session metadata across CLI invocations", async () => {
-      const sessionName = "test-persistence";
+  describe("Persistent Runs", () => {
+    it("should persist run metadata across CLI invocations", async () => {
+      const runName = "test-persistence";
 
-      // Spawn a session
+      // Spawn a run
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
-          sessionName,
-          "echo 'session started'", // Simple process
+          runName,
+          "echo 'run started'", // Simple process
         ],
         { timeout: 15000 },
       );
       expect(spawnResult.code).toBe(0);
 
-      // Verify session exists
-      const listResult1 = await runCli(["session", "list"]);
+      // Verify run exists
+      const listResult1 = await runCli(["run", "list"]);
       expect(listResult1.code).toBe(0);
-      expect(stripAnsi(listResult1.stdout)).toContain(sessionName);
+      expect(stripAnsi(listResult1.stdout)).toContain(runName);
 
       // Simulate "CLI restart" by running another command
       // In a real scenario, this would be a separate process
-      const listResult2 = await runCli(["session", "list"]);
+      const listResult2 = await runCli(["run", "list"]);
       expect(listResult2.code).toBe(0);
-      expect(stripAnsi(listResult2.stdout)).toContain(sessionName);
+      expect(stripAnsi(listResult2.stdout)).toContain(runName);
 
       // Clean up
-      const killResult = await runCli(["session", "kill", sessionName]);
+      const killResult = await runCli(["run", "kill", runName]);
       expect(killResult.code).toBe(0);
     });
 
     it("should maintain log files for historical recovery", async () => {
-      const sessionName = "test-logs";
+      const runName = "test-logs";
 
       // Spawn a process that generates output
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
-          sessionName,
+          runName,
           "echo 'line 1' && echo 'line 2' && echo 'line 3'",
         ],
         { timeout: 15000 },
@@ -357,7 +357,7 @@ describe("Process Runner E2E Tests", () => {
       // Test log recovery by attaching with line limit
       // Note: This tests the log recovery feature, not live attachment
       const attachResult = await runCli(
-        ["session", "attach", sessionName, "--lines", "2"],
+        ["run", "attach", runName, "--lines", "2"],
         { timeout: 3000 },
       );
 
@@ -368,18 +368,18 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["session", "kill", sessionName]);
+      await runCli(["run", "kill", runName]);
     });
 
     it("should support log filtering with search patterns", async () => {
-      const sessionName = "test-search";
+      const runName = "test-search";
 
       // Spawn a process that generates searchable output
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
-          sessionName,
+          runName,
           "echo 'INFO: Starting process' && echo 'ERROR: Something went wrong' && echo 'INFO: Process completed'",
         ],
         { timeout: 15000 },
@@ -388,7 +388,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Test attaching with search filter
       const attachResult = await runCli(
-        ["session", "attach", sessionName, "--search", "ERROR"],
+        ["run", "attach", runName, "--search", "ERROR"],
         { timeout: 3000 },
       );
       expect(attachResult.code).not.toBeNull();
@@ -397,15 +397,15 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["session", "kill", sessionName]);
+      await runCli(["run", "kill", runName]);
     });
 
-    it("should clean up dead processes from session list", async () => {
-      const sessionName = "test-cleanup";
+    it("should clean up dead processes from run list", async () => {
+      const runName = "test-cleanup";
 
       // Spawn a short-lived process
       const spawnResult = await runCli(
-        ["session", "spawn", sessionName, "echo 'Quick process' && exit 0"],
+        ["run", "spawn", runName, "echo 'Quick process' && exit 0"],
         { timeout: 15000 },
       );
       expect(spawnResult.code).toBe(0);
@@ -414,10 +414,10 @@ describe("Process Runner E2E Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // List should clean up dead processes
-      const listResult = await runCli(["session", "list"]);
+      const listResult = await runCli(["run", "list"]);
       expect(listResult.code).toBe(0);
 
-      // The session should not appear in the list anymore
+      // The run should not appear in the list anymore
       // (Note: timing-dependent, but the cleanup logic should work)
     });
   });
@@ -426,17 +426,17 @@ describe("Process Runner E2E Tests", () => {
     it("should work on the current platform", async () => {
       // Basic functionality test that should work on any supported platform
       const spawnResult = await runCli(
-        ["session", "spawn", "test-platform", "echo 'Platform test'"],
+        ["run", "spawn", "test-platform", "echo 'Platform test'"],
         { timeout: 15000 },
       );
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned session: test-platform",
+        "Spawned run: test-platform",
       );
 
       // Clean up
-      await runCli(["session", "kill", "test-platform"]);
+      await runCli(["run", "kill", "test-platform"]);
     });
 
     it("should handle platform-specific path separators", async () => {
@@ -444,7 +444,7 @@ describe("Process Runner E2E Tests", () => {
       const testFile = join(testWorkDir, "test.txt");
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
           "test-paths",
           `echo 'test content' > "${testFile}" && cat "${testFile}"`,
@@ -455,26 +455,26 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Clean up
-      await runCli(["session", "kill", "test-paths"]);
+      await runCli(["run", "kill", "test-paths"]);
     });
   });
 
   describe("Error Handling", () => {
-    it("should handle invalid session names gracefully", async () => {
-      const result = await runCli(["session", "attach", ""]);
+    it("should handle invalid run names gracefully", async () => {
+      const result = await runCli(["run", "attach", ""]);
       expect(result.code).toBe(1);
       // CLI framework handles argument validation errors
     });
 
-    it("should handle concurrent session operations", async () => {
+    it("should handle concurrent run operations", async () => {
       // Test rapid spawn/kill operations
-      const sessionName = "test-concurrent";
+      const runName = "test-concurrent";
 
       const spawnResult = await runCli(
         [
-          "session",
+          "run",
           "spawn",
-          sessionName,
+          runName,
           "echo 'test concurrent' && sleep 0.5",
         ],
         { timeout: 15000 },
@@ -482,13 +482,13 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Immediate kill
-      const killResult = await runCli(["session", "kill", sessionName]);
+      const killResult = await runCli(["run", "kill", runName]);
       expect(killResult.code).toBe(0);
     });
 
     it("should handle malformed commands gracefully", async () => {
       // Test with missing arguments
-      const result = await runCli(["session", "spawn"]);
+      const result = await runCli(["run", "spawn"]);
       expect(result.code).toBe(1);
       // CLI framework handles argument validation errors
     });

@@ -92,13 +92,13 @@ describe("ai-sessions index re-exports", () => {
   });
 
   describe("service exports", () => {
-    test("should export AISessionsService", () => {
-      expect(aiSessions.AISessionsService).toBeDefined();
-      expect(typeof aiSessions.AISessionsService).toBe("function");
+    test("should export AgentSessionsService", () => {
+      expect(aiSessions.AgentSessionsService).toBeDefined();
+      expect(typeof aiSessions.AgentSessionsService).toBe("function");
     });
 
-    test("should be able to create AISessionsService instance", () => {
-      const service = new aiSessions.AISessionsService();
+    test("should be able to create AgentSessionsService instance", () => {
+      const service = new aiSessions.AgentSessionsService();
       expect(service).toBeDefined();
       expect(service.getAllSessions).toBeDefined();
       expect(typeof service.getAllSessions).toBe("function");

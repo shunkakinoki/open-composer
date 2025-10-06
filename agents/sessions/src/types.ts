@@ -2,7 +2,7 @@
 // Common Types
 // -----------------------------------------------------------------------------
 
-export interface AISession {
+export interface AgentSession {
   id: string;
   agent:
     | "codex"

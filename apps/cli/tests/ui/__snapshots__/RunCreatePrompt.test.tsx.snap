@@ -3,9 +3,9 @@
 exports[`RunCreatePrompt renders name input step when no props provided 1`] = `
 "
 
-  🎯 Create New Session
+  🎯 Create New Run
 
-  Enter session name (press Enter for auto-generated):
+  Enter run name (press Enter for auto-generated):
 
   _
 
@@ -25,7 +25,7 @@ exports[`RunCreatePrompt renders workspace choice step when name is provided 1`]
 
   ○ 2. Create new workspace
 
-  ○ 3. No workspace (just session tracking)
+  ○ 3. No workspace (just run tracking)
 
 
   Use ↑↓ to select, Enter to confirm, Esc to cancel
@@ -50,14 +50,14 @@ exports[`RunCreatePrompt renders workspace path step when name and choice are pr
 exports[`RunCreatePrompt renders confirmation step when all props are provided 1`] = `
 "
 
-  ✅ Confirm Session Creation
+  ✅ Confirm Run Creation
 
-  Session Name: Test Session
+  Run Name: Test Run
 
   Workspace: No workspace assigned
 
 
-  Press Enter to create session, Esc to cancel
+  Press Enter to create run, Esc to cancel
 
 "
 `;

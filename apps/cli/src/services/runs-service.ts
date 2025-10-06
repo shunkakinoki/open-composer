@@ -7,7 +7,7 @@ import { StackService } from "./stack-service.js";
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
-export class SessionsService {
+export class RunsService {
   /**
    * Create a new session with provided parameters (for React component integration)
    */
@@ -66,7 +66,7 @@ export class SessionsService {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (finalWorkspacePath && newSession) {
-        yield* SessionsService.createStackForSession(newSession);
+        yield* RunsService.createStackForSession(newSession);
       }
 
       return newSession?.id ?? 0;
@@ -228,7 +228,7 @@ export class SessionsService {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (workspacePath) {
-        yield* SessionsService.createStackForSession(newSession);
+        yield* RunsService.createStackForSession(newSession);
       }
 
       yield* printLines([
@@ -258,7 +258,7 @@ export class SessionsService {
 
       if (!allSessions || allSessions.length === 0) {
         yield* printLines([
-          "No sessions found. Create one with: open-composer sessions create",
+          "No sessions found. Create one with: open-composer spawn",
         ]);
         return;
       }

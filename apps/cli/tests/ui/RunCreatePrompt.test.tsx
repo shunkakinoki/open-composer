@@ -1,22 +1,22 @@
 import { describe, expect, mock, test } from "bun:test";
 
-import { SessionCreatePrompt } from "../../src/components/SessionCreatePrompt.js";
+import { RunCreatePrompt } from "../../src/components/RunCreatePrompt.js";
 import { render } from "../utils.js";
 
-// Mock the SessionsCli to avoid database operations during testing
-mock.module("../../src/services/sessions-cli.js", () => ({
-  SessionsCli: {
+// Mock the RunsCli to avoid database operations during testing
+mock.module("../../src/services/runs-cli.js", () => ({
+  RunsCli: {
     createInteractive: mock(async () => 123),
   },
 }));
 
-describe("SessionCreatePrompt", () => {
+describe("RunCreatePrompt", () => {
   test("renders name input step when no props provided", () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SessionCreatePrompt
+      <RunCreatePrompt
         onComplete={mockOnComplete}
         onCancel={mockOnCancel}
       />,
@@ -29,8 +29,8 @@ describe("SessionCreatePrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SessionCreatePrompt
-        initialName="Test Session"
+      <RunCreatePrompt
+        initialName="Test Run"
         onComplete={mockOnComplete}
         onCancel={mockOnCancel}
       />,
@@ -43,8 +43,8 @@ describe("SessionCreatePrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SessionCreatePrompt
-        initialName="Test Session"
+      <RunCreatePrompt
+        initialName="Test Run"
         initialWorkspaceChoice="existing"
         onComplete={mockOnComplete}
         onCancel={mockOnCancel}
@@ -58,8 +58,8 @@ describe("SessionCreatePrompt", () => {
     const mockOnCancel = mock(() => {});
 
     const { lastFrame } = render(
-      <SessionCreatePrompt
-        initialName="Test Session"
+      <RunCreatePrompt
+        initialName="Test Run"
         initialWorkspaceChoice="none"
         onComplete={mockOnComplete}
         onCancel={mockOnCancel}

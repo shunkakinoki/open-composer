@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import { Args, Command, Options } from "@effect/cli";
 import {
   type AgentChecker,
@@ -5,12 +6,17 @@ import {
 } from "@open-composer/agent-router";
 import type { CacheServiceInterface } from "@open-composer/cache";
 import { type GitCommandError, type GitService, run } from "@open-composer/git";
-import { type TmuxCommandError, TmuxService } from "@open-composer/tmux";
+import { trackStackBranch } from "@open-composer/git-stack";
+import {
+  type ProcessRunnerError,
+  ProcessRunnerService,
+  type ProcessRunInfo,
+} from "@open-composer/process-runner";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { render } from "ink";
 import React from "react";
-import { type SpawnConfig, SpawnPrompt } from "../components/SpawnPrompt.js";
+import { type RunConfig, RunPrompt } from "../components/RunPrompt.js";
 import { GitWorktreeService } from "../services/git-worktree-service.js";
 import {
   trackCommand,
@@ -23,11 +29,11 @@ import type { CommandBuilder } from "../types/commands.js";
 // -----------------------------------------------------------------------------
 
 export const buildSpawnCommand = (): CommandBuilder<"spawn"> => ({
-  command: () => buildSpawnCommandInternal(),
+  command: () => buildRunCommandInternal(),
   metadata: {
     name: "spawn",
     description:
-      "Spawn multiple AI agents in separate worktrees with tmux sessions",
+      "Run AI agents with a task description to create stack branches and PRs",
   },
 });
 
@@ -36,7 +42,7 @@ export const buildSpawnCommand = (): CommandBuilder<"spawn"> => ({
 // -----------------------------------------------------------------------------
 
 // Function to get available agents from agent router
-const getAvailableAgentNames: Effect.Effect<
+const getAvailableAgentNamesInternal: Effect.Effect<
   readonly string[],
   never,
   CacheServiceInterface
@@ -48,21 +54,35 @@ const getAvailableAgentNames: Effect.Effect<
 });
 
 // -----------------------------------------------------------------------------
+function getRepositoryName(): Effect.Effect<string, GitCommandError> {
+  return run(["rev-parse", "--show-toplevel"], {}).pipe(
+    Effect.map((result) => {
+      const fullPath = result.stdout.trim();
+      return fullPath.split("/").pop() || "unknown-repo";
+    }),
+  );
+}
+
+function getRepositoryRoot(): Effect.Effect<string, GitCommandError> {
+  return run(["rev-parse", "--show-toplevel"], {}).pipe(
+    Effect.map((result) => result.stdout.trim()),
+  );
+}
+
 // Command Implementations
 // -----------------------------------------------------------------------------
 
-function buildSpawnCommandInternal() {
-  const sessionNameArg = Args.text({ name: "session-name" }).pipe(
-    Args.optional,
+function buildRunCommandInternal() {
+  const descriptionArg = Args.text({ name: "description" }).pipe(
     Args.withDescription(
-      "Name for the spawn session (optional, will prompt if not provided)",
+      "Description of what you want to do (e.g., 'make a pull request')",
     ),
   );
 
-  const agentsOption = Options.text("agents").pipe(
+  const agentOption = Options.text("agent").pipe(
     Options.optional,
     Options.withDescription(
-      "Comma-separated list of agents to spawn (codex,claude-code,opencode)",
+      "Specific agent to use (bypasses agent selection prompt)",
     ),
   );
 
@@ -72,62 +92,58 @@ function buildSpawnCommandInternal() {
   );
 
   const createPROption = Options.boolean("create-pr").pipe(
+    Options.withDefault(true),
     Options.withDescription(
-      "Create PRs for the spawned worktrees (default: false)",
+      "Create PRs for the spawned worktrees (default: true)",
     ),
   );
 
   return Command.make("spawn", {
-    sessionName: sessionNameArg,
-    agents: agentsOption,
+    description: descriptionArg,
+    agent: agentOption,
     base: baseBranchOption,
     createPR: createPROption,
   }).pipe(
     Command.withDescription(
-      "Spawn multiple AI agents in separate worktrees with tmux sessions",
+      "Run AI agents with a task description to create stack branches and PRs",
     ),
     Command.withHandler((config) =>
       Effect.gen(function* () {
-        yield* trackCommand("spawn");
-        yield* trackFeatureUsage("spawn", {
-          has_session_name: Option.isSome(config.sessionName),
-          has_agents: Option.isSome(config.agents),
+        yield* trackCommand("run");
+        yield* trackFeatureUsage("run", {
+          has_agent: Option.isSome(config.agent),
           has_base: Option.isSome(config.base),
           create_pr: config.createPR,
         });
 
-        // Check if all required args are provided for non-interactive mode
-        const hasAllArgs =
-          Option.isSome(config.sessionName) &&
-          Option.isSome(config.agents) &&
-          Option.isSome(config.base);
-
-        if (hasAllArgs) {
-          // Non-interactive mode - use provided arguments
-          const spawnConfig: SpawnConfig = {
-            sessionName: Option.getOrThrow(config.sessionName),
-            agents: Option.getOrThrow(config.agents)
-              .split(",")
-              .map((a) => a.trim()),
-            baseBranch: Option.getOrThrow(config.base),
+        // Check if we have a specific agent or need to prompt
+        if (Option.isSome(config.agent)) {
+          // Non-interactive mode - use provided agent
+          const runConfig: RunConfig = {
+            description: config.description,
+            agent: Option.getOrThrow(config.agent),
+            baseBranch: Option.getOrUndefined(config.base) ?? "main",
             createPR: config.createPR,
           };
 
-          yield* executeSpawn(spawnConfig);
+          yield* executeRun(runConfig);
         } else {
-          // Interactive mode - use React component
-          const availableAgentNames = yield* getAvailableAgentNames;
-          const spawnConfig = yield* Effect.tryPromise({
+          // Interactive mode - prompt for agent selection
+          const availableAgentNames = yield* getAvailableAgentNamesInternal;
+          const runConfig = yield* Effect.tryPromise({
             try: async () => {
-              return new Promise<SpawnConfig>((resolve, reject) => {
+              return new Promise<RunConfig>((resolve, reject) => {
                 const { waitUntilExit } = render(
-                  React.createElement(SpawnPrompt, {
+                  React.createElement(RunPrompt, {
+                    description: config.description,
                     availableAgents: availableAgentNames,
-                    onComplete: (config: SpawnConfig) => {
+                    baseBranch: Option.getOrUndefined(config.base) ?? "main",
+                    createPR: config.createPR,
+                    onComplete: (config: RunConfig) => {
                       resolve(config);
                     },
                     onCancel: () => {
-                      reject(new Error("Spawn cancelled by user"));
+                      reject(new Error("Run cancelled by user"));
                     },
                   }),
                 );
@@ -137,69 +153,83 @@ function buildSpawnCommandInternal() {
             catch: (error) => {
               if (
                 error instanceof Error &&
-                error.message === "Spawn cancelled by user"
+                error.message === "Run cancelled by user"
               ) {
                 return error;
               }
               return new Error(
-                `Failed to start interactive spawn: ${
+                `Failed to start interactive run: ${
                   error instanceof Error ? error.message : String(error)
                 }`,
               );
             },
           });
 
-          yield* executeSpawn(spawnConfig);
+          yield* executeRun(runConfig);
         }
       }),
     ),
   );
 }
 
-function executeSpawn(
-  config: SpawnConfig,
+function executeRun(
+  config: RunConfig,
 ): Effect.Effect<
   void,
-  Error | TmuxCommandError | GitCommandError,
+  Error | GitCommandError | ProcessRunnerError,
   GitService | CacheServiceInterface
 > {
   return Effect.gen(function* () {
-    console.log(`\n🪄 Spawning session: ${config.sessionName}`);
-    console.log(`📋 Agents: ${config.agents.join(", ")}`);
+    console.log(`\n🚀 Running task: ${config.description}`);
+    console.log(`🤖 Agent: ${config.agent}`);
     console.log(`🌿 Base branch: ${config.baseBranch}`);
-    console.log(`🔗 Create PRs: ${config.createPR ? "Yes" : "No"}\n`);
+    console.log(`🔗 Create PR: ${config.createPR ? "Yes" : "No"}\n`);
 
-    // Create worktrees and spawn tmux sessions for each agent
-    const worktreeResults = yield* createWorktreesAndSpawnSessions(config);
+    // Create worktree and spawn agent run
+    const result = yield* createWorktreeAndRunAgent(config);
 
-    // Show the final status output
-    yield* showSpawnOutput(config, worktreeResults);
+    // Show the final status output - this shows immediate status after creation
+    yield* showRunOutput(config, result);
+
+    // Force exit after a short delay to allow output to flush
+    // The spawned run continues running in the background
+    yield* Effect.sync(() => {
+      setTimeout(() => process.exit(0), 100);
+    });
   });
 }
 
-interface WorktreeResult {
+interface RunResult {
   agent: string;
   branchName: string;
   worktreePath: string;
-  tmuxPid?: number;
+  runName: string;
   prNumber?: number;
   changes?: string;
 }
 
-function createWorktreeAndSpawnSession(
-  agent: string,
-  config: SpawnConfig,
+function createWorktreeAndRunAgent(
+  config: RunConfig,
 ): Effect.Effect<
-  WorktreeResult,
-  Error | TmuxCommandError | GitCommandError,
+  RunResult,
+  Error | GitCommandError | ProcessRunnerError,
   GitService
 > {
   return Effect.gen(function* () {
-    const branchName = `${agent}-branch`;
-    const worktreePath = `./worktrees/${config.sessionName}/${branchName}`;
+    const timestamp = Date.now();
+    const branchName = `${config.agent}-run-${timestamp}`;
+    const repoName = yield* getRepositoryName();
+    const repoRoot = yield* getRepositoryRoot();
+    const worktreePath = path.join(
+      "..",
+      `${repoName}.worktree`,
+      `run-${timestamp}`,
+    );
+    const runName = `open-composer-${branchName}`;
 
-    // Create worktree
-    const gitWorktreeService = yield* GitWorktreeService.make();
+    // Create worktree (which also creates the branch)
+    // Use repository root as the working directory for git worktree commands
+    const gitWorktreeService = new GitWorktreeService(repoRoot);
     yield* gitWorktreeService.create({
       path: worktreePath,
       ref: config.baseBranch,
@@ -213,10 +243,19 @@ function createWorktreeAndSpawnSession(
     console.log(`Created worktree at ${worktreePath}`);
     console.log(`Created branch '${branchName}' from ${config.baseBranch}`);
 
-    // Spawn tmux session
-    const tmuxPid = yield* spawnTmuxSession(agent, worktreePath, branchName);
+    // Track the branch in git-stack
+    yield* trackStackBranch(branchName, config.baseBranch);
+    console.log(`Tracked stack branch '${branchName}'`);
+
+    // Spawn agent run using ProcessRunner
+    const runInfo = yield* spawnAgentRun(
+      config.agent,
+      worktreePath,
+      runName,
+      config.description,
+    );
     console.log(
-      `Spawned tmux session open-composer-${branchName} with ${agent}`,
+      `Spawned agent run ${runName} with ${config.agent} at ${runInfo.pid}`,
     );
 
     // Calculate change stats
@@ -231,78 +270,55 @@ function createWorktreeAndSpawnSession(
       prNumber = yield* createPR(branchName, config.baseBranch);
     }
 
-    const result: WorktreeResult = {
-      agent,
+    return {
+      agent: config.agent,
       branchName,
       worktreePath,
-      tmuxPid,
+      runName,
+      ...(prNumber !== undefined && { prNumber }),
       changes,
     };
-
-    if (prNumber !== undefined) {
-      result.prNumber = prNumber;
-    }
-
-    return result;
   });
 }
 
-function createWorktreesAndSpawnSessions(
-  config: SpawnConfig,
-): Effect.Effect<
-  WorktreeResult[],
-  Error | TmuxCommandError | GitCommandError,
-  GitService
-> {
-  return Effect.forEach(
-    config.agents,
-    (agent) =>
-      createWorktreeAndSpawnSession(agent, config).pipe(
-        Effect.catchAll((error) => {
-          console.error(`Failed to create worktree for ${agent}:`, error);
-          // Return an empty result for failed agents to continue with others
-          return Effect.succeed({
-            agent,
-            branchName: `${agent}-branch`,
-            worktreePath: `./worktrees/${config.sessionName}/${agent}-branch`,
-            changes: "0+ 0-",
-          });
-        }),
-      ),
-    { concurrency: 1 }, // Process agents sequentially
-  );
-}
-
-function spawnTmuxSession(
+function spawnAgentRun(
   agent: string,
   worktreePath: string,
-  branchName: string,
-): Effect.Effect<number, Error | TmuxCommandError> {
+  runName: string,
+  description: string,
+): Effect.Effect<ProcessRunInfo, ProcessRunnerError, never> {
   return Effect.gen(function* () {
-    const tmuxService = yield* TmuxService.make();
+    const runnerService = yield* ProcessRunnerService.make();
 
-    // Check if tmux is available
-    const isAvailable = yield* tmuxService.isAvailable();
-    if (!isAvailable) {
-      return yield* Effect.fail(
-        new Error("tmux is not available on this system"),
-      );
-    }
+    // Build the command based on the agent
+    const command = getAgentCommand(agent, worktreePath, description);
 
-    // Create a unique session name
-    const sessionName = `open-composer-${branchName}`;
+    const runInfo = yield* runnerService.newRun(runName, command);
 
-    // For now, start tmux with a simple shell command in the worktree directory
-    // In the future, this could be enhanced to run specific agent commands
-    const command = `cd "${worktreePath}" && exec $SHELL`;
-
-    const pid = yield* tmuxService.newSession(sessionName, command, {
-      detached: true,
-      windowName: agent,
-    });
-
-    return pid;
+    return runInfo;
   });
+}
+
+function getAgentCommand(
+  agent: string,
+  worktreePath: string,
+  description: string,
+): string {
+  // Route to specific agent commands based on agent type
+  switch (agent.toLowerCase()) {
+    case "claude-code":
+      return `cd "${worktreePath}" && echo "Running Claude Code for: ${description}" && exec $SHELL`;
+
+    case "codex":
+      return `cd "${worktreePath}" && echo "Running Codex for: ${description}" && exec $SHELL`;
+
+    case "opencode":
+      return `cd "${worktreePath}" && echo "Running OpenCode for: ${description}" && exec $SHELL`;
+
+    default:
+      // Fallback for unknown agents
+      return `cd "${worktreePath}" && echo "Running ${agent} for: ${description}" && exec $SHELL`;
+  }
 }
 
 function calculateChangeStats(
@@ -347,27 +363,28 @@ function createPR(
   });
 }
 
-function showSpawnOutput(
-  config: SpawnConfig,
-  worktreeResults: WorktreeResult[],
+function showRunOutput(
+  config: RunConfig,
+  result: RunResult,
 ): Effect.Effect<void, never, CacheServiceInterface> {
   return Effect.gen(function* () {
     // Status overview
     console.log("----------------------------");
-    console.log("Open-Composer Status Overview");
+    console.log("Open-Composer Run Status");
     console.log("----------------------------");
     console.log();
-    console.log("Agents Running:");
-    worktreeResults.forEach((result) => {
-      console.log(
-        `- ${result.agent}: Running in ${result.worktreePath} (Tmux PID: ${result.tmuxPid})`,
-      );
-    });
-    // Show agents not running
-    const availableAgents = yield* getAvailableAgentNames;
-    const runningAgents = worktreeResults.map((r: WorktreeResult) => r.agent);
+    console.log("Task:", config.description);
+    console.log();
+
+    console.log("Agent Running:");
+    console.log(
+      `- ${result.agent}: Running in ${result.worktreePath} (Run: ${result.runName})`,
+    );
+
+    // Get available agents and show agents not running
+    const availableAgents = yield* getAvailableAgentNamesInternal;
     const notRunningAgents = availableAgents.filter(
-      (agent: string) => !runningAgents.includes(agent),
+      (agent: string) => agent !== result.agent,
     );
     notRunningAgents.forEach((agent: string) => {
       console.log(`- ${agent}: Not running`);
@@ -386,29 +403,21 @@ function showSpawnOutput(
       "|----------------------------|-------------|-------------|------|--------|---------|------------|",
     );
 
-    worktreeResults.forEach((result) => {
-      const prNumber = result.prNumber?.toString() ?? "None";
-      const prStatus = result.prNumber ? "open" : "n/a";
-      const changes = result.changes ?? "0+ 0-";
+    const prNumber = result.prNumber?.toString() ?? "None";
+    const prStatus = result.prNumber ? "open" : "n/a";
+    const changes = result.changes ?? "0+ 0-";
 
-      console.log(
-        `| ${result.branchName.padEnd(26)} | ${result.agent.padEnd(11)} | ${config.baseBranch.padEnd(11)} | ${prNumber.padEnd(4)} | ${prStatus.padEnd(6)} | +       | ${changes.padEnd(10)} |`,
-      );
-    });
+    console.log(
+      `| ${result.branchName.padEnd(26)} | ${result.agent.padEnd(11)} | ${config.baseBranch.padEnd(11)} | ${prNumber.padEnd(4)} | ${prStatus.padEnd(6)} | +       | ${changes.padEnd(10)} |`,
+    );
     console.log();
 
     // Stacked PR Graph
     console.log("Stacked PR Graph:");
     console.log(`* ${config.baseBranch}`);
 
-    worktreeResults.forEach((result) => {
-      const prNumber = result.prNumber ?? "None";
-      const prStatus = result.prNumber ? "open" : "n/a";
-      const changes = result.changes ?? "0+ 0-";
-
-      console.log(
-        `  |- * ${result.worktreePath} (PR #${prNumber}: ${prStatus} +, Changes ${changes})`,
-      );
-    });
+    console.log(
+      `  |- * ${result.worktreePath} (PR #${result.prNumber ?? "None"}: ${prStatus} +, Changes ${changes})`,
+    );
   });
 }

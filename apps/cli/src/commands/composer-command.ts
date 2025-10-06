@@ -25,19 +25,18 @@ import {
 } from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
-import { buildAISessionsCommand } from "./ai-sessions-command.js";
-import { buildAISessionsViewerCommand } from "./ai-sessions-viewer-command.js";
+import { buildSessionsCommand } from "./sessions-command.js";
+import { buildSessionsViewerCommand } from "./sessions-viewer-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildFeedbackCommand } from "./feedback.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildOrchestratorCommand } from "./orchestrator-command.js";
-import { buildRunCommand } from "./run-command.js";
-import { buildSessionCommand } from "./session-command.js";
-import { buildSessionsCommand } from "./sessions-command.js";
-import { buildSettingsCommand } from "./settings-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
+import { buildRunCommand } from "./run-command.js";
+import { buildRunsCommand } from "./runs-command.js";
+import { buildSettingsCommand } from "./settings-command.js";
 import { buildSquadCommand } from "./squad-command.js";
 import { buildStackCommand } from "./stack-command.js";
 import { buildStatusCommand } from "./status-command.js";
@@ -70,8 +69,6 @@ export const ROOT_LAYER = BASE_LAYER.pipe(
 
 const ALL_COMMAND_BUILDERS = [
   buildAgentsCommand,
-  buildAISessionsCommand,
-  buildAISessionsViewerCommand,
   buildCacheCommand,
   buildConfigCommand,
   buildFeedbackCommand,
@@ -79,8 +76,9 @@ const ALL_COMMAND_BUILDERS = [
   buildGitWorktreeCommand,
   buildOrchestratorCommand,
   buildRunCommand,
-  buildSessionCommand,
+  buildRunsCommand,
   buildSessionsCommand,
+  buildSessionsViewerCommand,
   buildSettingsCommand,
   buildSpawnCommand,
   buildSquadCommand,

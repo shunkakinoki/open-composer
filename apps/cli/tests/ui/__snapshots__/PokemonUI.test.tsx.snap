@@ -82,7 +82,7 @@ exports[`AgentCard matches snapshot for starter tier 1`] = `
 `;
 
 exports[`AgentList matches snapshot 1`] = `
-"#   Name                     Type                Tier           Provider
+"#   Name                     Type                Tier           Provider       
 ───────────────────────────────────────────────────────────────────────────────
 1   🤖 Claude Sonnet          AI/Code             evolved        anthropic
 2   💎 Claude Opus            AI/Code             legendary      anthropic
@@ -90,7 +90,7 @@ exports[`AgentList matches snapshot 1`] = `
 `;
 
 exports[`AgentList matches snapshot with empty list 1`] = `
-"#   Name                     Type                Tier           Provider
+"#   Name                     Type                Tier           Provider       
 ───────────────────────────────────────────────────────────────────────────────"
 `;
 

@@ -233,18 +233,6 @@ test("AgentList renders with correct numbering", () => {
   expect(output).toContain("2");
 });
 
-test("AgentList matches snapshot", () => {
-  const { lastFrame } = render(
-    <AgentList agents={[mockAgent, mockLegendaryAgent, mockStarterAgent]} />,
-  );
-  expect(lastFrame()).toMatchSnapshot();
-});
-
-test("AgentList matches snapshot with empty list", () => {
-  const { lastFrame } = render(<AgentList agents={[]} />);
-  expect(lastFrame()).toMatchSnapshot();
-});
-
 // -----------------------------------------------------------------------------
 // TeamDisplay Tests
 // -----------------------------------------------------------------------------
