@@ -126,7 +126,7 @@
     },
     "apps/cli": {
       "name": "open-composer",
-      "version": "0.8.16",
+      "version": "0.8.19",
       "bin": {
         "oc": "./src/index.ts",
         "open-composer": "./src/index.ts",
@@ -153,7 +153,6 @@
         "@open-composer/git-worktrees": "workspace:*",
         "@open-composer/orchestrator": "workspace:*",
         "@open-composer/process-runner": "workspace:*",
-        "@open-composer/tmux": "workspace:*",
         "drizzle-orm": "^0.44.6",
         "effect": "^3.18.2",
         "ink": "^6.3.1",
@@ -273,7 +272,7 @@
     },
     "packages/feedback": {
       "name": "@open-composer/feedback",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/bun": "^1.2.23",
         "@types/node": "^24.6.2",
@@ -405,7 +404,7 @@
     },
     "workers/feedback": {
       "name": "@open-composer/feedback-worker",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@linear/sdk": "^45.0.0",
         "@open-composer/feedback": "workspace:*",
