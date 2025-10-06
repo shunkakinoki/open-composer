@@ -34,8 +34,8 @@ import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildOrchestratorCommand } from "./orchestrator-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
+import { buildProcessCommand } from "./process-command.js";
 import { buildRunCommand } from "./run-command.js";
-import { buildRunsCommand } from "./runs-command.js";
 import { buildSettingsCommand } from "./settings-command.js";
 import { buildSquadCommand } from "./squad-command.js";
 import { buildStackCommand } from "./stack-command.js";
@@ -75,8 +75,8 @@ const ALL_COMMAND_BUILDERS = [
   buildGHPRCommand,
   buildGitWorktreeCommand,
   buildOrchestratorCommand,
+  buildProcessCommand,
   buildRunCommand,
-  buildRunsCommand,
   buildSessionsCommand,
   buildSessionsViewerCommand,
   buildSettingsCommand,

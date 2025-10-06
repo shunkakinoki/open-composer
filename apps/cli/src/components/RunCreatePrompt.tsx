@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { RunsService } from "../services/runs-service.js";
+import { RunService } from "../services/run-service.js";
 
 /**
  * Interactive React component for creating development runs.
@@ -90,7 +90,7 @@ export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
     setError(null);
 
     try {
-      const cli = new RunsService();
+      const cli = new RunService();
       const runId = await cli
         .createInteractive(runName, workspaceChoice, workspacePath)
         .pipe(Effect.provide(DatabaseLive), Effect.runPromise);

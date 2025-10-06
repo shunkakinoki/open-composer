@@ -4,7 +4,7 @@ import {
   buildRunner,
 } from "../../src/commands/composer-command.js";
 import { buildGHPRCommand } from "../../src/commands/gh-pr-command.js";
-import { buildRunsCommand } from "../../src/commands/runs-command.js";
+import { buildRunCommand } from "../../src/commands/run-command.js";
 
 describe.concurrent("composer command", () => {
   describe.concurrent("Root Command Structure", () => {
@@ -53,13 +53,13 @@ describe.concurrent("composer command", () => {
 
   describe.concurrent("Runs Command Integration", () => {
     test.concurrent("should build runs command successfully", () => {
-      const command = buildRunsCommand();
+      const command = buildRunCommand();
       expect(command).toBeDefined();
       expect(typeof command).toBe("object");
     });
 
     test.concurrent("should have runs subcommands", () => {
-      const command = buildRunsCommand();
+      const command = buildRunCommand();
       expect(command).toBeDefined();
       // Verify command structure is valid
     });
@@ -68,7 +68,7 @@ describe.concurrent("composer command", () => {
       "should handle runs command arguments correctly",
       () => {
         // Test that the command accepts proper arguments
-        const command = buildRunsCommand();
+        const command = buildRunCommand();
         expect(command).toBeDefined();
       },
     );
@@ -90,7 +90,7 @@ describe.concurrent("composer command", () => {
       "should integrate runs command into root command",
       () => {
         const rootCommand = buildRootCommand();
-        const runsCommand = buildRunsCommand();
+        const runsCommand = buildRunCommand();
         expect(rootCommand).toBeDefined();
         expect(runsCommand).toBeDefined();
         // Both commands should be buildable without conflicts
@@ -102,7 +102,7 @@ describe.concurrent("composer command", () => {
       () => {
         const rootCommand = buildRootCommand();
         const prCreateCommand = buildGHPRCommand();
-        const runsCommand = buildRunsCommand();
+        const runsCommand = buildRunCommand();
 
         expect(rootCommand).toBeDefined();
         expect(prCreateCommand).toBeDefined();
