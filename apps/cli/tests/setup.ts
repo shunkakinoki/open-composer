@@ -1,6 +1,5 @@
-import { afterAll, afterEach, mock } from "bun:test";
+import { afterAll, mock } from "bun:test";
 import { configure } from "@testing-library/react";
-import { cleanup } from "./utils.js";
 
 // Mock CLI version to keep snapshots stable across version changes
 // This must be done before any imports that use CLI_VERSION
@@ -52,14 +51,9 @@ configure({
   reactStrictMode: false,
 });
 
-afterEach(() => {
-  cleanup();
-});
-
 afterAll(() => {
   // Restore original Date
   global.Date = OriginalDate;
   Date.now = originalNow;
 
-  cleanup();
 });
