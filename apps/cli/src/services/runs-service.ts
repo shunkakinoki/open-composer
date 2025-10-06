@@ -258,7 +258,7 @@ export class RunsService {
 
       if (!allSessions || allSessions.length === 0) {
         yield* printLines([
-          "No sessions found. Create one with: open-composer sessions create",
+          "No sessions found. Create one with: open-composer spawn",
         ]);
         return;
       }

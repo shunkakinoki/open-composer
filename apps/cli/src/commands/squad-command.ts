@@ -137,7 +137,7 @@ function buildQuickCommand() {
             "\n❌ Error:",
             error instanceof Error ? error.message : error,
           );
-          yield* Effect.fail(error);
+          return yield* Effect.fail(error);
         }
       }),
     ),
@@ -238,8 +238,7 @@ function buildShowCommand() {
 
         if (!agent) {
           yield* Console.error(`\n❌ Agent ${agentId} not found\n`);
-          yield* Effect.fail(new Error(`Agent ${agentId} not found`));
-          return;
+          return yield* Effect.fail(new Error(`Agent ${agentId} not found`));
         }
 
         yield* Console.log(PokemonUI.renderAgentCard(agent));
@@ -271,14 +270,12 @@ function buildCompareCommand() {
 
         if (!agent1) {
           yield* Console.error(`\n❌ Agent ${agent1Id} not found\n`);
-          yield* Effect.fail(new Error(`Agent ${agent1Id} not found`));
-          return;
+          return yield* Effect.fail(new Error(`Agent ${agent1Id} not found`));
         }
 
         if (!agent2) {
           yield* Console.error(`\n❌ Agent ${agent2Id} not found\n`);
-          yield* Effect.fail(new Error(`Agent ${agent2Id} not found`));
-          return;
+          return yield* Effect.fail(new Error(`Agent ${agent2Id} not found`));
         }
 
         yield* Console.log(PokemonUI.renderComparison(agent1, agent2));
@@ -351,7 +348,7 @@ function buildLaunchCommand() {
             "\n❌ Error:",
             error instanceof Error ? error.message : error,
           );
-          yield* Effect.fail(error);
+          return yield* Effect.fail(error);
         }
       }),
     ),
