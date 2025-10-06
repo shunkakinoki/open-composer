@@ -250,31 +250,37 @@ describe("Command Workflow E2E Tests", () => {
   });
 
   describe("Multi-Step Workflows", () => {
-    it("should execute complex multi-command workflow", async () => {
-      // Step 1: Initial state check
-      const initialTelemetry = await runCli(["telemetry", "status"]);
-      expect(initialTelemetry.code).toBe(0);
+    it(
+      "should execute complex multi-command workflow",
+      async () => {
+        // Step 1: Initial state check
+        const initialTelemetry = await runCli(["telemetry", "status"]);
+        expect(initialTelemetry.code).toBe(0);
 
-      const initialSettings = await runCli(["settings", "list"]);
-      expect(initialSettings.code).toBe(0);
+        const initialSettings = await runCli(["settings", "list"]);
+        expect(initialSettings.code).toBe(0);
 
-      // Step 2: Make changes
-      await runCli(["telemetry", "enable"]);
+        // Step 2: Make changes
+        const enable = await runCli(["telemetry", "enable"]);
+        expect(enable.code).toBe(0);
 
-      // Step 3: Verify commands execute
-      const newTelemetry = await runCli(["telemetry", "status"]);
-      expect(newTelemetry.code).toBe(0);
+        // Step 3: Verify commands execute
+        const newTelemetry = await runCli(["telemetry", "status"]);
+        expect(newTelemetry.code).toBe(0);
 
-      const newSettings = await runCli(["settings", "list"]);
-      expect(newSettings.code).toBe(0);
+        const newSettings = await runCli(["settings", "list"]);
+        expect(newSettings.code).toBe(0);
 
-      // Step 4: Restore state
-      await runCli(["telemetry", "disable"]);
+        // Step 4: Restore state
+        const disable = await runCli(["telemetry", "disable"]);
+        expect(disable.code).toBe(0);
 
-      // Step 5: Final verification
-      const finalTelemetry = await runCli(["telemetry", "status"]);
-      expect(finalTelemetry.code).toBe(0);
-    });
+        // Step 5: Final verification
+        const finalTelemetry = await runCli(["telemetry", "status"]);
+        expect(finalTelemetry.code).toBe(0);
+      },
+      15000,
+    ); // Increase timeout to 15 seconds for multi-step workflow
   });
 
   describe("Concurrent Command Execution", () => {
