@@ -15,7 +15,7 @@ import type { CommandBuilder } from "../types/commands.js";
 export const buildRunsCommand = (): CommandBuilder<"runs"> => ({
   command: () =>
     Command.make("runs").pipe(
-      Command.withDescription("Manage development runs"),
+      Command.withDescription("Manage open-composer development runs"),
       Command.withSubcommands([
         buildCreateCommand(),
         buildListCommand(),
@@ -26,7 +26,7 @@ export const buildRunsCommand = (): CommandBuilder<"runs"> => ({
     ),
   metadata: {
     name: "runs",
-    description: "Manage development runs",
+    description: "Manage open-composer development runs",
   },
 });
 
