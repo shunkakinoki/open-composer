@@ -1,0 +1,63 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`RunCreatePrompt renders name input step when no props provided 1`] = `
+"
+
+  🎯 Create New Run
+
+  Enter run name (press Enter for auto-generated):
+
+  _
+
+  Press Enter to continue, Esc to cancel
+
+"
+`;
+
+exports[`RunCreatePrompt renders workspace choice step when name is provided 1`] = `
+"
+
+  📁 Choose Workspace Option
+
+  Choose workspace option:
+
+  ● 1. Use existing git workspace
+
+  ○ 2. Create new workspace
+
+  ○ 3. No workspace (just run tracking)
+
+
+  Use ↑↓ to select, Enter to confirm, Esc to cancel
+
+"
+`;
+
+exports[`RunCreatePrompt renders workspace path step when name and choice are provided 1`] = `
+"
+
+  📂 Select Existing Workspace
+
+  Enter path to existing git workspace:
+
+  _
+
+  Press Enter to continue, Esc to cancel
+
+"
+`;
+
+exports[`RunCreatePrompt renders confirmation step when all props are provided 1`] = `
+"
+
+  ✅ Confirm Run Creation
+
+  Run Name: Test Run
+
+  Workspace: No workspace assigned
+
+
+  Press Enter to create run, Esc to cancel
+
+"
+`;
