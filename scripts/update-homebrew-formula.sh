@@ -76,8 +76,7 @@ class OpenComposer < Formula
 
     # The zip contains the package directory with @ prefix
     # We need to find the binary in the extracted contents
-    binary_path = Dir.glob("@open-composer/cli-#{os_suffix}/bin/open-composer").first ||
-                  Dir.glob("open-composer/cli-#{os_suffix}/bin/open-composer").first
+    binary_path = Dir.glob("{,@}open-composer/cli-#{os_suffix}/bin/open-composer").first
 
     if binary_path.nil?
       odie "Could not find open-composer binary in extracted archive"
