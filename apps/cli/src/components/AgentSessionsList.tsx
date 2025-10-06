@@ -37,6 +37,8 @@ const getAgentColor = (agent: AgentSession["agent"]): string => {
       return "magenta";
     case "claude-code":
       return "cyan";
+    case "opencode":
+      return "green";
     default:
       return "gray";
   }
@@ -132,6 +134,9 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
       } else if (input === "4") {
         setFilterAgent("claude-code");
         setSelectedIndex(0);
+      } else if (input === "5") {
+        setFilterAgent("opencode");
+        setSelectedIndex(0);
       } else if (key.return) {
         onComplete?.();
         exit();
@@ -195,6 +200,9 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
         <Text color={filterAgent === "claude-code" ? "green" : "gray"}>
           4. Claude Code
         </Text>
+        <Text color={filterAgent === "opencode" ? "green" : "gray"}>
+          5. OpenCode
+        </Text>
       </Box>
 
       <Box
@@ -257,7 +265,7 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
 
       <Box marginTop={1}>
         <Text color="gray">
-          ↑↓/jk: navigate | 1-4: filter | Enter: exit | Esc: cancel
+          ↑↓/jk: navigate | 1-5: filter | Enter: exit | Esc: cancel
         </Text>
       </Box>
     </Box>
