@@ -10,7 +10,7 @@ import type { CommandBuilder } from "../types/commands.js";
 export const buildRunCommand = (): CommandBuilder<"run"> => ({
   command: () =>
     Command.make("run").pipe(
-      Command.withDescription("Manage persistent process runs"),
+      Command.withDescription("Manage open-composer process run"),
       Command.withSubcommands([
         buildAttachSubcommand(),
         buildKillSubcommand(),
@@ -20,7 +20,7 @@ export const buildRunCommand = (): CommandBuilder<"run"> => ({
     ),
   metadata: {
     name: "run",
-    description: "Manage persistent process runs",
+    description: "Manage open-composer persistent process run",
   },
 });
 
