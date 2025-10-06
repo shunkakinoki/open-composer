@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.19
+
+### Patch Changes
+
+- [#302](https://github.com/shunkakinoki/open-composer/pull/302) [`6be062c`](https://github.com/shunkakinoki/open-composer/commit/6be062c958d047abd143b7a15c5cb9fa8e0ba654) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Completely refactor params
+
 ## 0.8.18
 
 ### Patch Changes
