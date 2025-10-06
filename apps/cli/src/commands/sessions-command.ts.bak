@@ -42,14 +42,10 @@ async function readSessionMessages(agent: string, sessionId: string): Promise<un
         return await readCursorSessionMessages(sessionId).pipe(Effect.runPromise);
       }
       case "codex": {
-        const { readCodexSessionMessages } = await import("@open-composer/agent-codex");
-        return await readCodexSessionMessages(sessionId).pipe(Effect.runPromise);
         // Codex message reading not yet implemented
         return [];
       }
       case "opencode": {
-        const { readOpencodeSessionMessages } = await import("@open-composer/agent-opencode");
-        return await readOpencodeSessionMessages(sessionId).pipe(Effect.runPromise);
         // OpenCode message reading not yet implemented
         return [];
       }

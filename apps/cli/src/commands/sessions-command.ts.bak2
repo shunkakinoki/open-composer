@@ -48,8 +48,6 @@ async function readSessionMessages(agent: string, sessionId: string): Promise<un
         return [];
       }
       case "opencode": {
-        const { readOpencodeSessionMessages } = await import("@open-composer/agent-opencode");
-        return await readOpencodeSessionMessages(sessionId).pipe(Effect.runPromise);
         // OpenCode message reading not yet implemented
         return [];
       }
