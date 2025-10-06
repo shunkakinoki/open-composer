@@ -33,7 +33,7 @@ const runCli = (
       BUN_TEST: "1",
     };
 
-    const child = spawn("bun", ["process", cliPath, ...args], {
+    const child = spawn("bun", ["run", cliPath, "process", ...args], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: join(__dirname, "../.."), // Run from CLI root directory
       env,
@@ -100,10 +100,10 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned run: test-interactive-run",
+        "✅ Spawned process: test-interactive-run",
       );
-      expect(stripAnsi(spawnResult.stdout)).toContain("PID:");
-      expect(stripAnsi(spawnResult.stdout)).toContain("Log file:");
+      expect(stripAnsi(spawnResult.stdout)).toContain("🆔 PID:");
+      expect(stripAnsi(spawnResult.stdout)).toContain("📄 Log file:");
 
       // List runs to verify it was created
       const listResult = await runCli(["process", "list"]);
@@ -120,7 +120,7 @@ describe("Process Runner E2E Tests", () => {
       ]);
       expect(killResult.code).toBe(0);
       expect(stripAnsi(killResult.stdout)).toContain(
-        "Killed run: test-interactive-run",
+        "Killed process: test-interactive-run",
       );
     });
 
@@ -135,7 +135,7 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned run: test-short-lived",
+        "✅ Spawned process: test-short-lived",
       );
 
       // The process should exit quickly, so it might not show in list
@@ -198,7 +198,7 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned run: test-lightweight",
+        "✅ Spawned process: test-lightweight",
       );
 
       // Verify no external binary dependencies are mentioned in output
@@ -267,7 +267,7 @@ describe("Process Runner E2E Tests", () => {
       );
 
       expect(result.code).toBe(0);
-      expect(stripAnsi(result.stdout)).toContain("Spawned run: test-args");
+      expect(stripAnsi(result.stdout)).toContain("✅ Spawned process: test-args");
 
       // Clean up
       await runCli(["process", "kill", "test-args"]);
@@ -432,7 +432,7 @@ describe("Process Runner E2E Tests", () => {
 
       expect(spawnResult.code).toBe(0);
       expect(stripAnsi(spawnResult.stdout)).toContain(
-        "Spawned run: test-platform",
+        "✅ Spawned process: test-platform",
       );
 
       // Clean up
