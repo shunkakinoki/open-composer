@@ -7,7 +7,7 @@ import { StackService } from "./stack-service.js";
 const printLines = (lines: ReadonlyArray<string>) =>
   Effect.forEach(lines, (line) => Console.log(line), { discard: true });
 
-export class RunsService {
+export class RunService {
   /**
    * Create a new session with provided parameters (for React component integration)
    */
@@ -66,7 +66,7 @@ export class RunsService {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (finalWorkspacePath && newSession) {
-        yield* RunsService.createStackForSession(newSession);
+        yield* RunService.createStackForSession(newSession);
       }
 
       return newSession?.id ?? 0;
@@ -228,7 +228,7 @@ export class RunsService {
 
       // Automatically create a stack branch for this session if we have a workspace
       if (workspacePath) {
-        yield* RunsService.createStackForSession(newSession);
+        yield* RunService.createStackForSession(newSession);
       }
 
       yield* printLines([

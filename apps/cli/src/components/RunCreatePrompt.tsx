@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { RunsService } from "../services/runs-service.js";
+import { RunsService } from "../services/run-service.js";
 
 /**
  * Interactive React component for creating development runs.

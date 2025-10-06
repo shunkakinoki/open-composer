@@ -1,6 +1,11 @@
-import { Args, Command, Options } from "@effect/cli";
-import { ProcessRunnerService } from "@open-composer/process-runner";
-import { Effect } from "effect";
+import { Args, Command } from "@effect/cli";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+import { RunService } from "../services/run-service.js";
+import {
+  trackCommand,
+  trackFeatureUsage,
+} from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
 
 // -----------------------------------------------------------------------------
@@ -10,17 +15,18 @@ import type { CommandBuilder } from "../types/commands.js";
 export const buildRunCommand = (): CommandBuilder<"run"> => ({
   command: () =>
     Command.make("run").pipe(
-      Command.withDescription("Manage open-composer process run"),
+      Command.withDescription("Manage open-composer development runs"),
       Command.withSubcommands([
-        buildAttachSubcommand(),
-        buildKillSubcommand(),
-        buildListSubcommand(),
-        buildSpawnSubcommand(),
+        buildCreateCommand(),
+        buildListCommand(),
+        buildSwitchCommand(),
+        buildArchiveCommand(),
+        buildDeleteCommand(),
       ]),
     ),
   metadata: {
     name: "run",
-    description: "Manage open-composer persistent process run",
+    description: "Manage open-composer development runs",
   },
 });
 
@@ -28,326 +34,141 @@ export const buildRunCommand = (): CommandBuilder<"run"> => ({
 // Command Implementations
 // -----------------------------------------------------------------------------
 
-function buildAttachSubcommand() {
-  const runNameArg = Args.text({ name: "run-name" }).pipe(
-    Args.withDescription("Name of the run to attach to"),
-  );
-  const linesOption = Options.integer("lines").pipe(
-    Options.optional,
-    Options.withDescription(
-      "Number of lines to display from log history before live output",
+function buildCreateCommand() {
+  const nameArg = Args.text({ name: "name" }).pipe(
+    Args.optional,
+    Args.withDescription(
+      "Name of the new run (optional, will prompt if not provided)",
     ),
   );
-  const searchOption = Options.text("search").pipe(
-    Options.optional,
-    Options.withDescription(
-      "Search pattern to filter log output before live output",
-    ),
-  );
-
-  return Command.make("attach", {
-    runName: runNameArg,
-    lines: linesOption,
-    search: searchOption,
-  }).pipe(
-    Command.withDescription("Attach to a persistent run with live stdio"),
-    Command.withHandler(({ runName, lines, search }) =>
+  return Command.make("create", { name: nameArg }).pipe(
+    Command.withDescription("Create and start a new development run"),
+    Command.withHandler((config) =>
       Effect.gen(function* () {
-        const runnerService = yield* ProcessRunnerService.make();
-        const attachOptions: { lines?: number; search?: string } = {};
-        if (lines._tag === "Some") {
-          attachOptions.lines = lines.value;
-        }
-        if (search._tag === "Some") {
-          attachOptions.search = search.value;
-        }
-        const attached = yield* runnerService.attachRun(
-          runName,
-          attachOptions,
-        );
-        if (attached) {
-          console.log(`Attached to run: ${runName} (Ctrl+C to detach)`);
+        yield* trackCommand("runs", "create");
+        yield* trackFeatureUsage("runs_create");
+
+        const providedName = Option.getOrUndefined(config.name);
+
+        if (providedName) {
+          // If name is provided, use the traditional CLI approach
+          const cli = new RunService();
+          yield* cli.create(providedName);
         } else {
-          console.log(
-            `Run ${runName} has already finished. Displayed stored log output.`,
-          );
+          // If no name provided, use the interactive React component
+          const runId = yield* Effect.tryPromise({
+            try: async () => {
+              const [{ render }, React, { RunCreatePrompt }] =
+                await Promise.all([
+                  import("ink"),
+                  import("react"),
+                  import("../components/RunCreatePrompt.js"),
+                ]);
+
+              return new Promise<number>((resolve, reject) => {
+                const { waitUntilExit } = render(
+                  React.createElement(RunCreatePrompt, {
+                    onComplete: (id: number) => {
+                      resolve(id);
+                    },
+                    onCancel: () => {
+                      reject(new Error("Run creation cancelled by user"));
+                    },
+                  }),
+                );
+                waitUntilExit().catch(reject);
+              });
+            },
+            catch: (error) => {
+              if (
+                error instanceof Error &&
+                error.message === "Run creation cancelled by user"
+              ) {
+                return error;
+              }
+              return new Error(
+                `Failed to start interactive run creation: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              );
+            },
+          });
+
+          console.log(`✅ Created run with ID: ${runId}`);
         }
       }),
     ),
   );
 }
 
-function buildKillSubcommand() {
-  const runNameArg = Args.text({ name: "run-name" }).pipe(
-    Args.withDescription("Name of the run to kill"),
-  );
+// -----------------------------------------------------------------------------
+// Command Implementations
+// -----------------------------------------------------------------------------
 
-  return Command.make("kill", {
-    runName: runNameArg,
-  }).pipe(
-    Command.withDescription("Kill a persistent run"),
-    Command.withHandler(({ runName }) =>
-      Effect.gen(function* () {
-        const runnerService = yield* ProcessRunnerService.make();
-        yield* runnerService.killRun(runName);
-        console.log(`Killed run: ${runName}`);
-      }),
-    ),
-  );
-}
-
-function buildListSubcommand() {
+function buildListCommand() {
   return Command.make("list").pipe(
-    Command.withDescription("List all persistent runs"),
+    Command.withDescription("List all development runs"),
     Command.withHandler(() =>
       Effect.gen(function* () {
-        const runnerService = yield* ProcessRunnerService.make();
-        const runs = yield* runnerService.listRuns();
+        yield* trackCommand("runs", "list");
+        yield* trackFeatureUsage("runs_list");
 
-        if (runs.length === 0) {
-          console.log("No active runs found.");
-          return;
-        }
-
-        console.log("Active runs:");
-        console.log("----------------");
-        runs.forEach((run) => {
-          console.log(`- ${run.runName} (PID: ${run.pid})`);
-          console.log(`  Command: ${run.command}`);
-          console.log(`  Log file: ${run.logFile}`);
-          console.log();
-        });
+        const cli = new RunService();
+        yield* cli.list();
       }),
     ),
   );
 }
 
-function buildSpawnSubcommand() {
-  const runNameArg = Args.text({ name: "run-name" }).pipe(
-    Args.withDescription("Name for the process run"),
+function buildSwitchCommand() {
+  const runIdArg = Args.integer({ name: "run-id" }).pipe(
+    Args.withDescription("ID of the run to switch to"),
   );
-  const commandArg = Args.text({ name: "command" }).pipe(
-    Args.withDescription("Command to run in the run"),
-  );
-  const logDirOption = Options.text("log-dir").pipe(
-    Options.optional,
-    Options.withDescription("Directory for log files (default: /tmp)"),
-  );
-
-  return Command.make("spawn", {
-    runName: runNameArg,
-    command: commandArg,
-    logDir: logDirOption,
-  }).pipe(
-    Command.withDescription(
-      "Spawn a persistent process run with live stdio",
-    ),
-    Command.withHandler(({ runName, command, logDir }) =>
+  return Command.make("switch", { runId: runIdArg }).pipe(
+    Command.withDescription("Switch to a different run"),
+    Command.withHandler((config) =>
       Effect.gen(function* () {
-        const runnerOptions: { logDir?: string } = {};
-        if (logDir._tag === "Some") {
-          runnerOptions.logDir = logDir.value;
-        }
-        const runnerService = yield* ProcessRunnerService.make(runnerOptions);
+        yield* trackCommand("runs", "switch");
+        yield* trackFeatureUsage("runs_switch");
 
-        // Spawn the run and immediately detach
-        const runInfo = yield* runnerService.newRun(
-          runName,
-          command,
-        );
+        const cli = new RunService();
+        yield* cli.switch(config.runId);
+      }),
+    ),
+  );
+}
 
-        console.log(`✅ Spawned run: ${runName}`);
-        console.log(`📋 Command: ${command}`);
-        console.log(`🆔 PID: ${runInfo.pid}`);
-        console.log(`📄 Log file: ${runInfo.logFile}`);
-        console.log(`\nTo attach: open-composer run attach ${runName}`);
-        console.log(`To kill: open-composer run kill ${runName}`);
+function buildArchiveCommand() {
+  const runIdArg = Args.integer({ name: "run-id" }).pipe(
+    Args.withDescription("ID of the run to archive"),
+  );
+  return Command.make("archive", { runId: runIdArg }).pipe(
+    Command.withDescription("Archive a run"),
+    Command.withHandler((config) =>
+      Effect.gen(function* () {
+        yield* trackCommand("runs", "archive");
+        yield* trackFeatureUsage("runs_archive");
 
-        // Check if we're in test mode to avoid interactive prompts
-        const isTestMode =
-          process.env.NODE_ENV === "test" || process.env.BUN_TEST === "1";
+        const cli = new RunService();
+        yield* cli.archive(config.runId);
+      }),
+    ),
+  );
+}
 
-        // In test mode, skip auto-attachment to avoid hanging
-        if (isTestMode) {
-          return;
-        }
+function buildDeleteCommand() {
+  const runIdArg = Args.integer({ name: "run-id" }).pipe(
+    Args.withDescription("ID of the run to delete"),
+  );
+  return Command.make("delete", { runId: runIdArg }).pipe(
+    Command.withDescription("Delete a run permanently"),
+    Command.withHandler((config) =>
+      Effect.gen(function* () {
+        yield* trackCommand("runs", "delete");
+        yield* trackFeatureUsage("runs_delete");
 
-        // Default behavior: automatically attach to all runs
-        console.log("\n🔄 Automatically attaching to run...\n");
-
-        // Brief delay for run initialization
-        yield* Effect.sleep(100);
-
-        // Always attach to the run we just created
-        // This will provide true interactivity since the PTY resources are still alive
-        const attachResult = yield* runnerService.attachRun(
-          runName,
-          {},
-        );
-
-        if (attachResult) {
-          console.log("\nRun ended.");
-
-          // Ensure terminal is properly restored after run end
-          if (process.stdin.isTTY) {
-            process.stdin.setRawMode(false);
-          }
-
-          // In test mode, just exit without interactive menu
-          if (isTestMode) {
-            return;
-          }
-
-          // Provide options after run completion, similar to detachment
-          yield* Effect.async<void, never>((resume) => {
-            console.log(`\n${"=".repeat(60)}`);
-            console.log("🎛️  Run completed - Choose an action:");
-            console.log("  [s] Start a new run");
-            console.log("  [l] List all runs");
-            console.log("  [q] Quit to terminal");
-            console.log("=".repeat(60));
-
-            const readline = require("node:readline");
-            const rl = readline.createInterface({
-              input: process.stdin,
-              output: process.stdout,
-            });
-
-            const handleCompletionInput = (answer: string) => {
-              const choice = answer.trim().toLowerCase();
-              switch (choice) {
-                case "s":
-                  rl.close();
-                  console.log(
-                    '\nTo start a new run, use: open-composer run spawn <name> "<command>"',
-                  );
-                  resume(Effect.succeed(void 0));
-                  break;
-                case "l":
-                  // List runs
-                  runnerService
-                    .listRuns()
-                    .pipe(Effect.runPromise)
-                    .then((runs) => {
-                      console.log("\nActive runs:");
-                      console.log("----------------");
-                      runs.forEach((run) => {
-                        console.log(
-                          `- ${run.runName} (PID: ${run.pid})`,
-                        );
-                        console.log(`  Command: ${run.command}`);
-                        console.log(`  Log file: ${run.logFile}\n`);
-                      });
-                      rl.question(
-                        "Choose action [s/l/q]: ",
-                        handleCompletionInput,
-                      );
-                    })
-                    .catch(() => {
-                      rl.question(
-                        "Choose action [s/l/q]: ",
-                        handleCompletionInput,
-                      );
-                    });
-                  break;
-                default:
-                  rl.close();
-                  resume(Effect.succeed(void 0));
-                  break;
-              }
-            };
-
-            rl.question("Choose action [s/l/q]: ", handleCompletionInput);
-          });
-        } else {
-          console.log(
-            "\nDetached from run. Run continues running in background.",
-          );
-          console.log(
-            `To re-attach: open-composer run attach ${runName}`,
-          );
-          console.log(`To kill: open-composer run kill ${runName}`);
-
-          // In test mode, just exit without interactive menu
-          if (isTestMode) {
-            return;
-          }
-
-          // Keep the process alive and provide options
-          yield* Effect.async<void, never>((resume) => {
-            console.log(`\n${"=".repeat(60)}`);
-            console.log("🎛️  Run Manager - Choose an action:");
-            console.log("  [a] Attach to this run again");
-            console.log("  [k] Kill this run");
-            console.log("  [l] List all runs");
-            console.log("  [q] Quit to terminal");
-            console.log("=".repeat(60));
-
-            const readline = require("node:readline");
-            const rl = readline.createInterface({
-              input: process.stdin,
-              output: process.stdout,
-            });
-
-            const handleInput = (answer: string) => {
-              const choice = answer.trim().toLowerCase();
-              switch (choice) {
-                case "a":
-                  rl.close();
-                  // Re-attach to the run
-                  runnerService
-                    .attachRun(runName, {})
-                    .pipe(Effect.runPromise)
-                    .then(() => {
-                      resume(Effect.succeed(void 0));
-                    })
-                    .catch(() => {
-                      resume(Effect.succeed(void 0));
-                    });
-                  break;
-                case "k":
-                  rl.close();
-                  runnerService
-                    .killRun(runName)
-                    .pipe(Effect.runPromise)
-                    .then(() => {
-                      console.log(`Run ${runName} killed.`);
-                      resume(Effect.succeed(void 0));
-                    })
-                    .catch(() => {
-                      resume(Effect.succeed(void 0));
-                    });
-                  break;
-                case "l":
-                  runnerService
-                    .listRuns()
-                    .pipe(Effect.runPromise)
-                    .then((runs) => {
-                      console.log("\nActive runs:");
-                      console.log("----------------");
-                      runs.forEach((run) => {
-                        console.log(
-                          `- ${run.runName} (PID: ${run.pid})`,
-                        );
-                        console.log(`  Command: ${run.command}`);
-                        console.log(`  Log file: ${run.logFile}\n`);
-                      });
-                      rl.question("Choose action [a/k/l/q]: ", handleInput);
-                    })
-                    .catch(() => {
-                      rl.question("Choose action [a/k/l/q]: ", handleInput);
-                    });
-                  break;
-                default:
-                  rl.close();
-                  resume(Effect.succeed(void 0));
-                  break;
-              }
-            };
-
-            rl.question("Choose action [a/k/l/q]: ", handleInput);
-          });
-        }
+        const cli = new RunService();
+        yield* cli.delete(config.runId);
       }),
     ),
   );

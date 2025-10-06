@@ -33,7 +33,7 @@ const runCli = (
       BUN_TEST: "1",
     };
 
-    const child = spawn("bun", ["run", cliPath, ...args], {
+    const child = spawn("bun", ["process", cliPath, ...args], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: join(__dirname, "../.."), // Run from CLI root directory
       env,
@@ -94,7 +94,7 @@ describe("Process Runner E2E Tests", () => {
     it("should spawn a process and allow live stdio interaction", async () => {
       // Spawn a long-running process that echoes input
       const spawnResult = await runCli(
-        ["run", "spawn", "test-interactive-run", "echo 'hello world'"],
+        ["process", "spawn", "test-interactive-run", "echo 'hello world'"],
         { timeout: 2000 },
       );
 
@@ -106,7 +106,7 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(spawnResult.stdout)).toContain("Log file:");
 
       // List runs to verify it was created
-      const listResult = await runCli(["run", "list"]);
+      const listResult = await runCli(["process", "list"]);
       expect(listResult.code).toBe(0);
       expect(stripAnsi(listResult.stdout)).toContain(
         "test-interactive-run",
@@ -114,7 +114,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Clean up
       const killResult = await runCli([
-        "run",
+        "process",
         "kill",
         "test-interactive-run",
       ]);
@@ -127,7 +127,7 @@ describe("Process Runner E2E Tests", () => {
     it("should handle process that exits immediately", async () => {
       // Spawn a process that exits immediately
       const spawnResult = await runCli([
-        "run",
+        "process",
         "spawn",
         "test-short-lived",
         "echo 'Hello from short-lived process'",
@@ -140,7 +140,7 @@ describe("Process Runner E2E Tests", () => {
 
       // The process should exit quickly, so it might not show in list
       // But the run should still be created initially
-      const listResult = await runCli(["run", "list"]);
+      const listResult = await runCli(["process", "list"]);
       expect(listResult.code).toBe(0);
       // Process may or may not be in list depending on timing
     });
@@ -148,7 +148,7 @@ describe("Process Runner E2E Tests", () => {
     it("should support attaching to running processes", async () => {
       // Spawn a process that stays alive and produces output
       const spawnResult = await runCli(
-        ["run", "spawn", "test-attach-run", "echo 'Process started'"],
+        ["process", "spawn", "test-attach-run", "echo 'Process started'"],
         { timeout: 15000 },
       );
 
@@ -161,7 +161,7 @@ describe("Process Runner E2E Tests", () => {
       // Note: In a real E2E test, we might need to handle the interactive nature differently
       // For now, we'll just verify the attach command doesn't error
       const attachResult = await runCli(
-        ["run", "attach", "test-attach-run"],
+        ["process", "attach", "test-attach-run"],
         { timeout: 3000 },
       );
 
@@ -173,7 +173,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Clean up
       const killResult = await runCli([
-        "run",
+        "process",
         "kill",
         "test-attach-run",
       ]);
@@ -188,7 +188,7 @@ describe("Process Runner E2E Tests", () => {
 
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           "test-lightweight",
           "echo 'Testing lightweight implementation'",
@@ -207,7 +207,7 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(spawnResult.stderr)).not.toContain("command not found");
 
       // Clean up
-      await runCli(["run", "kill", "test-lightweight"]);
+      await runCli(["process", "kill", "test-lightweight"]);
     });
 
     it("should handle process lifecycle without external process managers", async () => {
@@ -217,7 +217,7 @@ describe("Process Runner E2E Tests", () => {
       // Spawn
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           runName,
           "echo 'running'", // Simple process
@@ -227,16 +227,16 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // List - should show the process
-      const listResult1 = await runCli(["run", "list"]);
+      const listResult1 = await runCli(["process", "list"]);
       expect(listResult1.code).toBe(0);
       expect(stripAnsi(listResult1.stdout)).toContain(runName);
 
       // Kill
-      const killResult = await runCli(["run", "kill", runName]);
+      const killResult = await runCli(["process", "kill", runName]);
       expect(killResult.code).toBe(0);
 
       // List again - should not show the process
-      const listResult2 = await runCli(["run", "list"]);
+      const listResult2 = await runCli(["process", "list"]);
       expect(listResult2.code).toBe(0);
       expect(stripAnsi(listResult2.stdout)).not.toContain(runName);
     });
@@ -249,14 +249,14 @@ describe("Process Runner E2E Tests", () => {
       expect(helpResult.code).toBe(0);
 
       const helpText = stripAnsi(helpResult.stdout);
-      expect(helpText).toContain("run");
+      expect(helpText).toContain("process");
     });
 
     it("should handle command line arguments correctly", async () => {
       // Test run spawn with all arguments
       const result = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           "--log-dir",
           join(testWorkDir, "custom-logs"),
@@ -270,13 +270,13 @@ describe("Process Runner E2E Tests", () => {
       expect(stripAnsi(result.stdout)).toContain("Spawned run: test-args");
 
       // Clean up
-      await runCli(["run", "kill", "test-args"]);
+      await runCli(["process", "kill", "test-args"]);
     });
 
     it("should provide helpful error messages for invalid commands", async () => {
       // Test with non-existent run
       const attachResult = await runCli([
-        "run",
+        "process",
         "attach",
         "non-existent-run",
       ]);
@@ -285,7 +285,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Test kill with non-existent run
       const killResult = await runCli([
-        "run",
+        "process",
         "kill",
         "non-existent-run",
       ]);
@@ -301,7 +301,7 @@ describe("Process Runner E2E Tests", () => {
       // Spawn a run
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           runName,
           "echo 'run started'", // Simple process
@@ -311,18 +311,18 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Verify run exists
-      const listResult1 = await runCli(["run", "list"]);
+      const listResult1 = await runCli(["process", "list"]);
       expect(listResult1.code).toBe(0);
       expect(stripAnsi(listResult1.stdout)).toContain(runName);
 
       // Simulate "CLI restart" by running another command
       // In a real scenario, this would be a separate process
-      const listResult2 = await runCli(["run", "list"]);
+      const listResult2 = await runCli(["process", "list"]);
       expect(listResult2.code).toBe(0);
       expect(stripAnsi(listResult2.stdout)).toContain(runName);
 
       // Clean up
-      const killResult = await runCli(["run", "kill", runName]);
+      const killResult = await runCli(["process", "kill", runName]);
       expect(killResult.code).toBe(0);
     });
 
@@ -332,7 +332,7 @@ describe("Process Runner E2E Tests", () => {
       // Spawn a process that generates output
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           runName,
           "echo 'line 1' && echo 'line 2' && echo 'line 3'",
@@ -357,7 +357,7 @@ describe("Process Runner E2E Tests", () => {
       // Test log recovery by attaching with line limit
       // Note: This tests the log recovery feature, not live attachment
       const attachResult = await runCli(
-        ["run", "attach", runName, "--lines", "2"],
+        ["process", "attach", runName, "--lines", "2"],
         { timeout: 3000 },
       );
 
@@ -368,7 +368,7 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["run", "kill", runName]);
+      await runCli(["process", "kill", runName]);
     });
 
     it("should support log filtering with search patterns", async () => {
@@ -377,7 +377,7 @@ describe("Process Runner E2E Tests", () => {
       // Spawn a process that generates searchable output
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           runName,
           "echo 'INFO: Starting process' && echo 'ERROR: Something went wrong' && echo 'INFO: Process completed'",
@@ -388,7 +388,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Test attaching with search filter
       const attachResult = await runCli(
-        ["run", "attach", runName, "--search", "ERROR"],
+        ["process", "attach", runName, "--search", "ERROR"],
         { timeout: 3000 },
       );
       expect(attachResult.code).not.toBeNull();
@@ -397,7 +397,7 @@ describe("Process Runner E2E Tests", () => {
       }
 
       // Clean up
-      await runCli(["run", "kill", runName]);
+      await runCli(["process", "kill", runName]);
     });
 
     it("should clean up dead processes from run list", async () => {
@@ -405,7 +405,7 @@ describe("Process Runner E2E Tests", () => {
 
       // Spawn a short-lived process
       const spawnResult = await runCli(
-        ["run", "spawn", runName, "echo 'Quick process' && exit 0"],
+        ["process", "spawn", runName, "echo 'Quick process' && exit 0"],
         { timeout: 15000 },
       );
       expect(spawnResult.code).toBe(0);
@@ -414,7 +414,7 @@ describe("Process Runner E2E Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // List should clean up dead processes
-      const listResult = await runCli(["run", "list"]);
+      const listResult = await runCli(["process", "list"]);
       expect(listResult.code).toBe(0);
 
       // The run should not appear in the list anymore
@@ -426,7 +426,7 @@ describe("Process Runner E2E Tests", () => {
     it("should work on the current platform", async () => {
       // Basic functionality test that should work on any supported platform
       const spawnResult = await runCli(
-        ["run", "spawn", "test-platform", "echo 'Platform test'"],
+        ["process", "spawn", "test-platform", "echo 'Platform test'"],
         { timeout: 15000 },
       );
 
@@ -436,7 +436,7 @@ describe("Process Runner E2E Tests", () => {
       );
 
       // Clean up
-      await runCli(["run", "kill", "test-platform"]);
+      await runCli(["process", "kill", "test-platform"]);
     });
 
     it("should handle platform-specific path separators", async () => {
@@ -444,7 +444,7 @@ describe("Process Runner E2E Tests", () => {
       const testFile = join(testWorkDir, "test.txt");
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           "test-paths",
           `echo 'test content' > "${testFile}" && cat "${testFile}"`,
@@ -455,13 +455,13 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Clean up
-      await runCli(["run", "kill", "test-paths"]);
+      await runCli(["process", "kill", "test-paths"]);
     });
   });
 
   describe("Error Handling", () => {
     it("should handle invalid run names gracefully", async () => {
-      const result = await runCli(["run", "attach", ""]);
+      const result = await runCli(["process", "attach", ""]);
       expect(result.code).toBe(1);
       // CLI framework handles argument validation errors
     });
@@ -472,7 +472,7 @@ describe("Process Runner E2E Tests", () => {
 
       const spawnResult = await runCli(
         [
-          "run",
+          "process",
           "spawn",
           runName,
           "echo 'test concurrent' && sleep 0.5",
@@ -482,13 +482,13 @@ describe("Process Runner E2E Tests", () => {
       expect(spawnResult.code).toBe(0);
 
       // Immediate kill
-      const killResult = await runCli(["run", "kill", runName]);
+      const killResult = await runCli(["process", "kill", runName]);
       expect(killResult.code).toBe(0);
     });
 
     it("should handle malformed commands gracefully", async () => {
       // Test with missing arguments
-      const result = await runCli(["run", "spawn"]);
+      const result = await runCli(["process", "spawn"]);
       expect(result.code).toBe(1);
       // CLI framework handles argument validation errors
     });

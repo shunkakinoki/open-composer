@@ -4,7 +4,7 @@ import {
   buildRunner,
 } from "../../src/commands/composer-command.js";
 import { buildGHPRCommand } from "../../src/commands/gh-pr-command.js";
-import { buildRunsCommand } from "../../src/commands/runs-command.js";
+import { buildRunsCommand } from "../../src/commands/run-command.js";
 
 describe.concurrent("composer command", () => {
   describe.concurrent("Root Command Structure", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildRunsCommand } from "../../src/commands/runs-command.js";
+import { buildRunsCommand } from "../../src/commands/run-command.js";
 
 describe.concurrent("runs command", () => {
   describe.concurrent("Command Structure", () => {

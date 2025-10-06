@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import type { Session } from "@open-composer/db";
 import * as Effect from "effect/Effect";
-import { RunsService } from "../../src/services/runs-service.js";
+import { RunsService } from "../../src/services/run-service.js";
 import { createMockSqliteDrizzle } from "../helpers/db-mock.js";
 
 // Mock file system operations
