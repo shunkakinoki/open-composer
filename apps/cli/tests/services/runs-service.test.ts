@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import type { Session } from "@open-composer/db";
 import * as Effect from "effect/Effect";
-import { RunsService } from "../../src/services/run-service.js";
+import { RunService } from "../../src/services/run-service.js";
 import { createMockSqliteDrizzle } from "../helpers/db-mock.js";
 
 // Mock file system operations
@@ -58,12 +58,12 @@ mock.module("../../src/services/stack-service", () => ({
 // Mock console.log
 const mockConsoleLog = spyOn(console, "log");
 
-describe("RunsService", () => {
-  let service: RunsService;
+describe("RunService", () => {
+  let service: RunService;
   let mockDbSetup: ReturnType<typeof createMockSqliteDrizzle>;
 
   beforeEach(() => {
-    service = new RunsService();
+    service = new RunService();
     mockDbSetup = createMockSqliteDrizzle();
     mockConsoleLog.mockClear();
     mockFsAccess.mockClear();
@@ -75,8 +75,8 @@ describe("RunsService", () => {
     mockConsoleLog.mockRestore();
   });
 
-  test.serial("should instantiate RunsService", () => {
-    expect(service).toBeInstanceOf(RunsService);
+  test.serial("should instantiate RunService", () => {
+    expect(service).toBeInstanceOf(RunService);
   });
 
   describe("createInteractive", () => {
