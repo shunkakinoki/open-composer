@@ -3,57 +3,57 @@ import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
-import { SessionsService } from "../services/sessions-service.js";
+import { RunsService } from "../services/runs-service.js";
 
 /**
- * Interactive React component for creating development sessions.
+ * Interactive React component for creating development runs.
  *
  * Only prompts for information that wasn't provided via props:
- * - If initialName is not provided, prompts for session name
+ * - If initialName is not provided, prompts for run name
  * - If initialWorkspaceChoice is not provided, prompts for workspace choice
  * - If workspace choice requires a path and initialWorkspacePath is not provided, prompts for path
  * - Otherwise, shows confirmation and allows immediate creation
  *
  * @example
  * // Prompt for everything
- * <SessionCreatePrompt onComplete={(id) => console.log(`Created session ${id}`)} />
+ * <RunCreatePrompt onComplete={(id) => console.log(`Created run ${id}`)} />
  *
  * @example
  * // Only prompt for workspace choice and path
- * <SessionCreatePrompt
+ * <RunCreatePrompt
  *   initialName="My Project"
- *   onComplete={(id) => console.log(`Created session ${id}`)}
+ *   onComplete={(id) => console.log(`Created run ${id}`)}
  * />
  *
  * @example
  * // Only prompt for workspace path
- * <SessionCreatePrompt
+ * <RunCreatePrompt
  *   initialName="My Project"
  *   initialWorkspaceChoice="existing"
- *   onComplete={(id) => console.log(`Created session ${id}`)}
+ *   onComplete={(id) => console.log(`Created run ${id}`)}
  * />
  *
  * @example
  * // No prompts - direct confirmation
- * <SessionCreatePrompt
+ * <RunCreatePrompt
  *   initialName="My Project"
  *   initialWorkspaceChoice="none"
- *   onComplete={(id) => console.log(`Created session ${id}`)}
+ *   onComplete={(id) => console.log(`Created run ${id}`)}
  * />
  */
 
 type WorkspaceChoice = "existing" | "create" | "none";
 type Step = "name" | "workspace-choice" | "workspace-path" | "confirm";
 
-interface SessionCreatePromptProps {
+interface RunCreatePromptProps {
   initialName?: string;
   initialWorkspaceChoice?: "existing" | "create" | "none";
   initialWorkspacePath?: string;
-  onComplete: (sessionId: number) => void;
+  onComplete: (runId: number) => void;
   onCancel?: () => void;
 }
 
-export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
+export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
   initialName,
   initialWorkspaceChoice,
   initialWorkspacePath,
@@ -74,7 +74,7 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
   };
 
   const [step, setStep] = useState<Step>(getInitialStep());
-  const [sessionName, setSessionName] = useState(initialName || "");
+  const [runName, setRunName] = useState(initialName || "");
   const [workspaceChoice, setWorkspaceChoice] = useState<WorkspaceChoice>(
     initialWorkspaceChoice || "existing",
   );
@@ -85,19 +85,19 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { exit } = useApp();
 
-  const handleCreateSession = async () => {
+  const handleCreateRun = async () => {
     setIsCreating(true);
     setError(null);
 
     try {
-      const cli = new SessionsService();
-      const sessionId = await cli
-        .createInteractive(sessionName, workspaceChoice, workspacePath)
+      const cli = new RunsService();
+      const runId = await cli
+        .createInteractive(runName, workspaceChoice, workspacePath)
         .pipe(Effect.provide(DatabaseLive), Effect.runPromise);
-      onComplete(sessionId);
+      onComplete(runId);
       exit();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create session");
+      setError(err instanceof Error ? err.message : "Failed to create run");
       setIsCreating(false);
     }
   };
@@ -115,16 +115,16 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
       switch (step) {
         case "name":
           if (key.return) {
-            if (sessionName.trim()) {
+            if (runName.trim()) {
               setStep("workspace-choice");
             } else {
-              setSessionName(`Session ${Date.now()}`);
+              setRunName(`Run ${Date.now()}`);
               setStep("workspace-choice");
             }
           } else if (key.backspace || key.delete) {
-            setSessionName(sessionName.slice(0, -1));
+            setRunName(runName.slice(0, -1));
           } else if (input && !key.ctrl && !key.meta) {
-            setSessionName(sessionName + input);
+            setRunName(runName + input);
           }
           break;
 
@@ -159,7 +159,7 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
 
         case "confirm":
           if (key.return) {
-            handleCreateSession();
+            handleCreateRun();
           }
           break;
       }
@@ -173,13 +173,13 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
         return (
           <Box flexDirection="column">
             <Text bold color="cyan">
-              🎯 Create New Session
+              🎯 Create New Run
             </Text>
             <Box marginTop={1}>
-              <Text>Enter session name (press Enter for auto-generated):</Text>
+              <Text>Enter run name (press Enter for auto-generated):</Text>
             </Box>
             <Box marginTop={1}>
-              <Text color="green">{sessionName}</Text>
+              <Text color="green">{runName}</Text>
               <Text color="gray">_</Text>
             </Box>
             <Box marginTop={1}>
@@ -213,7 +213,7 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
               <Box marginTop={1}>
                 <Text color={workspaceChoice === "none" ? "green" : "gray"}>
                   {workspaceChoice === "none" ? "●" : "○"} 3. No workspace (just
-                  session tracking)
+                  run tracking)
                 </Text>
               </Box>
             </Box>
@@ -258,11 +258,11 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
         return (
           <Box flexDirection="column">
             <Text bold color="cyan">
-              ✅ Confirm Session Creation
+              ✅ Confirm Run Creation
             </Text>
             <Box marginTop={1}>
               <Text>
-                Session Name: <Text color="green">{sessionName}</Text>
+                Run Name: <Text color="green">{runName}</Text>
               </Text>
             </Box>
             <Box marginTop={1}>
@@ -275,7 +275,7 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
             </Box>
             <Box marginTop={2}>
               <Text color="gray">
-                Press Enter to create session, Esc to cancel
+                Press Enter to create run, Esc to cancel
               </Text>
             </Box>
             {error && (
@@ -292,10 +292,10 @@ export const SessionCreatePrompt: React.FC<SessionCreatePromptProps> = ({
     return (
       <Box flexDirection="column" padding={2}>
         <Text bold color="cyan">
-          🔄 Creating Session...
+          🔄 Creating Run...
         </Text>
         <Box marginTop={1}>
-          <Text>Please wait while we set up your session.</Text>
+          <Text>Please wait while we set up your run.</Text>
         </Box>
       </Box>
     );

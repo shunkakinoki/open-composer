@@ -3,12 +3,12 @@
 // =============================================================================
 
 export interface ProcessRunnerOptions {
-  readonly sessionDir?: string; // Directory for session metadata
+  readonly runDir?: string; // Directory for run metadata
   readonly logDir?: string; // Directory for log files
 }
 
-export interface ProcessSessionInfo {
-  readonly sessionName: string;
+export interface ProcessRunInfo {
+  readonly runName: string;
   readonly pid: number;
   readonly command: string;
   readonly logFile: string;
@@ -43,7 +43,7 @@ export interface PtyProcess {
 }
 
 // Resource tracking for proper cleanup
-export interface SessionResources {
+export interface RunResources {
   pty: PtyProcess;
   logStream: { write: (data: string | Buffer) => void; close: () => void };
   cleanupTimeout?: NodeJS.Timeout;

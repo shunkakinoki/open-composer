@@ -1,27 +1,6 @@
-import * as path from "node:path";
 import { Args, Command, Options } from "@effect/cli";
-import {
-  type AgentChecker,
-  getAvailableAgents,
-} from "@open-composer/agent-router";
-import type { CacheServiceInterface } from "@open-composer/cache";
-import { type GitCommandError, type GitService, run } from "@open-composer/git";
-import { trackStackBranch } from "@open-composer/git-stack";
-import {
-  type ProcessRunnerError,
-  ProcessRunnerService,
-  type ProcessSessionInfo,
-} from "@open-composer/process-runner";
-import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
-import { render } from "ink";
-import React from "react";
-import { type RunConfig, RunPrompt } from "../components/RunPrompt.js";
-import { GitWorktreeService } from "../services/git-worktree-service.js";
-import {
-  trackCommand,
-  trackFeatureUsage,
-} from "../services/telemetry-service.js";
+import { ProcessRunnerService } from "@open-composer/process-runner";
+import { Effect } from "effect";
 import type { CommandBuilder } from "../types/commands.js";
 
 // -----------------------------------------------------------------------------
@@ -29,395 +8,347 @@ import type { CommandBuilder } from "../types/commands.js";
 // -----------------------------------------------------------------------------
 
 export const buildRunCommand = (): CommandBuilder<"run"> => ({
-  command: () => buildRunCommandInternal(),
+  command: () =>
+    Command.make("run").pipe(
+      Command.withDescription("Manage persistent process runs"),
+      Command.withSubcommands([
+        buildAttachSubcommand(),
+        buildKillSubcommand(),
+        buildListSubcommand(),
+        buildSpawnSubcommand(),
+      ]),
+    ),
   metadata: {
     name: "run",
-    description:
-      "Run AI agents with a task description to create stack branches and PRs",
+    description: "Manage persistent process runs",
   },
 });
 
 // -----------------------------------------------------------------------------
-// Helper Functions
-// -----------------------------------------------------------------------------
-
-// Function to get available agents from agent router
-const getAvailableAgentNamesInternal: Effect.Effect<
-  readonly string[],
-  never,
-  CacheServiceInterface
-> = Effect.gen(function* () {
-  const agents = yield* getAvailableAgents;
-  return agents.map(
-    (agent: AgentChecker) => agent.definition.name,
-  ) as readonly string[];
-});
-
-// -----------------------------------------------------------------------------
-function getRepositoryName(): Effect.Effect<string, GitCommandError> {
-  return run(["rev-parse", "--show-toplevel"], {}).pipe(
-    Effect.map((result) => {
-      const fullPath = result.stdout.trim();
-      return fullPath.split("/").pop() || "unknown-repo";
-    }),
-  );
-}
-
-function getRepositoryRoot(): Effect.Effect<string, GitCommandError> {
-  return run(["rev-parse", "--show-toplevel"], {}).pipe(
-    Effect.map((result) => result.stdout.trim()),
-  );
-}
-
 // Command Implementations
 // -----------------------------------------------------------------------------
 
-function buildRunCommandInternal() {
-  const descriptionArg = Args.text({ name: "description" }).pipe(
-    Args.withDescription(
-      "Description of what you want to do (e.g., 'make a pull request')",
-    ),
+function buildAttachSubcommand() {
+  const runNameArg = Args.text({ name: "run-name" }).pipe(
+    Args.withDescription("Name of the run to attach to"),
   );
-
-  const agentOption = Options.text("agent").pipe(
+  const linesOption = Options.integer("lines").pipe(
     Options.optional,
     Options.withDescription(
-      "Specific agent to use (bypasses agent selection prompt)",
+      "Number of lines to display from log history before live output",
     ),
   );
-
-  const baseBranchOption = Options.text("base").pipe(
+  const searchOption = Options.text("search").pipe(
     Options.optional,
-    Options.withDescription("Base branch to branch from (default: main)"),
-  );
-
-  const createPROption = Options.boolean("create-pr").pipe(
-    Options.withDefault(true),
     Options.withDescription(
-      "Create PRs for the spawned worktrees (default: true)",
+      "Search pattern to filter log output before live output",
     ),
   );
 
-  return Command.make("run", {
-    description: descriptionArg,
-    agent: agentOption,
-    base: baseBranchOption,
-    createPR: createPROption,
+  return Command.make("attach", {
+    runName: runNameArg,
+    lines: linesOption,
+    search: searchOption,
   }).pipe(
-    Command.withDescription(
-      "Run AI agents with a task description to create stack branches and PRs",
-    ),
-    Command.withHandler((config) =>
+    Command.withDescription("Attach to a persistent run with live stdio"),
+    Command.withHandler(({ runName, lines, search }) =>
       Effect.gen(function* () {
-        yield* trackCommand("run");
-        yield* trackFeatureUsage("run", {
-          has_agent: Option.isSome(config.agent),
-          has_base: Option.isSome(config.base),
-          create_pr: config.createPR,
-        });
-
-        // Check if we have a specific agent or need to prompt
-        if (Option.isSome(config.agent)) {
-          // Non-interactive mode - use provided agent
-          const runConfig: RunConfig = {
-            description: config.description,
-            agent: Option.getOrThrow(config.agent),
-            baseBranch: Option.getOrUndefined(config.base) ?? "main",
-            createPR: config.createPR,
-          };
-
-          yield* executeRun(runConfig);
+        const runnerService = yield* ProcessRunnerService.make();
+        const attachOptions: { lines?: number; search?: string } = {};
+        if (lines._tag === "Some") {
+          attachOptions.lines = lines.value;
+        }
+        if (search._tag === "Some") {
+          attachOptions.search = search.value;
+        }
+        const attached = yield* runnerService.attachRun(
+          runName,
+          attachOptions,
+        );
+        if (attached) {
+          console.log(`Attached to run: ${runName} (Ctrl+C to detach)`);
         } else {
-          // Interactive mode - prompt for agent selection
-          const availableAgentNames = yield* getAvailableAgentNamesInternal;
-          const runConfig = yield* Effect.tryPromise({
-            try: async () => {
-              return new Promise<RunConfig>((resolve, reject) => {
-                const { waitUntilExit } = render(
-                  React.createElement(RunPrompt, {
-                    description: config.description,
-                    availableAgents: availableAgentNames,
-                    baseBranch: Option.getOrUndefined(config.base) ?? "main",
-                    createPR: config.createPR,
-                    onComplete: (config: RunConfig) => {
-                      resolve(config);
-                    },
-                    onCancel: () => {
-                      reject(new Error("Run cancelled by user"));
-                    },
-                  }),
-                );
-                waitUntilExit().catch(reject);
-              });
-            },
-            catch: (error) => {
-              if (
-                error instanceof Error &&
-                error.message === "Run cancelled by user"
-              ) {
-                return error;
-              }
-              return new Error(
-                `Failed to start interactive run: ${
-                  error instanceof Error ? error.message : String(error)
-                }`,
-              );
-            },
-          });
-
-          yield* executeRun(runConfig);
+          console.log(
+            `Run ${runName} has already finished. Displayed stored log output.`,
+          );
         }
       }),
     ),
   );
 }
 
-function executeRun(
-  config: RunConfig,
-): Effect.Effect<
-  void,
-  Error | GitCommandError | ProcessRunnerError,
-  GitService | CacheServiceInterface
-> {
-  return Effect.gen(function* () {
-    console.log(`\n🚀 Running task: ${config.description}`);
-    console.log(`🤖 Agent: ${config.agent}`);
-    console.log(`🌿 Base branch: ${config.baseBranch}`);
-    console.log(`🔗 Create PR: ${config.createPR ? "Yes" : "No"}\n`);
+function buildKillSubcommand() {
+  const runNameArg = Args.text({ name: "run-name" }).pipe(
+    Args.withDescription("Name of the run to kill"),
+  );
 
-    // Create worktree and spawn agent session
-    const result = yield* createWorktreeAndRunAgent(config);
-
-    // Show the final status output - this shows immediate status after creation
-    yield* showRunOutput(config, result);
-
-    // Force exit after a short delay to allow output to flush
-    // The spawned session continues running in the background
-    yield* Effect.sync(() => {
-      setTimeout(() => process.exit(0), 100);
-    });
-  });
-}
-
-interface RunResult {
-  agent: string;
-  branchName: string;
-  worktreePath: string;
-  sessionName: string;
-  prNumber?: number;
-  changes?: string;
-}
-
-function createWorktreeAndRunAgent(
-  config: RunConfig,
-): Effect.Effect<
-  RunResult,
-  Error | GitCommandError | ProcessRunnerError,
-  GitService
-> {
-  return Effect.gen(function* () {
-    const timestamp = Date.now();
-    const branchName = `${config.agent}-run-${timestamp}`;
-    const repoName = yield* getRepositoryName();
-    const repoRoot = yield* getRepositoryRoot();
-    const worktreePath = path.join(
-      "..",
-      `${repoName}.worktree`,
-      `run-${timestamp}`,
-    );
-    const sessionName = `open-composer-${branchName}`;
-
-    // Create worktree (which also creates the branch)
-    // Use repository root as the working directory for git worktree commands
-    const gitWorktreeService = new GitWorktreeService(repoRoot);
-    yield* gitWorktreeService.create({
-      path: worktreePath,
-      ref: config.baseBranch,
-      branch: branchName,
-      force: false,
-      detach: false,
-      checkout: true,
-      branchForce: false,
-    });
-
-    console.log(`Created worktree at ${worktreePath}`);
-    console.log(`Created branch '${branchName}' from ${config.baseBranch}`);
-
-    // Track the branch in git-stack
-    yield* trackStackBranch(branchName, config.baseBranch);
-    console.log(`Tracked stack branch '${branchName}'`);
-
-    // Spawn agent session using ProcessRunner
-    const sessionInfo = yield* spawnAgentSession(
-      config.agent,
-      worktreePath,
-      sessionName,
-      config.description,
-    );
-    console.log(
-      `Spawned agent session ${sessionName} with ${config.agent} at ${sessionInfo.pid}`,
-    );
-
-    // Calculate change stats
-    const changes = yield* calculateChangeStats(
-      worktreePath,
-      config.baseBranch,
-    );
-
-    // Create PR if requested
-    let prNumber: number | undefined;
-    if (config.createPR) {
-      prNumber = yield* createPR(branchName, config.baseBranch);
-    }
-
-    return {
-      agent: config.agent,
-      branchName,
-      worktreePath,
-      sessionName,
-      ...(prNumber !== undefined && { prNumber }),
-      changes,
-    };
-  });
-}
-
-function spawnAgentSession(
-  agent: string,
-  worktreePath: string,
-  sessionName: string,
-  description: string,
-): Effect.Effect<ProcessSessionInfo, ProcessRunnerError, never> {
-  return Effect.gen(function* () {
-    const runnerService = yield* ProcessRunnerService.make();
-
-    // Build the command based on the agent
-    const command = getAgentCommand(agent, worktreePath, description);
-
-    const sessionInfo = yield* runnerService.newSession(sessionName, command);
-
-    return sessionInfo;
-  });
-}
-
-function getAgentCommand(
-  agent: string,
-  worktreePath: string,
-  description: string,
-): string {
-  // Route to specific agent commands based on agent type
-  switch (agent.toLowerCase()) {
-    case "claude-code":
-      return `cd "${worktreePath}" && echo "Running Claude Code for: ${description}" && exec $SHELL`;
-
-    case "codex":
-      return `cd "${worktreePath}" && echo "Running Codex for: ${description}" && exec $SHELL`;
-
-    case "opencode":
-      return `cd "${worktreePath}" && echo "Running OpenCode for: ${description}" && exec $SHELL`;
-
-    default:
-      // Fallback for unknown agents
-      return `cd "${worktreePath}" && echo "Running ${agent} for: ${description}" && exec $SHELL`;
-  }
-}
-
-function calculateChangeStats(
-  worktreePath: string,
-  baseBranch: string,
-): Effect.Effect<string, never> {
-  return run(["diff", "--stat", `${baseBranch}..HEAD`], {
-    cwd: worktreePath,
+  return Command.make("kill", {
+    runName: runNameArg,
   }).pipe(
-    Effect.map((result) => {
-      // Parse the output to extract added and removed lines
-      const lines = result.stdout.split("\n");
-      const statLine = lines[lines.length - 1]; // Last line contains the summary
-
-      if (!statLine || !statLine.includes("changed")) {
-        return "0+ 0-";
-      }
-
-      // Extract numbers from the stat line
-      const insertionsMatch = statLine.match(/(\d+) insertion/);
-      const deletionsMatch = statLine.match(/(\d+) deletion/);
-
-      const insertions = insertionsMatch ? parseInt(insertionsMatch[1], 10) : 0;
-      const deletions = deletionsMatch ? parseInt(deletionsMatch[1], 10) : 0;
-
-      return `${insertions}+ ${deletions}-`;
-    }),
-    Effect.catchAll(() => Effect.succeed("0+ 0-")),
+    Command.withDescription("Kill a persistent run"),
+    Command.withHandler(({ runName }) =>
+      Effect.gen(function* () {
+        const runnerService = yield* ProcessRunnerService.make();
+        yield* runnerService.killRun(runName);
+        console.log(`Killed run: ${runName}`);
+      }),
+    ),
   );
 }
 
-function createPR(
-  _branchName: string,
-  _baseBranch: string,
-): Effect.Effect<number, Error> {
-  return Effect.sync(() => {
-    // Simulate PR creation
-    // In a real implementation, this would use the GitHub CLI or API
-    const simulatedPrNumber = Math.floor(Math.random() * 1000) + 100;
+function buildListSubcommand() {
+  return Command.make("list").pipe(
+    Command.withDescription("List all persistent runs"),
+    Command.withHandler(() =>
+      Effect.gen(function* () {
+        const runnerService = yield* ProcessRunnerService.make();
+        const runs = yield* runnerService.listRuns();
 
-    return simulatedPrNumber;
-  });
+        if (runs.length === 0) {
+          console.log("No active runs found.");
+          return;
+        }
+
+        console.log("Active runs:");
+        console.log("----------------");
+        runs.forEach((run) => {
+          console.log(`- ${run.runName} (PID: ${run.pid})`);
+          console.log(`  Command: ${run.command}`);
+          console.log(`  Log file: ${run.logFile}`);
+          console.log();
+        });
+      }),
+    ),
+  );
 }
 
-function showRunOutput(
-  config: RunConfig,
-  result: RunResult,
-): Effect.Effect<void, never, CacheServiceInterface> {
-  return Effect.gen(function* () {
-    // Status overview
-    console.log("----------------------------");
-    console.log("Open-Composer Run Status");
-    console.log("----------------------------");
-    console.log();
-    console.log("Task:", config.description);
-    console.log();
+function buildSpawnSubcommand() {
+  const runNameArg = Args.text({ name: "run-name" }).pipe(
+    Args.withDescription("Name for the process run"),
+  );
+  const commandArg = Args.text({ name: "command" }).pipe(
+    Args.withDescription("Command to run in the run"),
+  );
+  const logDirOption = Options.text("log-dir").pipe(
+    Options.optional,
+    Options.withDescription("Directory for log files (default: /tmp)"),
+  );
 
-    console.log("Agent Running:");
-    console.log(
-      `- ${result.agent}: Running in ${result.worktreePath} (Session: ${result.sessionName})`,
-    );
+  return Command.make("spawn", {
+    runName: runNameArg,
+    command: commandArg,
+    logDir: logDirOption,
+  }).pipe(
+    Command.withDescription(
+      "Spawn a persistent process run with live stdio",
+    ),
+    Command.withHandler(({ runName, command, logDir }) =>
+      Effect.gen(function* () {
+        const runnerOptions: { logDir?: string } = {};
+        if (logDir._tag === "Some") {
+          runnerOptions.logDir = logDir.value;
+        }
+        const runnerService = yield* ProcessRunnerService.make(runnerOptions);
 
-    // Get available agents and show agents not running
-    const availableAgents = yield* getAvailableAgentNamesInternal;
-    const notRunningAgents = availableAgents.filter(
-      (agent: string) => agent !== result.agent,
-    );
-    notRunningAgents.forEach((agent: string) => {
-      console.log(`- ${agent}: Not running`);
-    });
-    console.log();
+        // Spawn the run and immediately detach
+        const runInfo = yield* runnerService.newRun(
+          runName,
+          command,
+        );
 
-    // Worktrees & PRs table
-    console.log("Worktrees & PRs:");
-    console.log(
-      "|----------------------------|-------------|-------------|------|--------|---------|------------|",
-    );
-    console.log(
-      "| Worktree                   | Agent       | Base Branch | PR # | Status | Tracked | Changes    |",
-    );
-    console.log(
-      "|----------------------------|-------------|-------------|------|--------|---------|------------|",
-    );
+        console.log(`✅ Spawned run: ${runName}`);
+        console.log(`📋 Command: ${command}`);
+        console.log(`🆔 PID: ${runInfo.pid}`);
+        console.log(`📄 Log file: ${runInfo.logFile}`);
+        console.log(`\nTo attach: open-composer run attach ${runName}`);
+        console.log(`To kill: open-composer run kill ${runName}`);
 
-    const prNumber = result.prNumber?.toString() ?? "None";
-    const prStatus = result.prNumber ? "open" : "n/a";
-    const changes = result.changes ?? "0+ 0-";
+        // Check if we're in test mode to avoid interactive prompts
+        const isTestMode =
+          process.env.NODE_ENV === "test" || process.env.BUN_TEST === "1";
 
-    console.log(
-      `| ${result.branchName.padEnd(26)} | ${result.agent.padEnd(11)} | ${config.baseBranch.padEnd(11)} | ${prNumber.padEnd(4)} | ${prStatus.padEnd(6)} | +       | ${changes.padEnd(10)} |`,
-    );
-    console.log();
+        // In test mode, skip auto-attachment to avoid hanging
+        if (isTestMode) {
+          return;
+        }
 
-    // Stacked PR Graph
-    console.log("Stacked PR Graph:");
-    console.log(`* ${config.baseBranch}`);
+        // Default behavior: automatically attach to all runs
+        console.log("\n🔄 Automatically attaching to run...\n");
 
-    console.log(
-      `  |- * ${result.worktreePath} (PR #${result.prNumber ?? "None"}: ${prStatus} +, Changes ${changes})`,
-    );
-  });
+        // Brief delay for run initialization
+        yield* Effect.sleep(100);
+
+        // Always attach to the run we just created
+        // This will provide true interactivity since the PTY resources are still alive
+        const attachResult = yield* runnerService.attachRun(
+          runName,
+          {},
+        );
+
+        if (attachResult) {
+          console.log("\nRun ended.");
+
+          // Ensure terminal is properly restored after run end
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode(false);
+          }
+
+          // In test mode, just exit without interactive menu
+          if (isTestMode) {
+            return;
+          }
+
+          // Provide options after run completion, similar to detachment
+          yield* Effect.async<void, never>((resume) => {
+            console.log(`\n${"=".repeat(60)}`);
+            console.log("🎛️  Run completed - Choose an action:");
+            console.log("  [s] Start a new run");
+            console.log("  [l] List all runs");
+            console.log("  [q] Quit to terminal");
+            console.log("=".repeat(60));
+
+            const readline = require("node:readline");
+            const rl = readline.createInterface({
+              input: process.stdin,
+              output: process.stdout,
+            });
+
+            const handleCompletionInput = (answer: string) => {
+              const choice = answer.trim().toLowerCase();
+              switch (choice) {
+                case "s":
+                  rl.close();
+                  console.log(
+                    '\nTo start a new run, use: open-composer run spawn <name> "<command>"',
+                  );
+                  resume(Effect.succeed(void 0));
+                  break;
+                case "l":
+                  // List runs
+                  runnerService
+                    .listRuns()
+                    .pipe(Effect.runPromise)
+                    .then((runs) => {
+                      console.log("\nActive runs:");
+                      console.log("----------------");
+                      runs.forEach((run) => {
+                        console.log(
+                          `- ${run.runName} (PID: ${run.pid})`,
+                        );
+                        console.log(`  Command: ${run.command}`);
+                        console.log(`  Log file: ${run.logFile}\n`);
+                      });
+                      rl.question(
+                        "Choose action [s/l/q]: ",
+                        handleCompletionInput,
+                      );
+                    })
+                    .catch(() => {
+                      rl.question(
+                        "Choose action [s/l/q]: ",
+                        handleCompletionInput,
+                      );
+                    });
+                  break;
+                default:
+                  rl.close();
+                  resume(Effect.succeed(void 0));
+                  break;
+              }
+            };
+
+            rl.question("Choose action [s/l/q]: ", handleCompletionInput);
+          });
+        } else {
+          console.log(
+            "\nDetached from run. Run continues running in background.",
+          );
+          console.log(
+            `To re-attach: open-composer run attach ${runName}`,
+          );
+          console.log(`To kill: open-composer run kill ${runName}`);
+
+          // In test mode, just exit without interactive menu
+          if (isTestMode) {
+            return;
+          }
+
+          // Keep the process alive and provide options
+          yield* Effect.async<void, never>((resume) => {
+            console.log(`\n${"=".repeat(60)}`);
+            console.log("🎛️  Run Manager - Choose an action:");
+            console.log("  [a] Attach to this run again");
+            console.log("  [k] Kill this run");
+            console.log("  [l] List all runs");
+            console.log("  [q] Quit to terminal");
+            console.log("=".repeat(60));
+
+            const readline = require("node:readline");
+            const rl = readline.createInterface({
+              input: process.stdin,
+              output: process.stdout,
+            });
+
+            const handleInput = (answer: string) => {
+              const choice = answer.trim().toLowerCase();
+              switch (choice) {
+                case "a":
+                  rl.close();
+                  // Re-attach to the run
+                  runnerService
+                    .attachRun(runName, {})
+                    .pipe(Effect.runPromise)
+                    .then(() => {
+                      resume(Effect.succeed(void 0));
+                    })
+                    .catch(() => {
+                      resume(Effect.succeed(void 0));
+                    });
+                  break;
+                case "k":
+                  rl.close();
+                  runnerService
+                    .killRun(runName)
+                    .pipe(Effect.runPromise)
+                    .then(() => {
+                      console.log(`Run ${runName} killed.`);
+                      resume(Effect.succeed(void 0));
+                    })
+                    .catch(() => {
+                      resume(Effect.succeed(void 0));
+                    });
+                  break;
+                case "l":
+                  runnerService
+                    .listRuns()
+                    .pipe(Effect.runPromise)
+                    .then((runs) => {
+                      console.log("\nActive runs:");
+                      console.log("----------------");
+                      runs.forEach((run) => {
+                        console.log(
+                          `- ${run.runName} (PID: ${run.pid})`,
+                        );
+                        console.log(`  Command: ${run.command}`);
+                        console.log(`  Log file: ${run.logFile}\n`);
+                      });
+                      rl.question("Choose action [a/k/l/q]: ", handleInput);
+                    })
+                    .catch(() => {
+                      rl.question("Choose action [a/k/l/q]: ", handleInput);
+                    });
+                  break;
+                default:
+                  rl.close();
+                  resume(Effect.succeed(void 0));
+                  break;
+              }
+            };
+
+            rl.question("Choose action [a/k/l/q]: ", handleInput);
+          });
+        }
+      }),
+    ),
+  );
 }

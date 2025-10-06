@@ -85,7 +85,7 @@ describe("ProcessRunnerService - Comprehensive Tests", () => {
     it("should create a service with custom configuration", async () => {
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir: "/tmp/test-sessions",
+          runDir: "/tmp/test-runs",
           logDir: "/tmp/test-logs",
         }),
       );
@@ -93,70 +93,70 @@ describe("ProcessRunnerService - Comprehensive Tests", () => {
       expect(service).toBeInstanceOf(ProcessRunnerService);
     });
 
-    it("should create sessions with proper metadata", async () => {
+    it("should create runs with proper metadata", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
-      const session = await Effect.runPromise(
-        service.newSession("test-session", "echo 'hello'"),
+      const run = await Effect.runPromise(
+        service.newRun("test-run", "echo 'hello'"),
       );
 
-      expect(session.sessionName).toBe("test-session");
-      expect(session.command).toBe("echo 'hello'");
-      expect(typeof session.pid).toBe("number");
-      expect(session.pid).toBeGreaterThan(0);
-      expect(session.logFile).toContain("test-session");
+      expect(run.runName).toBe("test-run");
+      expect(run.command).toBe("echo 'hello'");
+      expect(typeof run.pid).toBe("number");
+      expect(run.pid).toBeGreaterThan(0);
+      expect(run.logFile).toContain("test-run");
     });
 
-    it("should list created sessions", async () => {
+    it("should list created runs", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
-      // Create a session
-      await Effect.runPromise(service.newSession("list-test", "echo 'test'"));
+      // Create a run
+      await Effect.runPromise(service.newRun("list-test", "echo 'test'"));
 
       // List should include it
-      const sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions.length).toBeGreaterThan(0);
-      expect(sessions.some((s) => s.sessionName === "list-test")).toBe(true);
+      const runs = await Effect.runPromise(service.listRuns());
+      expect(runs.length).toBeGreaterThan(0);
+      expect(runs.some((s) => s.runName === "list-test")).toBe(true);
     });
 
-    it("should handle session killing", async () => {
+    it("should handle run killing", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
-      // Create and kill a session
-      await Effect.runPromise(service.newSession("kill-test", "echo 'test'"));
-      await Effect.runPromise(service.killSession("kill-test"));
+      // Create and kill a run
+      await Effect.runPromise(service.newRun("kill-test", "echo 'test'"));
+      await Effect.runPromise(service.killRun("kill-test"));
 
       // Should be removed from list
-      const sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions.some((s) => s.sessionName === "kill-test")).toBe(false);
+      const runs = await Effect.runPromise(service.listRuns());
+      expect(runs.some((s) => s.runName === "kill-test")).toBe(false);
     });
   });
 
   describe("Error Scenarios", () => {
-    it("should handle killing non-existent sessions", async () => {
+    it("should handle killing non-existent runs", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
       // Effect.runPromise rejects the promise when Effect fails
       await expect(
-        Effect.runPromise(service.killSession("non-existent")),
+        Effect.runPromise(service.killRun("non-existent")),
       ).rejects.toBeDefined();
     });
 
-    it("should handle attaching to non-existent sessions", async () => {
+    it("should handle attaching to non-existent runs", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
       // Effect.runPromise rejects the promise when Effect fails
       await expect(
-        Effect.runPromise(service.attachSession("non-existent")),
+        Effect.runPromise(service.attachRun("non-existent")),
       ).rejects.toBeDefined();
     });
 
-    it("should reject empty session names", async () => {
+    it("should reject empty run names", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
       // Effect.runPromise rejects the promise when Effect fails
       await expect(
-        Effect.runPromise(service.newSession("", "echo 'empty'")),
+        Effect.runPromise(service.newRun("", "echo 'empty'")),
       ).rejects.toBeDefined();
     });
   });
@@ -181,24 +181,24 @@ describe("ProcessRunnerService - Comprehensive Tests", () => {
     });
   });
 
-  describe("Session Metadata Types", () => {
-    it("should validate ProcessSessionInfo structure", async () => {
+  describe("Run Metadata Types", () => {
+    it("should validate ProcessRunInfo structure", async () => {
       const service = await Effect.runPromise(ProcessRunnerService.make());
 
-      const session = await Effect.runPromise(
-        service.newSession("type-test", "echo 'types'"),
+      const run = await Effect.runPromise(
+        service.newRun("type-test", "echo 'types'"),
       );
 
-      expect(session).toHaveProperty("sessionName");
-      expect(session).toHaveProperty("pid");
-      expect(session).toHaveProperty("command");
-      expect(session).toHaveProperty("logFile");
+      expect(run).toHaveProperty("runName");
+      expect(run).toHaveProperty("pid");
+      expect(run).toHaveProperty("command");
+      expect(run).toHaveProperty("logFile");
       // ptySocket is optional
 
-      expect(typeof session.sessionName).toBe("string");
-      expect(typeof session.pid).toBe("number");
-      expect(typeof session.command).toBe("string");
-      expect(typeof session.logFile).toBe("string");
+      expect(typeof run.runName).toBe("string");
+      expect(typeof run.pid).toBe("number");
+      expect(typeof run.command).toBe("string");
+      expect(typeof run.logFile).toBe("string");
     });
   });
 
@@ -212,7 +212,7 @@ describe("ProcessRunnerService - Comprehensive Tests", () => {
 
     it("should handle partial options", async () => {
       const service = await Effect.runPromise(
-        ProcessRunnerService.make({ sessionDir: "/tmp/test" }),
+        ProcessRunnerService.make({ runDir: "/tmp/test" }),
       );
       expect(service).toBeInstanceOf(ProcessRunnerService);
     });

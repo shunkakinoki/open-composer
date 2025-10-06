@@ -187,61 +187,61 @@ describe("ProcessRunnerService", () => {
     expect(result).toBeInstanceOf(ProcessRunnerService);
   });
 
-  it("should create and list sessions", async () => {
+  it("should create and list runs", async () => {
     const service = await Effect.runPromise(ProcessRunnerService.make());
 
-    // Create a simple session
-    const sessionResult = await Effect.runPromise(
-      service.newSession("test-session", "echo 'hello world'"),
+    // Create a simple run
+    const runResult = await Effect.runPromise(
+      service.newRun("test-run", "echo 'hello world'"),
     );
 
-    expect(sessionResult.sessionName).toBe("test-session");
-    expect(sessionResult.command).toBe("echo 'hello world'");
+    expect(runResult.runName).toBe("test-run");
+    expect(runResult.command).toBe("echo 'hello world'");
 
-    // List sessions
-    const sessions = await Effect.runPromise(service.listSessions());
-    expect(sessions.length).toBeGreaterThan(0);
-    expect(sessions.some((s) => s.sessionName === "test-session")).toBe(true);
+    // List runs
+    const runs = await Effect.runPromise(service.listRuns());
+    expect(runs.length).toBeGreaterThan(0);
+    expect(runs.some((s) => s.runName === "test-run")).toBe(true);
   });
 
   it("should handle error cases gracefully", async () => {
     const service = await Effect.runPromise(ProcessRunnerService.make());
 
-    // Test killing non-existent session
+    // Test killing non-existent run
     await expect(
-      Effect.runPromise(service.killSession("non-existent")),
+      Effect.runPromise(service.killRun("non-existent")),
     ).rejects.toBeDefined();
 
-    // Test attaching to non-existent session
+    // Test attaching to non-existent run
     await expect(
-      Effect.runPromise(service.attachSession("non-existent")),
+      Effect.runPromise(service.attachRun("non-existent")),
     ).rejects.toBeDefined();
   });
 
-  it("should attach to the latest session entry when duplicates exist", async () => {
-    const sessionDir = "/tmp/process-runner-duplicate-test";
-    const sessionFile = path.join(sessionDir, "sessions.json");
+  it("should attach to the latest run entry when duplicates exist", async () => {
+    const runDir = "/tmp/process-runner-duplicate-test";
+    const runFile = path.join(runDir, "runs.json");
     const oldPid = 11111;
     const newPid = 22222;
 
     mockFileStore.set(
-      sessionFile,
+      runFile,
       JSON.stringify(
         [
           {
-            sessionName: "echo",
+            runName: "echo",
             pid: oldPid,
             command: "echo 'old'",
             logFile: "/tmp/echo-old.log",
           },
           {
-            sessionName: "test",
+            runName: "test",
             pid: 33333,
             command: "echo 'other'",
             logFile: "/tmp/test.log",
           },
           {
-            sessionName: "echo",
+            runName: "echo",
             pid: newPid,
             command: "echo 'new'",
             logFile: "/tmp/echo-new.log",
@@ -255,31 +255,31 @@ describe("ProcessRunnerService", () => {
     runningProcesses.set(newPid, "bash -c echo 'new'");
 
     const service = await Effect.runPromise(
-      ProcessRunnerService.make({ sessionDir, logDir: "/tmp" }),
+      ProcessRunnerService.make({ runDir, logDir: "/tmp" }),
     );
 
-    const sessions = await Effect.runPromise(service.listSessions());
-    const echoSession = sessions.find(
-      (session) => session.sessionName === "echo",
+    const runs = await Effect.runPromise(service.listRuns());
+    const echoRun = runs.find(
+      (run) => run.runName === "echo",
     );
-    expect(echoSession?.pid).toBe(newPid);
+    expect(echoRun?.pid).toBe(newPid);
 
     await expect(
-      Effect.runPromise(service.attachSession("echo")),
+      Effect.runPromise(service.attachRun("echo")),
     ).resolves.toBe(true);
   });
 
-  it("should show stored logs for completed sessions", async () => {
-    const sessionDir = "/tmp/process-runner-completed-session";
-    const sessionFile = path.join(sessionDir, "sessions.json");
+  it("should show stored logs for completed runs", async () => {
+    const runDir = "/tmp/process-runner-completed-run";
+    const runFile = path.join(runDir, "runs.json");
     const completedPid = 44444;
 
     mockFileStore.set(
-      sessionFile,
+      runFile,
       JSON.stringify(
         [
           {
-            sessionName: "done",
+            runName: "done",
             pid: completedPid,
             command: "echo 'done'",
             logFile: "/tmp/done.log",
@@ -291,11 +291,11 @@ describe("ProcessRunnerService", () => {
     );
 
     const service = await Effect.runPromise(
-      ProcessRunnerService.make({ sessionDir, logDir: "/tmp" }),
+      ProcessRunnerService.make({ runDir, logDir: "/tmp" }),
     );
 
     await expect(
-      Effect.runPromise(service.attachSession("done")),
+      Effect.runPromise(service.attachRun("done")),
     ).resolves.toBe(false);
   });
 });

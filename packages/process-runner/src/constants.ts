@@ -2,8 +2,8 @@
 // CONSTANTS
 // =============================================================================
 
-export const SESSION_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
-export const MAX_SESSION_NAME_LENGTH = 100;
+export const RUN_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+export const MAX_RUN_NAME_LENGTH = 100;
 export const MAX_COMMAND_LENGTH = 10000;
 
 export const DEFAULT_TIMEOUTS = {

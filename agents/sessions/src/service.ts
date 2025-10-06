@@ -3,17 +3,17 @@ import { parseCodexSessions } from "@open-composer/agent-codex";
 import { parseCursorSessions } from "@open-composer/agent-cursor";
 import { parseOpencodeSessions } from "@open-composer/agent-opencode";
 import * as Effect from "effect/Effect";
-import type { AISession } from "./types.js";
+import type { AgentSession } from "./types.js";
 
 // -----------------------------------------------------------------------------
-// AI Sessions Service
+// Agents Sessions Service
 // -----------------------------------------------------------------------------
 
-export class AISessionsService {
+export class AgentSessionsService {
   /**
    * Get all AI sessions from all supported agents
    */
-  getAllSessions = (): Effect.Effect<AISession[], Error> =>
+  getAllSessions = (): Effect.Effect<AgentSession[], Error> =>
     Effect.gen(function* () {
       // Parse sessions from all agents in parallel
       const [
@@ -51,22 +51,22 @@ export class AISessionsService {
    * Get sessions filtered by agent type
    */
   getSessionsByAgent = (
-    agent: AISession["agent"],
-  ): Effect.Effect<AISession[], Error> =>
-    Effect.gen((function* (this: AISessionsService) {
-      const allSessions: AISession[] = yield* this.getAllSessions();
-      return allSessions.filter((s: AISession) => s.agent === agent);
+    agent: AgentSession["agent"],
+  ): Effect.Effect<AgentSession[], Error> =>
+    Effect.gen((function* (this: AgentSessionsService) {
+      const allSessions: AgentSession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AgentSession) => s.agent === agent);
     }).bind(this));
 
   /**
    * Get sessions filtered by status
    */
   getSessionsByStatus = (
-    status: AISession["status"],
-  ): Effect.Effect<AISession[], Error> =>
-    Effect.gen((function* (this: AISessionsService) {
-      const allSessions: AISession[] = yield* this.getAllSessions();
-      return allSessions.filter((s: AISession) => s.status === status);
+    status: AgentSession["status"],
+  ): Effect.Effect<AgentSession[], Error> =>
+    Effect.gen((function* (this: AgentSessionsService) {
+      const allSessions: AgentSession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AgentSession) => s.status === status);
     }).bind(this));
 
   /**
@@ -74,9 +74,9 @@ export class AISessionsService {
    */
   getSessionsByRepository = (
     repository: string,
-  ): Effect.Effect<AISession[], Error> =>
-    Effect.gen((function* (this: AISessionsService) {
-      const allSessions: AISession[] = yield* this.getAllSessions();
-      return allSessions.filter((s: AISession) => s.repository?.includes(repository));
+  ): Effect.Effect<AgentSession[], Error> =>
+    Effect.gen((function* (this: AgentSessionsService) {
+      const allSessions: AgentSession[] = yield* this.getAllSessions();
+      return allSessions.filter((s: AgentSession) => s.repository?.includes(repository));
     }).bind(this));
 }

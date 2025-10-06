@@ -1,5 +1,5 @@
-import type { AISession } from "@open-composer/agent-sessions";
-import { AISessionsService } from "@open-composer/agent-sessions";
+import type { AgentSession } from "@open-composer/agent-sessions";
+import { AgentSessionsService } from "@open-composer/agent-sessions";
 import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  * Interactive TUI component for viewing all AI agent sessions
  */
 
-interface AISessionsListProps {
+interface AgentSessionsListProps {
   onComplete?: () => void;
   onCancel?: () => void;
 }
@@ -28,7 +28,7 @@ const formatTimestamp = (date: Date): string => {
   return "just now";
 };
 
-const getAgentColor = (agent: AISession["agent"]): string => {
+const getAgentColor = (agent: AgentSession["agent"]): string => {
   switch (agent) {
     case "codex":
       return "blue";
@@ -42,7 +42,7 @@ const getAgentColor = (agent: AISession["agent"]): string => {
   }
 };
 
-const getStatusIcon = (status: AISession["status"]): string => {
+const getStatusIcon = (status: AgentSession["status"]): string => {
   switch (status) {
     case "active":
       return "●";
@@ -55,7 +55,7 @@ const getStatusIcon = (status: AISession["status"]): string => {
   }
 };
 
-const getStatusColor = (status: AISession["status"]): string => {
+const getStatusColor = (status: AgentSession["status"]): string => {
   switch (status) {
     case "active":
       return "green";
@@ -68,15 +68,15 @@ const getStatusColor = (status: AISession["status"]): string => {
   }
 };
 
-export const AISessionsList: React.FC<AISessionsListProps> = ({
+export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
   onComplete,
   onCancel,
 }) => {
-  const [sessions, setSessions] = useState<AISession[]>([]);
+  const [sessions, setSessions] = useState<AgentSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [filterAgent, setFilterAgent] = useState<AISession["agent"] | "all">(
+  const [filterAgent, setFilterAgent] = useState<AgentSession["agent"] | "all">(
     "all",
   );
   const { exit } = useApp();
@@ -89,7 +89,7 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
   useEffect(() => {
     const loadSessions = async () => {
       try {
-        const service = new AISessionsService();
+        const service = new AgentSessionsService();
         const allSessions = await service
           .getAllSessions()
           .pipe(Effect.runPromise);
@@ -149,7 +149,7 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
     return (
       <Box flexDirection="column" padding={1}>
         <Text bold color="cyan">
-          🔄 Loading AI Sessions...
+          🔄 Loading Agent Sessions...
         </Text>
       </Box>
     );
@@ -159,7 +159,7 @@ export const AISessionsList: React.FC<AISessionsListProps> = ({
     return (
       <Box flexDirection="column" padding={1}>
         <Text bold color="red">
-          ❌ Error Loading Sessions
+          ❌ Error Loading Agent Sessions
         </Text>
         <Box marginTop={1}>
           <Text color="red">{error}</Text>

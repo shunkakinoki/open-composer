@@ -5,7 +5,7 @@ import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as Effect from "effect/Effect";
-import { ProcessRunnerService, type ProcessSessionInfo } from "../src/core.js";
+import { ProcessRunnerService, type ProcessRunInfo } from "../src/core.js";
 
 mock.module("bun-pty", () => ({
   spawn: mock(() => ({
@@ -42,330 +42,330 @@ describe("ProcessRunnerService - Persistence E2E Tests", () => {
     }
   });
 
-  describe("Session File Persistence", () => {
-    it("should create sessions.json file when sessions are created", async () => {
-      const sessionDir = join(tempDir, "sessions");
+  describe("Run File Persistence", () => {
+    it("should create runs.json file when runs are created", async () => {
+      const runDir = join(tempDir, "runs");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Create a session
+      // Create a run
       await Effect.runPromise(
-        service.newSession("test-session", "echo 'hello'"),
+        service.newRun("test-run", "echo 'hello'"),
       );
 
-      // Check that sessions.json was created
-      const sessionFile = join(sessionDir, "sessions.json");
-      expect(fsSync.existsSync(sessionFile)).toBe(true);
+      // Check that runs.json was created
+      const runFile = join(runDir, "runs.json");
+      expect(fsSync.existsSync(runFile)).toBe(true);
 
       // Verify file contents
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const sessions = JSON.parse(content);
+      const content = await fs.readFile(runFile, "utf-8");
+      const runs = JSON.parse(content);
 
-      expect(Array.isArray(sessions)).toBe(true);
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("test-session");
-      expect(sessions[0].command).toBe("echo 'hello'");
-      expect(typeof sessions[0].pid).toBe("number");
-      expect(sessions[0].logFile).toContain("test-session");
+      expect(Array.isArray(runs)).toBe(true);
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("test-run");
+      expect(runs[0].command).toBe("echo 'hello'");
+      expect(typeof runs[0].pid).toBe("number");
+      expect(runs[0].logFile).toContain("test-run");
     });
 
-    it("should persist multiple sessions to disk", async () => {
-      const sessionDir = join(tempDir, "multi-sessions");
+    it("should persist multiple runs to disk", async () => {
+      const runDir = join(tempDir, "multi-runs");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Create multiple sessions
-      await Effect.runPromise(service.newSession("session-1", "echo 'one'"));
-      await Effect.runPromise(service.newSession("session-2", "echo 'two'"));
-      await Effect.runPromise(service.newSession("session-3", "echo 'three'"));
+      // Create multiple runs
+      await Effect.runPromise(service.newRun("run-1", "echo 'one'"));
+      await Effect.runPromise(service.newRun("run-2", "echo 'two'"));
+      await Effect.runPromise(service.newRun("run-3", "echo 'three'"));
 
       // Check file contents
-      const sessionFile = join(sessionDir, "sessions.json");
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const sessions = JSON.parse(content);
+      const runFile = join(runDir, "runs.json");
+      const content = await fs.readFile(runFile, "utf-8");
+      const runs = JSON.parse(content);
 
-      expect(sessions.length).toBe(3);
-      const sessionNames = sessions
-        .map((s: ProcessSessionInfo) => s.sessionName)
+      expect(runs.length).toBe(3);
+      const runNames = runs
+        .map((s: ProcessRunInfo) => s.runName)
         .sort();
-      expect(sessionNames).toEqual(["session-1", "session-2", "session-3"]);
+      expect(runNames).toEqual(["run-1", "run-2", "run-3"]);
 
-      const commands = sessions
-        .map((s: ProcessSessionInfo) => s.command)
+      const commands = runs
+        .map((s: ProcessRunInfo) => s.command)
         .sort();
       expect(commands).toEqual(["echo 'one'", "echo 'three'", "echo 'two'"]);
     });
 
-    it("should create log files for each session", async () => {
-      const sessionDir = join(tempDir, "sessions");
+    it("should create log files for each run", async () => {
+      const runDir = join(tempDir, "runs");
       const logDir = join(tempDir, "logs");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir,
         }),
       );
 
-      const session = await Effect.runPromise(
-        service.newSession("log-test", "echo 'test'"),
+      const run = await Effect.runPromise(
+        service.newRun("log-test", "echo 'test'"),
       );
 
       // Check that log file was created
-      expect(fsSync.existsSync(session.logFile)).toBe(true);
+      expect(fsSync.existsSync(run.logFile)).toBe(true);
 
       // Check that log file is in the correct directory
-      expect(session.logFile.startsWith(logDir)).toBe(true);
+      expect(run.logFile.startsWith(logDir)).toBe(true);
 
-      // Check that log file has the session name in it
-      expect(session.logFile).toContain("log-test");
+      // Check that log file has the run name in it
+      expect(run.logFile).toContain("log-test");
     });
 
-    it("should handle custom session directory paths", async () => {
-      const customSessionDir = join(tempDir, "custom", "nested", "sessions");
+    it("should handle custom run directory paths", async () => {
+      const customRunDir = join(tempDir, "custom", "nested", "runs");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir: customSessionDir,
+          runDir: customRunDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       await Effect.runPromise(
-        service.newSession("custom-path-test", "echo 'custom'"),
+        service.newRun("custom-path-test", "echo 'custom'"),
       );
 
       // Check that nested directories were created
-      expect(fsSync.existsSync(customSessionDir)).toBe(true);
+      expect(fsSync.existsSync(customRunDir)).toBe(true);
 
-      // Check that sessions.json was created in the custom location
-      const sessionFile = join(customSessionDir, "sessions.json");
-      expect(fsSync.existsSync(sessionFile)).toBe(true);
+      // Check that runs.json was created in the custom location
+      const runFile = join(customRunDir, "runs.json");
+      expect(fsSync.existsSync(runFile)).toBe(true);
 
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const sessions = JSON.parse(content);
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("custom-path-test");
+      const content = await fs.readFile(runFile, "utf-8");
+      const runs = JSON.parse(content);
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("custom-path-test");
     });
   });
 
-  describe("Session Persistence Across Instances", () => {
-    it("should persist sessions across service instances", async () => {
-      const sessionDir = join(tempDir, "cross-instance");
+  describe("Run Persistence Across Instances", () => {
+    it("should persist runs across service instances", async () => {
+      const runDir = join(tempDir, "cross-instance");
 
-      // Create first service instance and add session
+      // Create first service instance and add run
       const service1 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       await Effect.runPromise(
-        service1.newSession("cross-instance-test", "echo 'persistent'"),
+        service1.newRun("cross-instance-test", "echo 'persistent'"),
       );
 
       // Create second service instance
       const service2 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Second service should see the session from the first
-      const sessions = await Effect.runPromise(service2.listSessions());
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("cross-instance-test");
-      expect(sessions[0].command).toBe("echo 'persistent'");
+      // Second service should see the run from the first
+      const runs = await Effect.runPromise(service2.listRuns());
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("cross-instance-test");
+      expect(runs[0].command).toBe("echo 'persistent'");
     });
 
-    it("should allow multiple services to modify session list", async () => {
-      const sessionDir = join(tempDir, "shared-sessions");
+    it("should allow multiple services to modify run list", async () => {
+      const runDir = join(tempDir, "shared-runs");
 
-      // Service 1 creates sessions
+      // Service 1 creates runs
       const service1 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       await Effect.runPromise(
-        service1.newSession("shared-1", "echo 'shared 1'"),
+        service1.newRun("shared-1", "echo 'shared 1'"),
       );
       await Effect.runPromise(
-        service1.newSession("shared-2", "echo 'shared 2'"),
+        service1.newRun("shared-2", "echo 'shared 2'"),
       );
 
-      // Service 2 adds another session
+      // Service 2 adds another run
       const service2 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       await Effect.runPromise(
-        service2.newSession("shared-3", "echo 'shared 3'"),
+        service2.newRun("shared-3", "echo 'shared 3'"),
       );
 
-      // Service 3 sees all sessions
+      // Service 3 sees all runs
       const service3 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      const sessions = await Effect.runPromise(service3.listSessions());
-      expect(sessions.length).toBe(3);
+      const runs = await Effect.runPromise(service3.listRuns());
+      expect(runs.length).toBe(3);
 
-      const sessionNames = sessions.map((s) => s.sessionName).sort();
-      expect(sessionNames).toEqual(["shared-1", "shared-2", "shared-3"]);
+      const runNames = runs.map((s) => s.runName).sort();
+      expect(runNames).toEqual(["shared-1", "shared-2", "shared-3"]);
     });
 
-    it("should persist session deletions across instances", async () => {
-      const sessionDir = join(tempDir, "deletion-test");
+    it("should persist run deletions across instances", async () => {
+      const runDir = join(tempDir, "deletion-test");
 
-      // Create sessions
+      // Create runs
       const service1 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       await Effect.runPromise(
-        service1.newSession("delete-me", "echo 'to be deleted'"),
+        service1.newRun("delete-me", "echo 'to be deleted'"),
       );
       await Effect.runPromise(
-        service1.newSession("keep-me", "echo 'keep this'"),
+        service1.newRun("keep-me", "echo 'keep this'"),
       );
 
-      // Kill one session
-      await Effect.runPromise(service1.killSession("delete-me"));
+      // Kill one run
+      await Effect.runPromise(service1.killRun("delete-me"));
 
-      // New service instance should not see the deleted session
+      // New service instance should not see the deleted run
       const service2 = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      const sessions = await Effect.runPromise(service2.listSessions());
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("keep-me");
+      const runs = await Effect.runPromise(service2.listRuns());
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("keep-me");
     });
   });
 
   describe("File Corruption and Recovery", () => {
-    it("should handle corrupted sessions.json gracefully", async () => {
-      const sessionDir = join(tempDir, "corrupted");
-      const sessionFile = join(sessionDir, "sessions.json");
+    it("should handle corrupted runs.json gracefully", async () => {
+      const runDir = join(tempDir, "corrupted");
+      const runFile = join(runDir, "runs.json");
 
       // Create directory and corrupted file
-      await fs.mkdir(sessionDir, { recursive: true });
-      await fs.writeFile(sessionFile, "invalid json content { broken");
+      await fs.mkdir(runDir, { recursive: true });
+      await fs.writeFile(runFile, "invalid json content { broken");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       // Should handle corrupted file and return empty list
-      const sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions).toBeInstanceOf(Array);
-      expect(sessions.length).toBe(0);
+      const runs = await Effect.runPromise(service.listRuns());
+      expect(runs).toBeInstanceOf(Array);
+      expect(runs.length).toBe(0);
     });
 
-    it("should handle missing sessions.json file", async () => {
-      const sessionDir = join(tempDir, "missing-file");
+    it("should handle missing runs.json file", async () => {
+      const runDir = join(tempDir, "missing-file");
 
-      // Create directory but no sessions.json file
-      await fs.mkdir(sessionDir, { recursive: true });
+      // Create directory but no runs.json file
+      await fs.mkdir(runDir, { recursive: true });
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       // Should handle missing file and return empty list
-      const sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions).toBeInstanceOf(Array);
-      expect(sessions.length).toBe(0);
+      const runs = await Effect.runPromise(service.listRuns());
+      expect(runs).toBeInstanceOf(Array);
+      expect(runs.length).toBe(0);
     });
 
-    it("should recover from empty sessions.json file", async () => {
-      const sessionDir = join(tempDir, "empty-file");
-      const sessionFile = join(sessionDir, "sessions.json");
+    it("should recover from empty runs.json file", async () => {
+      const runDir = join(tempDir, "empty-file");
+      const runFile = join(runDir, "runs.json");
 
       // Create directory and empty JSON file
-      await fs.mkdir(sessionDir, { recursive: true });
-      await fs.writeFile(sessionFile, "");
+      await fs.mkdir(runDir, { recursive: true });
+      await fs.writeFile(runFile, "");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
       // Should handle empty file gracefully
-      let sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions).toBeInstanceOf(Array);
-      expect(sessions.length).toBe(0);
+      let runs = await Effect.runPromise(service.listRuns());
+      expect(runs).toBeInstanceOf(Array);
+      expect(runs.length).toBe(0);
 
-      // Should be able to add sessions after empty file
+      // Should be able to add runs after empty file
       await Effect.runPromise(
-        service.newSession("recovery-test", "echo 'recovered'"),
+        service.newRun("recovery-test", "echo 'recovered'"),
       );
 
-      sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("recovery-test");
+      runs = await Effect.runPromise(service.listRuns());
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("recovery-test");
     });
   });
 
   describe("Directory Structure", () => {
-    it("should create session directory structure", async () => {
-      const sessionDir = join(tempDir, "structure-test");
+    it("should create run directory structure", async () => {
+      const runDir = join(tempDir, "structure-test");
       const logDir = join(tempDir, "logs-test");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir,
         }),
       );
 
       await Effect.runPromise(
-        service.newSession("structure-test", "echo 'test'"),
+        service.newRun("structure-test", "echo 'test'"),
       );
 
       // Both directories should exist
-      expect(fsSync.existsSync(sessionDir)).toBe(true);
+      expect(fsSync.existsSync(runDir)).toBe(true);
       expect(fsSync.existsSync(logDir)).toBe(true);
 
-      // Session file should exist
-      const sessionFile = join(sessionDir, "sessions.json");
-      expect(fsSync.existsSync(sessionFile)).toBe(true);
+      // Run file should exist
+      const runFile = join(runDir, "runs.json");
+      expect(fsSync.existsSync(runFile)).toBe(true);
     });
 
     it("should handle deeply nested directory structures", async () => {
-      const sessionDir = join(
+      const runDir = join(
         tempDir,
         "deep",
         "nested",
@@ -376,116 +376,116 @@ describe("ProcessRunnerService - Persistence E2E Tests", () => {
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir,
         }),
       );
 
-      await Effect.runPromise(service.newSession("deep-test", "echo 'deep'"));
+      await Effect.runPromise(service.newRun("deep-test", "echo 'deep'"));
 
       // All nested directories should be created
-      expect(fsSync.existsSync(sessionDir)).toBe(true);
+      expect(fsSync.existsSync(runDir)).toBe(true);
       expect(fsSync.existsSync(logDir)).toBe(true);
 
       // Files should be created in the correct locations
-      const sessionFile = join(sessionDir, "sessions.json");
-      expect(fsSync.existsSync(sessionFile)).toBe(true);
+      const runFile = join(runDir, "runs.json");
+      expect(fsSync.existsSync(runFile)).toBe(true);
     });
 
     it("should handle relative paths", async () => {
       // Use relative paths - the service should resolve them relative to cwd
-      const sessionDir = join(tempDir, "relative-sessions");
+      const runDir = join(tempDir, "relative-runs");
       const logDir = join(tempDir, "relative-logs");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir,
         }),
       );
 
       await Effect.runPromise(
-        service.newSession("relative-test", "echo 'relative'"),
+        service.newRun("relative-test", "echo 'relative'"),
       );
 
       // Check that directories and files were created
-      expect(fsSync.existsSync(sessionDir)).toBe(true);
+      expect(fsSync.existsSync(runDir)).toBe(true);
       expect(fsSync.existsSync(logDir)).toBe(true);
 
-      const sessionFile = join(sessionDir, "sessions.json");
-      expect(fsSync.existsSync(sessionFile)).toBe(true);
+      const runFile = join(runDir, "runs.json");
+      expect(fsSync.existsSync(runFile)).toBe(true);
     });
   });
 
-  describe("Session Data Integrity", () => {
-    it("should preserve all session metadata in JSON", async () => {
-      const sessionDir = join(tempDir, "metadata-test");
+  describe("Run Data Integrity", () => {
+    it("should preserve all run metadata in JSON", async () => {
+      const runDir = join(tempDir, "metadata-test");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      const session = await Effect.runPromise(
-        service.newSession(
+      const run = await Effect.runPromise(
+        service.newRun(
           "metadata-test",
           "node -e \"console.log('complex command')\"",
         ),
       );
 
       // Read the raw JSON to verify all fields are preserved
-      const sessionFile = join(sessionDir, "sessions.json");
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const sessions = JSON.parse(content);
+      const runFile = join(runDir, "runs.json");
+      const content = await fs.readFile(runFile, "utf-8");
+      const runs = JSON.parse(content);
 
-      expect(sessions[0]).toHaveProperty("sessionName");
-      expect(sessions[0]).toHaveProperty("pid");
-      expect(sessions[0]).toHaveProperty("command");
-      expect(sessions[0]).toHaveProperty("logFile");
+      expect(runs[0]).toHaveProperty("runName");
+      expect(runs[0]).toHaveProperty("pid");
+      expect(runs[0]).toHaveProperty("command");
+      expect(runs[0]).toHaveProperty("logFile");
 
-      expect(sessions[0].sessionName).toBe(session.sessionName);
-      expect(sessions[0].pid).toBe(session.pid);
-      expect(sessions[0].command).toBe(session.command);
-      expect(sessions[0].logFile).toBe(session.logFile);
+      expect(runs[0].runName).toBe(run.runName);
+      expect(runs[0].pid).toBe(run.pid);
+      expect(runs[0].command).toBe(run.command);
+      expect(runs[0].logFile).toBe(run.logFile);
     });
 
-    it("should maintain session order in JSON array", async () => {
-      const sessionDir = join(tempDir, "order-test");
+    it("should maintain run order in JSON array", async () => {
+      const runDir = join(tempDir, "order-test");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Create sessions in specific order
-      await Effect.runPromise(service.newSession("first", "echo '1'"));
-      await Effect.runPromise(service.newSession("second", "echo '2'"));
-      await Effect.runPromise(service.newSession("third", "echo '3'"));
+      // Create runs in specific order
+      await Effect.runPromise(service.newRun("first", "echo '1'"));
+      await Effect.runPromise(service.newRun("second", "echo '2'"));
+      await Effect.runPromise(service.newRun("third", "echo '3'"));
 
-      const sessions = await Effect.runPromise(service.listSessions());
+      const runs = await Effect.runPromise(service.listRuns());
 
       // Verify order is maintained
-      expect(sessions[0].sessionName).toBe("first");
-      expect(sessions[1].sessionName).toBe("second");
-      expect(sessions[2].sessionName).toBe("third");
+      expect(runs[0].runName).toBe("first");
+      expect(runs[1].runName).toBe("second");
+      expect(runs[2].runName).toBe("third");
 
       // Check the JSON file maintains the same order
-      const sessionFile = join(sessionDir, "sessions.json");
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const savedSessions = JSON.parse(content);
+      const runFile = join(runDir, "runs.json");
+      const content = await fs.readFile(runFile, "utf-8");
+      const savedRuns = JSON.parse(content);
 
-      expect(savedSessions[0].sessionName).toBe("first");
-      expect(savedSessions[1].sessionName).toBe("second");
-      expect(savedSessions[2].sessionName).toBe("third");
+      expect(savedRuns[0].runName).toBe("first");
+      expect(savedRuns[1].runName).toBe("second");
+      expect(savedRuns[2].runName).toBe("third");
     });
 
     it("should handle special characters in commands", async () => {
-      const sessionDir = join(tempDir, "special-chars");
+      const runDir = join(tempDir, "special-chars");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
@@ -493,51 +493,51 @@ describe("ProcessRunnerService - Persistence E2E Tests", () => {
       const commandWithSpecialChars =
         "echo 'hello \"world\"' && echo 'multi\nline' && echo 'special: @#$%^&*()'";
       await Effect.runPromise(
-        service.newSession("special-chars-test", commandWithSpecialChars),
+        service.newRun("special-chars-test", commandWithSpecialChars),
       );
 
       // Read back and verify
-      const sessions = await Effect.runPromise(service.listSessions());
-      expect(sessions[0].command).toBe(commandWithSpecialChars);
+      const runs = await Effect.runPromise(service.listRuns());
+      expect(runs[0].command).toBe(commandWithSpecialChars);
 
       // Check JSON file
-      const sessionFile = join(sessionDir, "sessions.json");
-      const content = await fs.readFile(sessionFile, "utf-8");
-      const savedSessions = JSON.parse(content);
-      expect(savedSessions[0].command).toBe(commandWithSpecialChars);
+      const runFile = join(runDir, "runs.json");
+      const content = await fs.readFile(runFile, "utf-8");
+      const savedRuns = JSON.parse(content);
+      expect(savedRuns[0].command).toBe(commandWithSpecialChars);
     });
   });
 
   describe("Concurrent Access", () => {
-    it("should handle concurrent session creation", async () => {
-      const sessionDir = join(tempDir, "concurrent-create");
+    it("should handle concurrent run creation", async () => {
+      const runDir = join(tempDir, "concurrent-create");
       const logDir = join(tempDir, "logs");
 
       // Create multiple service instances
       const service1 = await Effect.runPromise(
-        ProcessRunnerService.make({ sessionDir, logDir }),
+        ProcessRunnerService.make({ runDir, logDir }),
       );
       const service2 = await Effect.runPromise(
-        ProcessRunnerService.make({ sessionDir, logDir }),
+        ProcessRunnerService.make({ runDir, logDir }),
       );
       const service3 = await Effect.runPromise(
-        ProcessRunnerService.make({ sessionDir, logDir }),
+        ProcessRunnerService.make({ runDir, logDir }),
       );
 
-      // Create sessions sequentially (locking prevents true concurrency)
-      await Effect.runPromise(service1.newSession("concurrent-1", "echo '1'"));
-      await Effect.runPromise(service2.newSession("concurrent-2", "echo '2'"));
-      await Effect.runPromise(service3.newSession("concurrent-3", "echo '3'"));
+      // Create runs sequentially (locking prevents true concurrency)
+      await Effect.runPromise(service1.newRun("concurrent-1", "echo '1'"));
+      await Effect.runPromise(service2.newRun("concurrent-2", "echo '2'"));
+      await Effect.runPromise(service3.newRun("concurrent-3", "echo '3'"));
 
-      // Verify all sessions were created
+      // Verify all runs were created
       const service4 = await Effect.runPromise(
-        ProcessRunnerService.make({ sessionDir, logDir }),
+        ProcessRunnerService.make({ runDir, logDir }),
       );
-      const sessions = await Effect.runPromise(service4.listSessions());
+      const runs = await Effect.runPromise(service4.listRuns());
 
-      expect(sessions.length).toBe(3);
-      const sessionNames = sessions.map((s) => s.sessionName).sort();
-      expect(sessionNames).toEqual([
+      expect(runs.length).toBe(3);
+      const runNames = runs.map((s) => s.runName).sort();
+      expect(runNames).toEqual([
         "concurrent-1",
         "concurrent-2",
         "concurrent-3",
@@ -545,62 +545,62 @@ describe("ProcessRunnerService - Persistence E2E Tests", () => {
     });
 
     it("should handle concurrent read/write operations", async () => {
-      const sessionDir = join(tempDir, "concurrent-rw");
+      const runDir = join(tempDir, "concurrent-rw");
 
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Create initial session
+      // Create initial run
       await Effect.runPromise(
-        service.newSession("base-session", "echo 'base'"),
+        service.newRun("base-run", "echo 'base'"),
       );
 
       // Perform operations sequentially (writes are serialized by locking)
       // Multiple reads should work fine
-      const read1 = await Effect.runPromise(service.listSessions());
-      const read2 = await Effect.runPromise(service.listSessions());
-      const read3 = await Effect.runPromise(service.listSessions());
+      const read1 = await Effect.runPromise(service.listRuns());
+      const read2 = await Effect.runPromise(service.listRuns());
+      const read3 = await Effect.runPromise(service.listRuns());
 
       // Writes
-      await Effect.runPromise(service.newSession("concurrent-a", "echo 'a'"));
-      await Effect.runPromise(service.newSession("concurrent-b", "echo 'b'"));
+      await Effect.runPromise(service.newRun("concurrent-a", "echo 'a'"));
+      await Effect.runPromise(service.newRun("concurrent-b", "echo 'b'"));
 
       // All read operations should return valid results
-      expect(read1.length).toBeGreaterThanOrEqual(1); // At least the base session
+      expect(read1.length).toBeGreaterThanOrEqual(1); // At least the base run
       expect(read2.length).toBeGreaterThanOrEqual(1);
       expect(read3.length).toBeGreaterThanOrEqual(1);
 
-      // Final read should show all sessions
-      const finalSessions = await Effect.runPromise(service.listSessions());
-      expect(finalSessions.length).toBe(3); // base + a + b
+      // Final read should show all runs
+      const finalRuns = await Effect.runPromise(service.listRuns());
+      expect(finalRuns.length).toBe(3); // base + a + b
     });
   });
 
   describe("Process Monitoring Integration", () => {
     it("should integrate process monitoring with persistence", async () => {
-      const sessionDir = join(tempDir, "process-monitoring");
+      const runDir = join(tempDir, "process-monitoring");
       const service = await Effect.runPromise(
         ProcessRunnerService.make({
-          sessionDir,
+          runDir,
           logDir: join(tempDir, "logs"),
         }),
       );
 
-      // Create a session (this uses mocked PTY)
+      // Create a run (this uses mocked PTY)
       await Effect.runPromise(
-        service.newSession("monitor-test", "echo 'monitor'"),
+        service.newRun("monitor-test", "echo 'monitor'"),
       );
 
-      // List sessions - this will include process monitoring logic
-      const sessions = await Effect.runPromise(service.listSessions());
+      // List runs - this will include process monitoring logic
+      const runs = await Effect.runPromise(service.listRuns());
 
-      // Should have the session (mocked process appears running)
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionName).toBe("monitor-test");
+      // Should have the run (mocked process appears running)
+      expect(runs.length).toBe(1);
+      expect(runs[0].runName).toBe("monitor-test");
     });
 
     it("should handle process monitoring failures gracefully", async () => {
@@ -614,21 +614,21 @@ describe("ProcessRunnerService - Persistence E2E Tests", () => {
           value: "win32",
         });
 
-        const sessionDir = join(tempDir, "platform-test");
+        const runDir = join(tempDir, "platform-test");
         const service = await Effect.runPromise(
           ProcessRunnerService.make({
-            sessionDir,
+            runDir,
             logDir: join(tempDir, "logs"),
           }),
         );
 
         await Effect.runPromise(
-          service.newSession("platform-test", "echo 'platform'"),
+          service.newRun("platform-test", "echo 'platform'"),
         );
 
         // Should still work despite platform change
-        const sessions = await Effect.runPromise(service.listSessions());
-        expect(sessions.length).toBe(1);
+        const runs = await Effect.runPromise(service.listRuns());
+        expect(runs.length).toBe(1);
       } finally {
         Object.defineProperty(process, "platform", {
           writable: true,

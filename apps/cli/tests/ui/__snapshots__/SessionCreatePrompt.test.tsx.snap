@@ -1,6 +1,6 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`SessionCreatePrompt renders name input step when no props provided 1`] = `
+exports[`RunCreatePrompt renders name input step when no props provided 1`] = `
 "
 
   🎯 Create New Session
@@ -14,7 +14,7 @@ exports[`SessionCreatePrompt renders name input step when no props provided 1`] 
 "
 `;
 
-exports[`SessionCreatePrompt renders workspace choice step when name is provided 1`] = `
+exports[`RunCreatePrompt renders workspace choice step when name is provided 1`] = `
 "
 
   📁 Choose Workspace Option
@@ -33,7 +33,7 @@ exports[`SessionCreatePrompt renders workspace choice step when name is provided
 "
 `;
 
-exports[`SessionCreatePrompt renders workspace path step when name and choice are provided 1`] = `
+exports[`RunCreatePrompt renders workspace path step when name and choice are provided 1`] = `
 "
 
   📂 Select Existing Workspace
@@ -47,7 +47,7 @@ exports[`SessionCreatePrompt renders workspace path step when name and choice ar
 "
 `;
 
-exports[`SessionCreatePrompt renders confirmation step when all props are provided 1`] = `
+exports[`RunCreatePrompt renders confirmation step when all props are provided 1`] = `
 "
 
   ✅ Confirm Session Creation
