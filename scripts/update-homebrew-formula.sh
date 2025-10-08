@@ -58,31 +58,34 @@ class OpenComposer < Formula
   end
 
   def install
-    # Determine the binary name based on OS and architecture
     os = OS.mac? ? "darwin" : "linux"
-    arch = Hardware::CPU.arch.to_s
-
-    arch = case arch
+    arch = case Hardware::CPU.arch.to_s
            when "x86_64" then "x64"
-           when "arm64" then "arm64"
-           else arch
+           when "arm64"  then "arm64"
+           else Hardware::CPU.arch.to_s
            end
 
-    os_suffix = if os == "linux" && arch == "arm64"
-                  "linux-aarch64-musl"
-                else
-                  "#{os}-#{arch}"
-                end
+    candidates = []
+    # common layouts:
+    candidates << "open-composer"                                 # binary at root
+    candidates << "bin/open-composer"                             # bin/ subdir
+    # NPM-scoped package layout (with @open-composer prefix)
+    candidates << "@open-composer/cli-#{os}-#{arch}/bin/open-composer"
+    candidates << "@open-composer/cli-#{os}-#{arch}/open-composer"
+    # Non-scoped package layout
+    candidates << "cli-#{os}-#{arch}/open-composer"               # archive folder without bin/
+    candidates << "cli-#{os}-#{arch}/bin/open-composer"
+    # special linux musl aarch64 variant
+    candidates << "@open-composer/cli-linux-aarch64-musl/bin/open-composer"
+    candidates << "@open-composer/cli-linux-aarch64-musl/open-composer"
+    candidates << "cli-linux-aarch64-musl/open-composer"
+    candidates << "cli-linux-aarch64-musl/bin/open-composer"
 
-    # The zip contains the package directory with @ prefix
-    # We need to find the binary in the extracted contents
-    binary_path = Dir.glob("{,@}open-composer/cli-#{os_suffix}/bin/open-composer").first
+    # Also try a generic recursive search as a fallback
+    bin_path = candidates.find { |p| File.exist?(p) } || Dir["**/open-composer", "**/bin/open-composer"].first
+    odie "open-composer binary not found in archive" unless bin_path && File.exist?(bin_path)
 
-    if binary_path.nil?
-      odie "Could not find open-composer binary in extracted archive"
-    end
-
-    bin.install binary_path => "open-composer"
+    bin.install bin_path => "open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
     bin.install_symlink bin/"open-composer" => "opencomposer"
   end
