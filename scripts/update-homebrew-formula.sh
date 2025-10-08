@@ -58,31 +58,17 @@ class OpenComposer < Formula
   end
 
   def install
-    # Determine the binary name based on OS and architecture
     os = OS.mac? ? "darwin" : "linux"
-    arch = Hardware::CPU.arch.to_s
-
-    arch = case arch
+    arch = case Hardware::CPU.arch.to_s
            when "x86_64" then "x64"
-           when "arm64" then "arm64"
-           else arch
+           when "arm64"  then "arm64"
+           else Hardware::CPU.arch.to_s
            end
 
-    os_suffix = if os == "linux" && arch == "arm64"
-                  "linux-aarch64-musl"
-                else
-                  "#{os}-#{arch}"
-                end
+    os_suffix = os == "linux" && arch == "arm64" ? "linux-aarch64-musl" : "#{os}-#{arch}"
+    bin_path = "cli-#{os_suffix}/bin/open-composer"
 
-    # The zip contains the package directory with @ prefix
-    # We need to find the binary in the extracted contents
-    binary_path = Dir.glob("{,@}open-composer/cli-#{os_suffix}/bin/open-composer").first
-
-    if binary_path.nil?
-      odie "Could not find open-composer binary in extracted archive"
-    end
-
-    bin.install binary_path => "open-composer"
+    bin.install bin_path => "open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
     bin.install_symlink bin/"open-composer" => "opencomposer"
   end
