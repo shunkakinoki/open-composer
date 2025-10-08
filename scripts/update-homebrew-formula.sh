@@ -65,25 +65,8 @@ class OpenComposer < Formula
            else Hardware::CPU.arch.to_s
            end
 
-    candidates = []
-    # common layouts:
-    candidates << "open-composer"                                 # binary at root
-    candidates << "bin/open-composer"                             # bin/ subdir
-    # NPM-scoped package layout (with @open-composer prefix)
-    candidates << "@open-composer/cli-#{os}-#{arch}/bin/open-composer"
-    candidates << "@open-composer/cli-#{os}-#{arch}/open-composer"
-    # Non-scoped package layout
-    candidates << "cli-#{os}-#{arch}/open-composer"               # archive folder without bin/
-    candidates << "cli-#{os}-#{arch}/bin/open-composer"
-    # special linux musl aarch64 variant
-    candidates << "@open-composer/cli-linux-aarch64-musl/bin/open-composer"
-    candidates << "@open-composer/cli-linux-aarch64-musl/open-composer"
-    candidates << "cli-linux-aarch64-musl/open-composer"
-    candidates << "cli-linux-aarch64-musl/bin/open-composer"
-
-    # Also try a generic recursive search as a fallback
-    bin_path = candidates.find { |p| File.exist?(p) } || Dir["**/open-composer", "**/bin/open-composer"].first
-    odie "open-composer binary not found in archive" unless bin_path && File.exist?(bin_path)
+    os_suffix = os == "linux" && arch == "arm64" ? "linux-aarch64-musl" : "#{os}-#{arch}"
+    bin_path = "cli-#{os_suffix}/bin/open-composer"
 
     bin.install bin_path => "open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
