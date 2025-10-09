@@ -1,9 +1,9 @@
-import { Box, Text, useApp, useStdout } from "ink";
+import { Box, Text, useApp, useInput, useStdout } from "ink";
+import TextInput from "ink-text-input";
 import type React from "react";
 import { useState } from "react";
 import { CLI_VERSION } from "../lib/version.js";
-import { MainMenu, type MenuItem } from "./MainMenu.js";
-import { StatusBar } from "./StatusBar.js";
+import { AsciiLogo } from "./AsciiLogo.js";
 
 interface WelcomeScreenProps {
   onCommandSelect?: (commandName: string) => void;
@@ -14,82 +14,36 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 }) => {
   const { exit } = useApp();
   const { stdout } = useStdout();
-  const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
+  const [commandInput, setCommandInput] = useState("");
 
   // Get terminal dimensions for fullscreen (only when running in a real terminal)
   const terminalHeight = stdout?.rows;
   const terminalWidth = stdout?.columns;
 
-  // Define menu items based on available commands
-  const menuItems: MenuItem[] = [
-    {
-      key: "sessions",
-      label: "Sessions",
-      description: "List all sessions",
-      onSelect: () => {
-        setSelectedCommand("sessions");
-        onCommandSelect?.("sessions");
-      },
-    },
-    {
-      key: "run",
-      label: "Run",
-      description: "Run a command",
-      onSelect: () => {
-        setSelectedCommand("run");
-        onCommandSelect?.("run");
-      },
-    },
-    {
-      key: "spawn",
-      label: "Spawn",
-      description: "Spawn a new agent",
-      onSelect: () => {
-        setSelectedCommand("spawn");
-        onCommandSelect?.("spawn");
-      },
-    },
-    {
-      key: "status",
-      label: "Status",
-      description: "Show status",
-      onSelect: () => {
-        setSelectedCommand("status");
-        onCommandSelect?.("status");
-      },
-    },
-    {
-      key: "stack",
-      label: "Stack",
-      description: "Manage git stack",
-      onSelect: () => {
-        setSelectedCommand("stack");
-        onCommandSelect?.("stack");
-      },
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      description: "Configure settings",
-      onSelect: () => {
-        setSelectedCommand("settings");
-        onCommandSelect?.("settings");
-      },
-    },
-    {
-      key: "tui",
-      label: "Full TUI",
-      description: "Launch full TUI mode",
-      onSelect: () => {
-        setSelectedCommand("tui");
-        onCommandSelect?.("tui");
-      },
-    },
+  // Define command shortcuts
+  const commands = [
+    { cmd: "/sessions", desc: "list sessions", key: "ctrl+x l" },
+    { cmd: "/run", desc: "run a command", key: "ctrl+x r" },
+    { cmd: "/spawn", desc: "spawn a new agent", key: "ctrl+x s" },
+    { cmd: "/status", desc: "show status", key: "ctrl+x t" },
+    { cmd: "/stack", desc: "manage git stack", key: "ctrl+x k" },
+    { cmd: "/settings", desc: "configure settings", key: "ctrl+x c" },
   ];
 
-  const handleExit = () => {
-    exit();
+  const handleSubmit = (value: string) => {
+    if (value.trim()) {
+      // Remove leading slash if present for command name
+      const commandName = value.startsWith("/") ? value.slice(1) : value;
+      onCommandSelect?.(commandName);
+      setCommandInput("");
+    }
   };
+
+  useInput((input, key) => {
+    if (key.escape || input === "q") {
+      exit();
+    }
+  });
 
   return (
     <Box
@@ -97,82 +51,60 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {...(terminalHeight && { height: terminalHeight })}
       {...(terminalWidth && { width: terminalWidth })}
     >
-      {/* Header */}
-      <Box
-        borderStyle="double"
-        borderColor="cyan"
-        justifyContent="center"
-        paddingY={1}
-      >
-        <Text color="cyan" bold>
-          🎼 Open Composer CLI v{CLI_VERSION}
-        </Text>
+      {/* Main content - centered vertically */}
+      <Box flexDirection="column" flexGrow={1} justifyContent="center">
+        {/* ASCII Art Logo - centered */}
+        <Box marginBottom={2}>
+          <AsciiLogo version={CLI_VERSION} />
+        </Box>
+
+        {/* Command shortcuts - centered */}
+        <Box flexDirection="column" alignItems="center" marginTop={3}>
+          {commands.map((command) => (
+            <Box key={command.cmd} width={60} justifyContent="space-between">
+              <Box width={15}>
+                <Text color="cyan">{command.cmd}</Text>
+              </Box>
+              <Box width={25}>
+                <Text color="gray">{command.desc}</Text>
+              </Box>
+              <Box width={15}>
+                <Text color="gray" dimColor>
+                  {command.key}
+                </Text>
+              </Box>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
-      {/* Welcome Message */}
+      {/* Bottom input bar */}
       <Box
-        flexDirection="column"
-        padding={2}
+        flexDirection="row"
+        paddingX={2}
+        paddingY={1}
         borderStyle="single"
         borderColor="gray"
       >
-        <Text color="white" bold>
-          Welcome to Open Composer! 👋
-        </Text>
-        <Text color="gray">
-          An agent orchestration framework for building with AI
-        </Text>
-      </Box>
-
-      {/* Main Content Area */}
-      <Box flexGrow={1} flexDirection="row">
-        {/* Main Menu */}
-        <Box width="60%">
-          <MainMenu items={menuItems} onExit={handleExit} />
-        </Box>
-
-        {/* Quick Info Panel */}
-        <Box
-          width="40%"
-          flexDirection="column"
-          padding={1}
-          borderStyle="single"
-          borderColor="gray"
-        >
-          <Text bold color="yellow">
-            ℹ️ Quick Info
+        <Box marginRight={1}>
+          <Text color="cyan" bold>
+            {"> "}
           </Text>
-          <Box marginTop={1} flexDirection="column">
-            <Text color="gray">• Select a command to get started</Text>
-            <Text color="gray">• Use arrow keys or j/k to navigate</Text>
-            <Text color="gray">• Press number keys for quick access</Text>
-            <Text color="gray">• Press Enter to execute command</Text>
-            <Text color="gray">• Press q to quit</Text>
-          </Box>
-
-          {selectedCommand && (
-            <Box marginTop={2} flexDirection="column">
-              <Text bold color="green">
-                Selected:
-              </Text>
-              <Text color="cyan">{selectedCommand}</Text>
-            </Box>
-          )}
-
-          <Box marginTop={2} flexDirection="column">
-            <Text bold color="magenta">
-              🚀 Get Started
-            </Text>
-            <Box marginTop={1} flexDirection="column">
-              <Text color="gray">Run 'open-composer --help' for CLI usage</Text>
-              <Text color="gray">Visit docs for more information</Text>
-            </Box>
-          </Box>
+        </Box>
+        <Box flexGrow={1}>
+          <TextInput
+            value={commandInput}
+            onChange={setCommandInput}
+            onSubmit={handleSubmit}
+            placeholder="Type a command and press enter..."
+          />
+        </Box>
+        <Box marginLeft={2}>
+          <Text color="gray" dimColor>
+            Press ESC or q to quit
+          </Text>
         </Box>
       </Box>
-
-      {/* Status Bar */}
-      <StatusBar status="Ready" />
     </Box>
   );
 };
