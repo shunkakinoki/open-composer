@@ -6,7 +6,7 @@ set -e
 
 TAG="${1:-${GITHUB_REF_NAME}}"
 REPO_OWNER="shunkakinoki"
-AUR_REPO="open-composer"
+AUR_REPO="open-composer-aur"
 PACKAGE_NAME="open-composer"
 
 if [ -z "$TAG" ]; then
@@ -99,7 +99,7 @@ git config user.email "github-actions[bot]@users.noreply.github.com"
 
 git add PKGBUILD .SRCINFO
 git commit -m "Update to ${TAG}"
-git push origin master
+git push origin main
 
 echo "Successfully updated AUR package for ${TAG}"
 

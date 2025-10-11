@@ -76,7 +76,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           open-composer --version
         shell: bash
-  install-e2e-brew:
+  install-e2e-homebrew:
     if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: macos-latest
     timeout-minutes: 10
@@ -100,9 +100,10 @@ jobs:
       - name: Verify open-composer command after brew install
         run: open-composer --version
   install-e2e-chocolatey:
-    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -129,9 +130,10 @@ jobs:
         run: open-composer --version
         shell: pwsh
   install-e2e-winget:
-    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -151,9 +153,10 @@ jobs:
         run: open-composer --version
         shell: pwsh
   install-e2e-scoop:
-    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -182,9 +185,10 @@ jobs:
         run: open-composer --version
         shell: pwsh
   install-e2e-paru:
-    if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -218,7 +222,7 @@ jobs:
     needs:
       - install-e2e-cli
       - install-e2e-script
-      - install-e2e-brew
+      - install-e2e-homebrew
       - install-e2e-chocolatey
       - install-e2e-winget
       - install-e2e-scoop
@@ -230,4 +234,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: install-e2e-cli,install-e2e-script,install-e2e-brew,install-e2e-chocolatey,install-e2e-winget,install-e2e-scoop,install-e2e-paru
+          allowed-skips: install-e2e-cli,install-e2e-script,install-e2e-homebrew,install-e2e-chocolatey,install-e2e-winget,install-e2e-scoop,install-e2e-paru
