@@ -15,8 +15,8 @@ if [ -z "$TAG" ]; then
   exit 1
 fi
 
-if [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ]; then
-  echo "Error: HOMEBREW_TAP_GITHUB_TOKEN not set"
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo "Error: GITHUB_TOKEN not set"
   exit 1
 fi
 
@@ -24,7 +24,7 @@ fi
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"
 
-git clone "https://x-access-token:${HOMEBREW_TAP_GITHUB_TOKEN}@github.com/${REPO_OWNER}/${TAP_REPO}.git"
+git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_OWNER}/${TAP_REPO}.git"
 cd "$TAP_REPO"
 
 # Create Formula directory if it doesn't exist

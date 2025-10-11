@@ -38,10 +38,6 @@ jobs:
           file: apps/cli/dist/open-composer-*.zip
           tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
           overwrite: true
-      - name: Update Homebrew Tap
-        run: ./scripts/update-homebrew-formula.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
-        env:
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-latest:
     needs: release-upload
     runs-on: ubuntu-latest
@@ -76,11 +72,91 @@ jobs:
             console.log(`Updated release ${release.tag_name} as latest`);
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release-homebrew:
+    needs: release-upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Update Homebrew Tap
+        run: ./scripts/release-homebrew-formula.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release-chocolatey:
+    needs: release-upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Update Chocolatey Package
+        run: ./scripts/release-chocolatey-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release-winget:
+    needs: release-upload
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Update WinGet Package
+        run: ./scripts/release-winget-package.ps1 -Tag "${{ github.event.release.tag_name || github.event.inputs.tag }}" -GitHubToken "${{ secrets.GITHUB_TOKEN }}"
+        shell: pwsh
+  release-scoop:
+    needs: release-upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Update Scoop Package
+        run: ./scripts/release-scoop-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release-paru:
+    needs: release-upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Update Paru/AUR Package
+        run: ./scripts/release-paru-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release-check:
     if: always()
     needs:
       - release-upload
       - release-latest
+      - release-homebrew
+      - release-chocolatey
+      - release-winget
+      - release-scoop
+      - release-paru
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -88,4 +164,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: release-upload,release-latest
+          allowed-skips: release-upload,release-latest,release-homebrew,release-chocolatey,release-winget,release-scoop,release-paru
