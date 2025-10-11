@@ -90,15 +90,13 @@ jobs:
           ref: ${{ github.event.release.tag_name || github.ref }}
       - name: Setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
-      - name: Add shunkakinoki/homebrew-tap
-        run: brew tap shunkakinoki/homebrew-tap
       - name: Install open-composer via brew with retry
         uses: nick-fields/retry@v3
         with:
           retry_wait_seconds: 30
           timeout_seconds: 300
           max_attempts: 10
-          command: brew install open-composer
+          command: brew install shunkakinoki/tap/open-composer
       - name: Verify open-composer command after brew install
         run: open-composer --version
   install-check:
