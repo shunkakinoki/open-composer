@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { ScrollableSessionViewer } from "./ScrollableSessionViewer.js";
 
 /**
  * Interactive TUI component for viewing all AI agent sessions
@@ -12,6 +13,7 @@ import { useEffect, useState } from "react";
 interface AgentSessionsListProps {
   onComplete?: () => void;
   onCancel?: () => void;
+  onSessionSelect?: (sessionId: string) => Promise<string>;
 }
 
 const formatTimestamp = (date: Date): string => {
@@ -73,6 +75,7 @@ const getStatusColor = (status: AgentSession["status"]): string => {
 export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
   onComplete,
   onCancel,
+  onSessionSelect,
 }) => {
   const [sessions, setSessions] = useState<AgentSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,6 +84,7 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
   const [filterAgent, setFilterAgent] = useState<AgentSession["agent"] | "all">(
     "all",
   );
+  const [viewingContent, setViewingContent] = useState<string | null>(null);
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -138,17 +142,41 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
         setFilterAgent("opencode");
         setSelectedIndex(0);
       } else if (key.return) {
-        onComplete?.();
-        exit();
+        if (filteredSessions.length > 0 && onSessionSelect) {
+          const selectedSession = filteredSessions[selectedIndex];
+          // Load session content
+          onSessionSelect(selectedSession.id).then((content) => {
+            setViewingContent(content);
+          }).catch((error) => {
+            console.error(`Error loading session: ${error}`);
+            onComplete?.();
+            exit();
+          });
+        } else {
+          onComplete?.();
+          exit();
+        }
       }
     },
-    { isActive: true },
+    { isActive: !viewingContent },
   );
 
   const filteredSessions =
     filterAgent === "all"
       ? sessions
       : sessions.filter((s) => s.agent === filterAgent);
+
+  if (viewingContent) {
+    return (
+      <ScrollableSessionViewer
+        content={viewingContent}
+        onExit={() => {
+          onComplete?.();
+          exit();
+        }}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -265,7 +293,7 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
 
       <Box marginTop={1}>
         <Text color="gray">
-          ↑↓/jk: navigate | 1-5: filter | Enter: exit | Esc: cancel
+          ↑↓/jk: navigate | 1-5: filter | Enter: {onSessionSelect ? "view session" : "exit"} | Esc: cancel
         </Text>
       </Box>
     </Box>
