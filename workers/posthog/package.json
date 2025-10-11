@@ -21,13 +21,13 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.9.10",
-    "@cloudflare/workers-types": "^4.20251004.0",
-    "@types/node": "^24.6.2",
+    "@cloudflare/vitest-pool-workers": "^0.9.12",
+    "@cloudflare/workers-types": "^4.20251011.0",
+    "@types/node": "^24.7.1",
     "cloudflare": "^5.2.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
-    "wrangler": "^4.42.0"
+    "wrangler": "^4.42.2"
   },
   "engines": {
     "node": ">=18.0.0"

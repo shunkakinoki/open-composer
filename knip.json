@@ -16,7 +16,7 @@
   ],
   "ignoreBinaries": ["microfrontends"],
   "ignoreDependencies": ["tailwindcss"],
-  "ignoreUnresolved": ["bun-types", "@effect/language-service"],
+  "ignoreUnresolved": ["@types/bun", "@effect/language-service"],
   "ignoreExportsUsedInFile": {
     "interface": true
   }

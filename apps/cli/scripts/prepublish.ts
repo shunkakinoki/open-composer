@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-/// <reference types="bun-types" />
+/// <reference types="bun" />
 
 import { $ } from "bun";
 
