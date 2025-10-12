@@ -6,7 +6,8 @@ mock.module("node:fs/promises", () => ({
   realpath: mockRealpath,
 }));
 
-import { buildUpgradeCommand, detectInstallMethod } from "../../src/commands/upgrade-command.js";
+import { buildUpgradeCommand } from "../../src/commands/upgrade-command.js";
+import { detectInstallMethod } from "../../src/services/upgrade-service.js";
 
 describe("upgrade command", () => {
   describe("command structure", () => {

@@ -12,7 +12,8 @@
     "**/tests/setup.ts",
     "**/tests/types.d.ts",
     "**/tests/create-fixtures.ts",
-    "bun-test-setup.ts"
+    "bun-test-setup.ts",
+    "**/upgrade-service.ts"
   ],
   "ignoreBinaries": ["microfrontends"],
   "ignoreDependencies": ["tailwindcss"],
