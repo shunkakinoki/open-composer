@@ -27,9 +27,14 @@ describe('PTY Streaming', () => {
 
   test('should stream PTY output via SSE', async () => {
     const sessionID = randomSessionID()
-    const ptyID = await createPTY(baseURL, sessionID, ['echo', 'hello world'])
+    // Use bash with a command that outputs after a delay, so SSE can connect first
+    const ptyID = await createPTY(baseURL, sessionID, [
+      'bash',
+      '-c',
+      'sleep 0.1; echo "hello world"',
+    ])
 
-    // Connect to stream
+    // Connect to stream immediately
     const sseReader = await connectSSE(
       `${baseURL}/session/${sessionID}/pty/${ptyID}/stream`,
     )
@@ -159,8 +164,12 @@ describe('PTY Streaming', () => {
 
   test('should stream output from long-running process', async () => {
     const sessionID = randomSessionID()
-    // Use bash to echo multiple lines
-    const ptyID = await createPTY(baseURL, sessionID, ['bash', '-l'])
+    // Use a command that produces output over time
+    const ptyID = await createPTY(baseURL, sessionID, [
+      'bash',
+      '-c',
+      'for i in 1 2 3; do echo "Line $i"; sleep 0.1; done',
+    ])
 
     const sseReader = await connectSSE(
       `${baseURL}/session/${sessionID}/pty/${ptyID}/stream`,
@@ -171,12 +180,13 @@ describe('PTY Streaming', () => {
       const snapshot = await sseReader.readEvent()
       expect(snapshot!.event).toBe('snapshot')
 
-      // Wait for some initial output
-      await Bun.sleep(500)
-
-      // Should be able to read some data
-      const events = await sseReader.readEvents(1, 2000)
+      // Should receive data events as output is produced
+      const events = await sseReader.readEvents(3, 2000)
       expect(events.length).toBeGreaterThan(0)
+
+      // At least one should be a data event
+      const dataEvents = events.filter((e) => e.event === 'data')
+      expect(dataEvents.length).toBeGreaterThan(0)
     } finally {
       await sseReader.close()
       await killPTY(baseURL, sessionID, ptyID)

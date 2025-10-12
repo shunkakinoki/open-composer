@@ -138,8 +138,7 @@ describe('PTY Persistence - Snapshot Recovery', () => {
     // Get snapshot immediately (no output yet)
     const snapshot = await getSnapshot(baseURL, sessionID, ptyID)
 
-    // Should return empty/minimal snapshot
-    expect(snapshot).toBeTruthy()
+    // Should return empty/minimal snapshot (empty string is valid)
     expect(typeof snapshot).toBe('string')
 
     // Clean up
