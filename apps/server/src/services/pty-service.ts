@@ -31,6 +31,8 @@ interface PTYHandle {
   reader: ReadableStreamDefaultReader<Uint8Array> | null
   /** Writer for stdin (unused, we write directly to proc.stdin) */
   writer: null
+  /** Broadcast controllers for SSE streams */
+  sseControllers: Set<ReadableStreamDefaultController<Uint8Array>>
 }
 
 /**
@@ -86,9 +88,6 @@ class PTYService {
     // Stdin is a FileSink, we'll write directly to it
     const writer = null // We'll use proc.stdin directly
 
-    // Wire PTY output to headless terminal
-    this.pipeOutput(reader, term)
-
     // Create handle
     const handle: PTYHandle = {
       proc,
@@ -98,7 +97,11 @@ class PTYService {
       lastActivity: new Date(),
       reader,
       writer,
+      sseControllers: new Set(),
     }
+
+    // Wire PTY output to headless terminal and broadcast to SSE clients
+    this.pipeOutput(reader, handle)
 
     // Store handle
     this.ptys.set(ptyID, handle)
@@ -113,20 +116,50 @@ class PTYService {
   }
 
   /**
-   * Pipe subprocess output to terminal
+   * Pipe subprocess output to terminal and broadcast to SSE clients
    */
   private async pipeOutput(
     reader: ReadableStreamDefaultReader<Uint8Array>,
-    term: Terminal,
+    handle: PTYHandle,
   ): Promise<void> {
     try {
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          // Notify all SSE clients that process exited
+          const exitCode = handle.proc.exitCode || 0
+          for (const controller of handle.sseControllers) {
+            try {
+              controller.enqueue(
+                new TextEncoder().encode(
+                  `event: exit\ndata: ${JSON.stringify({ code: exitCode })}\n\n`,
+                ),
+              )
+              controller.close()
+            } catch (e) {
+              // Controller already closed
+            }
+          }
+          handle.sseControllers.clear()
+          break
+        }
 
         // Convert Uint8Array to string and write to terminal
         const text = new TextDecoder().decode(value)
-        term.write(text)
+        handle.term.write(text)
+
+        // Broadcast to all SSE clients
+        for (const controller of handle.sseControllers) {
+          try {
+            controller.enqueue(
+              new TextEncoder().encode(
+                `event: data\ndata: ${JSON.stringify({ data: text })}\n\n`,
+              ),
+            )
+          } catch (e) {
+            // Controller closed, will be removed later
+          }
+        }
       }
     } catch (error) {
       // Stream closed or errored

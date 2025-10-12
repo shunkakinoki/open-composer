@@ -52,47 +52,41 @@ ptyRoutes.get('/session/:sid/pty/:id/stream', async (c) => {
   }
 
   // Create SSE stream
+  let sseController: ReadableStreamDefaultController<Uint8Array> | null = null
+
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
+      sseController = controller
       const encoder = new TextEncoder()
 
       // Helper to send SSE events
       const sendEvent = (event: string, data: unknown) => {
         const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-        controller.enqueue(encoder.encode(payload))
+        try {
+          controller.enqueue(encoder.encode(payload))
+        } catch (e) {
+          // Controller closed
+        }
       }
 
       // Send initial snapshot for instant rendering
       const snapshot = handle.ser.serialize()
       sendEvent('snapshot', { data: snapshot })
 
-      // Stream live PTY output directly from subprocess
-      // Get a new reader for the stdout stream
-      const stdout = handle.proc.stdout
-      if (!stdout || typeof stdout === 'number') {
-        sendEvent('exit', { code: handle.proc.exitCode || 1 })
+      // Register this controller to receive broadcasts
+      handle.sseControllers.add(controller)
+
+      // If process already exited, send exit event immediately
+      if (handle.proc.killed || handle.proc.exitCode !== null) {
+        sendEvent('exit', { code: handle.proc.exitCode || 0 })
         controller.close()
-        return
+        handle.sseControllers.delete(controller)
       }
-
-      const reader = stdout.getReader()
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            sendEvent('exit', { code: handle.proc.exitCode || 0 })
-            break
-          }
-
-          const text = new TextDecoder().decode(value)
-          sendEvent('data', { data: text })
-        }
-      } catch (error) {
-        console.error('Stream error:', error)
-      } finally {
-        reader.releaseLock()
-        controller.close()
+    },
+    cancel() {
+      // Remove controller when client disconnects
+      if (sseController) {
+        handle.sseControllers.delete(sseController)
       }
     },
   })

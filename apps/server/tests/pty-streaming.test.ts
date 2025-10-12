@@ -41,9 +41,9 @@ describe('PTY Streaming', () => {
       expect(snapshotEvent!.event).toBe('snapshot')
       expect(snapshotEvent!.data).toBeTruthy()
 
-      // Parse snapshot data
+      // Parse snapshot data (may be empty if no output yet)
       const snapshotData = JSON.parse(snapshotEvent!.data!)
-      expect(snapshotData.data).toBeTruthy()
+      expect(typeof snapshotData.data).toBe('string')
 
       // Should receive data events with output
       let receivedOutput = false
