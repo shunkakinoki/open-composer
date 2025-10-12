@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.21
+
+### Patch Changes
+
+- [#322](https://github.com/shunkakinoki/open-composer/pull/322) [`5ff68d3`](https://github.com/shunkakinoki/open-composer/commit/5ff68d3250f3665593e27d15dfcfa80eaa0ccdce) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Enhanced binary path detection for Bun-compiled binaries
+
 ## 0.8.20
 
 ### Patch Changes
