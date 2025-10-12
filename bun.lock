@@ -219,8 +219,6 @@
       "name": "@open-composer/server",
       "version": "0.1.0",
       "dependencies": {
-        "@effect/platform": "^0.92.1",
-        "@effect/platform-bun": "^0.81.1",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/openapi": "^1.4.11",
         "@xterm/addon-serialize": "^0.13.0",
