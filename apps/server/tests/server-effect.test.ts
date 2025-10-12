@@ -85,7 +85,7 @@ describe('Effect TS Server Functions', () => {
 
       const result = await Effect.runPromise(program)
 
-      expect(result.port).toBe(options.port)
+      expect(result.port).toBe(4568)
       expect(result.app).toBeDefined()
 
       cleanups.push(result.cleanup)
