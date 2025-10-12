@@ -72,6 +72,9 @@ export function buildUpgradeCommand(): CommandBuilder<"upgrade"> {
   };
 }
 
+// Export internal function for testing
+export { detectInstallMethod };
+
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
@@ -90,7 +93,14 @@ export function buildUpgradeCommand(): CommandBuilder<"upgrade"> {
 async function detectInstallMethod(): Promise<InstallInfo> {
   try {
     // Get the path to the currently running binary
-    const binaryPath = process.argv[1];
+    // For Bun-compiled binaries, process.argv[1] is "/$bunfs/root/binary-name"
+    // so we need to use process.execPath instead
+    let binaryPath = process.argv[1];
+
+    if (binaryPath?.startsWith("/$bunfs/")) {
+      // This is a Bun-compiled binary, use the actual executable path
+      binaryPath = process.execPath;
+    }
 
     if (!binaryPath) {
       return { method: "unknown", binaryPath: "" };
