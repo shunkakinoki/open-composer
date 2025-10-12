@@ -36,7 +36,7 @@ interface PTYHandle {
 /**
  * PTY Service manages all PTY sessions across all user sessions
  */
-export class PTYService {
+class PTYService {
   /** Map of ptyID -> PTYHandle */
   private ptys: Map<string, PTYHandle> = new Map()
 

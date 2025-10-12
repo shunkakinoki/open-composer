@@ -53,33 +53,3 @@ export interface PTYSnapshotResponse {
   /** Serialized terminal state (from @xterm/addon-serialize) */
   data: string
 }
-
-/**
- * Request body for restoring a PTY from a snapshot
- */
-export interface PTYRestoreRequest {
-  /** Previously serialized terminal state */
-  snapshot: string
-}
-
-/**
- * SSE event types for PTY streaming
- */
-export type PTYStreamEvent =
-  | { type: 'snapshot'; data: string }
-  | { type: 'data'; data: string }
-  | { type: 'exit'; code: number; signal?: number }
-
-/**
- * PTY session metadata
- */
-export interface PTYMetadata {
-  id: string
-  sessionID: string
-  cmd: string[]
-  cwd: string
-  cols: number
-  rows: number
-  createdAt: string
-  lastActivity: string
-}

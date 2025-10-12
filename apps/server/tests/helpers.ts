@@ -5,24 +5,6 @@
 import type { Server } from 'bun'
 
 /**
- * Wait for a condition to be true with timeout
- */
-export async function waitFor(
-  condition: () => boolean | Promise<boolean>,
-  timeout = 5000,
-  interval = 100,
-): Promise<void> {
-  const start = Date.now()
-  while (Date.now() - start < timeout) {
-    if (await condition()) {
-      return
-    }
-    await Bun.sleep(interval)
-  }
-  throw new Error(`Timeout waiting for condition after ${timeout}ms`)
-}
-
-/**
  * Create a test server instance
  */
 export async function createTestServer(port = 0): Promise<Server<unknown>> {
@@ -36,7 +18,7 @@ export async function createTestServer(port = 0): Promise<Server<unknown>> {
 /**
  * SSE event parser
  */
-export interface SSEEvent {
+interface SSEEvent {
   event?: string
   data?: string
   id?: string
