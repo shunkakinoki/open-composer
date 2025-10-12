@@ -1,10 +1,10 @@
 /**
- * PTY Routes (Bun-native) - HTTP endpoints for managing terminal sessions
+ * PTY Routes (Elysia) - HTTP endpoints for managing terminal sessions
  *
  * Provides RESTful API + SSE streaming for server-managed PTYs using Bun's subprocess
  */
 
-import { Hono } from 'hono'
+import { Elysia } from 'elysia'
 import { ptyService } from '../services/pty-service.js'
 import type {
   CreatePTYRequest,
@@ -12,182 +12,190 @@ import type {
   PTYResizeRequest,
 } from '../types/pty.js'
 
-export const ptyRoutes = new Hono()
+export const ptyRoutes = new Elysia({ prefix: '/session/:sid/pty' })
+  /**
+   * Create a new PTY session
+   * POST /session/:sid/pty
+   */
+  .post('/', async ({ params, body, set }) => {
+    const sessionID = params.sid
+    const req = body as CreatePTYRequest
 
-/**
- * Create a new PTY session
- * POST /session/:sid/pty
- */
-ptyRoutes.post('/session/:sid/pty', async (c) => {
-  const sessionID = c.req.param('sid')
-  const body = await c.req.json<CreatePTYRequest>()
+    // Validate request
+    if (!req.cmd || !Array.isArray(req.cmd) || req.cmd.length === 0) {
+      set.status = 400
+      return { error: 'Invalid cmd: must be non-empty array' }
+    }
 
-  // Validate request
-  if (!body.cmd || !Array.isArray(body.cmd) || body.cmd.length === 0) {
-    return c.json({ error: 'Invalid cmd: must be non-empty array' }, 400)
-  }
+    if (typeof req.cols !== 'number' || typeof req.rows !== 'number') {
+      set.status = 400
+      return { error: 'cols and rows must be numbers' }
+    }
 
-  if (typeof body.cols !== 'number' || typeof body.rows !== 'number') {
-    return c.json({ error: 'cols and rows must be numbers' }, 400)
-  }
+    // Create PTY
+    const result = ptyService.create(sessionID, req)
+    return result
+  })
 
-  // Create PTY
-  const result = ptyService.create(sessionID, body)
-  return c.json(result)
-})
+  /**
+   * Stream PTY output via Server-Sent Events
+   * GET /session/:sid/pty/:id/stream
+   *
+   * First emits a 'snapshot' event with serialized state,
+   * then streams live 'data' events with incremental output
+   */
+  .get('/:id/stream', async ({ params, set }) => {
+    const ptyID = params.id
+    const handle = ptyService.getHandle(ptyID)
 
-/**
- * Stream PTY output via Server-Sent Events
- * GET /session/:sid/pty/:id/stream
- *
- * First emits a 'snapshot' event with serialized state,
- * then streams live 'data' events with incremental output
- */
-ptyRoutes.get('/session/:sid/pty/:id/stream', async (c) => {
-  const ptyID = c.req.param('id')
-  const handle = ptyService.getHandle(ptyID)
+    if (!handle) {
+      set.status = 404
+      return { error: 'PTY not found' }
+    }
 
-  if (!handle) {
-    return c.notFound()
-  }
+    // Create SSE stream
+    let sseController: ReadableStreamDefaultController<Uint8Array> | null = null
 
-  // Create SSE stream
-  let sseController: ReadableStreamDefaultController<Uint8Array> | null = null
+    const stream = new ReadableStream({
+      start(controller) {
+        sseController = controller
+        const encoder = new TextEncoder()
 
-  const stream = new ReadableStream({
-    start(controller) {
-      sseController = controller
-      const encoder = new TextEncoder()
-
-      // Helper to send SSE events
-      const sendEvent = (event: string, data: unknown) => {
-        const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-        try {
-          controller.enqueue(encoder.encode(payload))
-        } catch (e) {
-          // Controller closed
+        // Helper to send SSE events
+        const sendEvent = (event: string, data: unknown) => {
+          const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+          try {
+            controller.enqueue(encoder.encode(payload))
+          } catch (e) {
+            // Controller closed
+          }
         }
-      }
 
-      // Send initial snapshot for instant rendering
-      const snapshot = handle.ser.serialize()
-      sendEvent('snapshot', { data: snapshot })
+        // Send initial snapshot for instant rendering
+        const snapshot = handle.ser.serialize()
+        sendEvent('snapshot', { data: snapshot })
 
-      // Register this controller to receive broadcasts
-      handle.sseControllers.add(controller)
+        // Register this controller to receive broadcasts
+        handle.sseControllers.add(controller)
 
-      // If process already exited, send exit event immediately
-      if (handle.proc.killed || handle.proc.exitCode !== null) {
-        sendEvent('exit', { code: handle.proc.exitCode || 0 })
-        controller.close()
-        handle.sseControllers.delete(controller)
-      }
-    },
-    cancel() {
-      // Remove controller when client disconnects
-      if (sseController) {
-        handle.sseControllers.delete(sseController)
-      }
-    },
+        // If process already exited, send exit event immediately
+        if (handle.proc.killed || handle.proc.exitCode !== null) {
+          sendEvent('exit', { code: handle.proc.exitCode || 0 })
+          controller.close()
+          handle.sseControllers.delete(controller)
+        }
+      },
+      cancel() {
+        // Remove controller when client disconnects
+        if (sseController) {
+          handle.sseControllers.delete(sseController)
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    })
   })
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    },
+  /**
+   * Write input to a PTY
+   * POST /session/:sid/pty/:id/input
+   */
+  .post('/:id/input', async ({ params, body, set }) => {
+    const ptyID = params.id
+    const req = body as PTYInputRequest
+
+    if (typeof req.data !== 'string') {
+      set.status = 400
+      return { error: 'data must be a string' }
+    }
+
+    const success = await ptyService.writeInput(ptyID, req)
+    if (!success) {
+      set.status = 404
+      return { error: 'PTY not found' }
+    }
+
+    return { success: true }
   })
-})
 
-/**
- * Write input to a PTY
- * POST /session/:sid/pty/:id/input
- */
-ptyRoutes.post('/session/:sid/pty/:id/input', async (c) => {
-  const ptyID = c.req.param('id')
-  const body = await c.req.json<PTYInputRequest>()
+  /**
+   * Resize a PTY
+   * POST /session/:sid/pty/:id/resize
+   */
+  .post('/:id/resize', async ({ params, body, set }) => {
+    const ptyID = params.id
+    const req = body as PTYResizeRequest
 
-  if (typeof body.data !== 'string') {
-    return c.json({ error: 'data must be a string' }, 400)
-  }
+    if (typeof req.cols !== 'number' || typeof req.rows !== 'number') {
+      set.status = 400
+      return { error: 'cols and rows must be numbers' }
+    }
 
-  const success = await ptyService.writeInput(ptyID, body)
-  if (!success) {
-    return c.notFound()
-  }
+    const success = ptyService.resize(ptyID, req)
+    if (!success) {
+      set.status = 404
+      return { error: 'PTY not found' }
+    }
 
-  return c.json({ success: true })
-})
+    return { success: true }
+  })
 
-/**
- * Resize a PTY
- * POST /session/:sid/pty/:id/resize
- */
-ptyRoutes.post('/session/:sid/pty/:id/resize', async (c) => {
-  const ptyID = c.req.param('id')
-  const body = await c.req.json<PTYResizeRequest>()
+  /**
+   * Get a serialized snapshot of the terminal state
+   * GET /session/:sid/pty/:id/snapshot
+   */
+  .get('/:id/snapshot', ({ params, set }) => {
+    const ptyID = params.id
+    const snapshot = ptyService.getSnapshot(ptyID)
 
-  if (typeof body.cols !== 'number' || typeof body.rows !== 'number') {
-    return c.json({ error: 'cols and rows must be numbers' }, 400)
-  }
+    if (!snapshot) {
+      set.status = 404
+      return { error: 'PTY not found' }
+    }
 
-  const success = ptyService.resize(ptyID, body)
-  if (!success) {
-    return c.notFound()
-  }
+    return snapshot
+  })
 
-  return c.json({ success: true })
-})
+  /**
+   * Kill a PTY
+   * DELETE /session/:sid/pty/:id
+   */
+  .delete('/:id', ({ params, set }) => {
+    const ptyID = params.id
+    const success = ptyService.kill(ptyID)
 
-/**
- * Get a serialized snapshot of the terminal state
- * GET /session/:sid/pty/:id/snapshot
- */
-ptyRoutes.get('/session/:sid/pty/:id/snapshot', (c) => {
-  const ptyID = c.req.param('id')
-  const snapshot = ptyService.getSnapshot(ptyID)
+    if (!success) {
+      set.status = 404
+      return { error: 'PTY not found' }
+    }
 
-  if (!snapshot) {
-    return c.notFound()
-  }
+    return { success: true }
+  })
 
-  return c.json(snapshot)
-})
+  /**
+   * List all PTYs for a session
+   * GET /session/:sid/pty
+   */
+  .get('/', ({ params }) => {
+    const sessionID = params.sid
+    const ptyIDs = ptyService.listPTYs(sessionID)
 
-/**
- * Kill a PTY
- * DELETE /session/:sid/pty/:id
- */
-ptyRoutes.delete('/session/:sid/pty/:id', (c) => {
-  const ptyID = c.req.param('id')
-  const success = ptyService.kill(ptyID)
+    return { ptys: ptyIDs }
+  })
 
-  if (!success) {
-    return c.notFound()
-  }
+  /**
+   * Kill all PTYs for a session
+   * DELETE /session/:sid/pty
+   */
+  .delete('/', ({ params }) => {
+    const sessionID = params.sid
+    ptyService.killSession(sessionID)
 
-  return c.json({ success: true })
-})
-
-/**
- * List all PTYs for a session
- * GET /session/:sid/pty
- */
-ptyRoutes.get('/session/:sid/pty', (c) => {
-  const sessionID = c.req.param('sid')
-  const ptyIDs = ptyService.listPTYs(sessionID)
-
-  return c.json({ ptys: ptyIDs })
-})
-
-/**
- * Kill all PTYs for a session
- * DELETE /session/:sid/pty
- */
-ptyRoutes.delete('/session/:sid/pty', (c) => {
-  const sessionID = c.req.param('sid')
-  ptyService.killSession(sessionID)
-
-  return c.json({ success: true })
-})
+    return { success: true }
+  })
