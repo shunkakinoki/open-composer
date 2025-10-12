@@ -6,7 +6,7 @@ import {
   type TaskPlan,
 } from "@open-composer/orchestrator";
 import * as Effect from "effect/Effect";
-import { render } from "ink";
+import { render } from "@opentui/react";
 import React from "react";
 import {
   type OrchestratorPlanConfig,
@@ -79,8 +79,8 @@ function displayPlan(result: TaskPlan): void {
 }
 
 async function runInteractivePlan(): Promise<OrchestratorPlanConfig> {
-  return new Promise((resolve, reject) => {
-    render(
+  return new Promise(async (resolve, reject) => {
+    await render(
       React.createElement(OrchestratorPlanPrompt, {
         onComplete: (config: OrchestratorPlanConfig) => {
           resolve(config);

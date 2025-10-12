@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { MainMenu, type MenuItem } from "../../src/components/MainMenu.js";
 import { render } from "../utils.js";
 
-test("MainMenu renders menu items", () => {
+test("MainMenu renders menu items", async () => {
   const mockItems: MenuItem[] = [
     {
       key: "test1",
@@ -18,7 +18,7 @@ test("MainMenu renders menu items", () => {
     },
   ];
 
-  const { lastFrame } = render(
+  const { lastFrame, cleanup } = await render(
     <MainMenu items={mockItems} onExit={() => {}} />,
   );
 
@@ -35,9 +35,10 @@ test("MainMenu renders menu items", () => {
 
   // Check that navigation hints are present
   expect(output).toContain("Use ↑↓/j/k to navigate");
+  cleanup();
 });
 
-test("MainMenu renders with numbered items", () => {
+test("MainMenu renders with numbered items", async () => {
   const mockItems: MenuItem[] = [
     {
       key: "first",
@@ -47,7 +48,7 @@ test("MainMenu renders with numbered items", () => {
     },
   ];
 
-  const { lastFrame } = render(
+  const { lastFrame, cleanup } = await render(
     <MainMenu items={mockItems} onExit={() => {}} />,
   );
 
@@ -55,9 +56,10 @@ test("MainMenu renders with numbered items", () => {
 
   // Check that item has number label
   expect(output).toContain("[1]");
+  cleanup();
 });
 
-test("MainMenu matches snapshot", () => {
+test("MainMenu matches snapshot", async () => {
   const mockItems: MenuItem[] = [
     {
       key: "sessions",
@@ -79,9 +81,10 @@ test("MainMenu matches snapshot", () => {
     },
   ];
 
-  const { lastFrame } = render(
+  const { lastFrame, cleanup } = await render(
     <MainMenu items={mockItems} onExit={() => {}} />,
   );
 
   expect(lastFrame()).toMatchSnapshot();
+  cleanup();
 });

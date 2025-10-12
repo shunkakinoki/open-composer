@@ -4,16 +4,17 @@ import { GitWorktreeCreatePrompt } from "../../src/components/GitWorktreeCreateP
 import { render } from "../utils.js";
 
 describe("GitWorktreeCreatePrompt", () => {
-  test("renders correctly", () => {
+  test("renders correctly", async () => {
     const mockOnSubmit = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <GitWorktreeCreatePrompt
         onSubmit={mockOnSubmit}
         onCancel={mockOnCancel}
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

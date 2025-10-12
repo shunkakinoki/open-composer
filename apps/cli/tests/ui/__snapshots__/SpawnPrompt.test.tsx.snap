@@ -1,13 +1,29 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`SpawnPrompt renders initial session name step correctly 1`] = `
-"
-
-  🪄 Spawn Interactive Session
-
-  name for the session: _
-
-  Press Enter to continue (auto-generated if empty), Esc to cancel
-
+"                                                                                
+                                                                                
+  🪄 Spawn Interactive Session                                                  
+                                                                                
+  name for the session:                                                         
+                                                                                
+  _                                                                             
+                                                                                
+  Press Enter to continue (auto-generated if empty), Esc to cancel              
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;

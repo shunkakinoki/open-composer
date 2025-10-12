@@ -1,6 +1,6 @@
 import { Command } from "@effect/cli";
+import { render } from "@opentui/react";
 import * as Effect from "effect/Effect";
-import { render } from "ink";
 import React from "react";
 import { ComposerApp } from "../components/ComposerApp.js";
 import {
@@ -24,10 +24,7 @@ export function buildTUICommand(): CommandBuilder<"tui"> {
 
           return yield* Effect.tryPromise({
             try: async () => {
-              const { waitUntilExit } = render(
-                React.createElement(ComposerApp),
-              );
-              await waitUntilExit();
+              await render(React.createElement(ComposerApp));
             },
             catch: (error) =>
               new Error(

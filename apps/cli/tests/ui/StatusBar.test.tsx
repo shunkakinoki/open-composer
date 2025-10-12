@@ -2,17 +2,18 @@ import { expect, test } from "bun:test";
 import { StatusBar } from "../../src/components/StatusBar.js";
 import { render } from "../utils.js";
 
-test("StatusBar renders default status", () => {
-  const { lastFrame } = render(<StatusBar />);
+test("StatusBar renders default status", async () => {
+  const { lastFrame, cleanup } = await render(<StatusBar />);
   const output = lastFrame();
 
   expect(output).toContain("Ready");
   expect(output).toContain("main");
   expect(output).toContain("claude-code");
+  cleanup();
 });
 
-test("StatusBar renders custom props", () => {
-  const { lastFrame } = render(
+test("StatusBar renders custom props", async () => {
+  const { lastFrame, cleanup } = await render(
     <StatusBar
       branch="feature-branch"
       worktree="feature-123"
@@ -27,10 +28,11 @@ test("StatusBar renders custom props", () => {
   expect(output).toMatch(/feature-bran/);
   expect(output).toMatch(/feature-12/);
   expect(output).toMatch(/cursor-agen/);
+  cleanup();
 });
 
-test("StatusBar renders help text", () => {
-  const { lastFrame } = render(<StatusBar />);
+test("StatusBar renders help text", async () => {
+  const { lastFrame, cleanup } = await render(<StatusBar />);
   const output = lastFrame();
 
   expect(output).toContain("Press");
@@ -38,15 +40,17 @@ test("StatusBar renders help text", () => {
   expect(output).toContain("to quit");
   expect(output).toContain("?");
   expect(output).toContain("for help");
+  cleanup();
 });
 
-test("StatusBar matches snapshot with default props", () => {
-  const { lastFrame } = render(<StatusBar />);
+test("StatusBar matches snapshot with default props", async () => {
+  const { lastFrame, cleanup } = await render(<StatusBar />);
   expect(lastFrame()).toMatchSnapshot();
+  cleanup();
 });
 
-test("StatusBar matches snapshot with custom props", () => {
-  const { lastFrame } = render(
+test("StatusBar matches snapshot with custom props", async () => {
+  const { lastFrame, cleanup } = await render(
     <StatusBar
       branch="feature-branch"
       worktree="feature-123"
@@ -55,4 +59,5 @@ test("StatusBar matches snapshot with custom props", () => {
     />,
   );
   expect(lastFrame()).toMatchSnapshot();
+  cleanup();
 });

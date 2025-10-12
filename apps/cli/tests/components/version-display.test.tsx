@@ -2,13 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { CLI_VERSION } from "../../src/lib/version.js";
 
 describe("version display in components", () => {
-  test("CLI_VERSION should behave like a string", () => {
+  test("CLI_VERSION should behave like a string", async () => {
     expect(CLI_VERSION).toBeTruthy();
     expect(String(CLI_VERSION)).toBeTruthy();
     expect(typeof String(CLI_VERSION)).toBe("string");
   });
 
-  test("CLI_VERSION should be a valid version in normal operation", () => {
+  test("CLI_VERSION should be a valid version in normal operation", async () => {
     // This test verifies that the version is properly loaded from package.json
     // First ensure package.json is valid
     const fs = require('fs');
@@ -22,14 +22,14 @@ describe("version display in components", () => {
     expect(version === "0.0.0" || /^\d+\.\d+\.\d+/.test(version)).toBe(true);
   });
 
-  test("CLI_VERSION should match expected format", () => {
+  test("CLI_VERSION should match expected format", async () => {
     // Version should match semantic versioning pattern (or be the fallback)
     const version = String(CLI_VERSION);
     const versionPattern = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$/;
     expect(version === "0.0.0" || versionPattern.test(version)).toBe(true);
   });
 
-  test("version should be suitable for display in components", () => {
+  test("version should be suitable for display in components", async () => {
     // Test that the version can be used in string interpolation
     const version = String(CLI_VERSION);
     const welcomeText = `🎼 Open Composer CLI v${CLI_VERSION}`;
@@ -41,11 +41,11 @@ describe("version display in components", () => {
     expect(layoutText).toMatch(/🎼 Open Composer CLI v\d+\.\d+\.\d+/);
   });
 
-  test("version should be consistent for telemetry and commands", () => {
+  test("version should be consistent for telemetry and commands", async () => {
     // Test that the version can be used in various contexts
     const telemetryData = { version: CLI_VERSION, source: "cli" };
     const commandConfig = { version: CLI_VERSION };
-    
+
     expect(telemetryData.version).toBe(CLI_VERSION);
     expect(commandConfig.version).toBe(CLI_VERSION);
     expect(telemetryData.version).toBe(commandConfig.version);

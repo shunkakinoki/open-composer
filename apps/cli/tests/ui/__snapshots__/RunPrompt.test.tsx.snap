@@ -1,75 +1,141 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`RunPrompt renders agent selection step correctly 1`] = `
-"
-
-  🚀 Run Task: Test task description
-  Select an AI agent to execute this task:
-
-  →  claude-code
-     codex
-     opencode
-
-  Use ↑↓ to navigate, Enter to select, Esc to cancel
-
+"                                                                                
+                                                                                
+  🚀 Run Task: Test task description                                            
+  Select an AI agent to execute this task:                                      
+                                                                                
+  → claude-code                                                                 
+    codex                                                                       
+    opencode                                                                    
+                                                                                
+  Use ↑↓ to navigate, Enter to select, Esc to cancel                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`RunPrompt renders with different description 1`] = `
-"
-
-  🚀 Run Task: Implement user authentication system
-  Select an AI agent to execute this task:
-
-  →  claude-code
-     codex
-     opencode
-
-  Use ↑↓ to navigate, Enter to select, Esc to cancel
-
+"                                                                                
+                                                                                
+  🚀 Run Task: Implement user authentication system                             
+  Select an AI agent to execute this task:                                      
+                                                                                
+  → claude-code                                                                 
+    codex                                                                       
+    opencode                                                                    
+                                                                                
+  Use ↑↓ to navigate, Enter to select, Esc to cancel                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`RunPrompt renders with different available agents 1`] = `
-"
-
-  🚀 Run Task: Test task description
-  Select an AI agent to execute this task:
-
-  →  agent1
-     agent2
-
-  Use ↑↓ to navigate, Enter to select, Esc to cancel
-
+"                                                                                
+                                                                                
+  🚀 Run Task: Test task description                                            
+  Select an AI agent to execute this task:                                      
+                                                                                
+  → agent1                                                                      
+    agent2                                                                      
+                                                                                
+  Use ↑↓ to navigate, Enter to select, Esc to cancel                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`RunPrompt renders with different base branch 1`] = `
-"
-
-  🚀 Run Task: Test task description
-  Select an AI agent to execute this task:
-
-  →  claude-code
-     codex
-     opencode
-
-  Use ↑↓ to navigate, Enter to select, Esc to cancel
-
+"                                                                                
+                                                                                
+  🚀 Run Task: Test task description                                            
+  Select an AI agent to execute this task:                                      
+                                                                                
+  → claude-code                                                                 
+    codex                                                                       
+    opencode                                                                    
+                                                                                
+  Use ↑↓ to navigate, Enter to select, Esc to cancel                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`RunPrompt renders with create PR enabled 1`] = `
-"
-
-  🚀 Run Task: Test task description
-  Select an AI agent to execute this task:
-
-  →  claude-code
-     codex
-     opencode
-
-  Use ↑↓ to navigate, Enter to select, Esc to cancel
-
+"                                                                                
+                                                                                
+  🚀 Run Task: Test task description                                            
+  Select an AI agent to execute this task:                                      
+                                                                                
+  → claude-code                                                                 
+    codex                                                                       
+    opencode                                                                    
+                                                                                
+  Use ↑↓ to navigate, Enter to select, Esc to cancel                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;

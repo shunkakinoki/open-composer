@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 import type React from "react";
 
 interface CodeEditorProps {
@@ -7,56 +7,61 @@ interface CodeEditorProps {
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({ currentFile }) => {
   return (
-    <Box flexDirection="column" padding={1}>
-      <Text bold color="magenta">
-        📝 Code Editor
-      </Text>
+    <box style={{ flexDirection: "column", padding: 1 }}>
+      <text
+        content="📝 Code Editor"
+        style={{ fg: "magenta", attributes: TextAttributes.BOLD }}
+      />
 
-      <Box flexDirection="column" marginTop={1}>
+      <box style={{ flexDirection: "column", marginTop: 1 }}>
         {currentFile ? (
           <>
-            <Text color="blue">📄 {currentFile}</Text>
-            <Box
-              borderStyle="single"
-              borderColor="gray"
-              padding={1}
-              marginTop={1}
-              flexGrow={1}
+            <text content={`📄 ${currentFile}`} style={{ fg: "blue" }} />
+            <box
+              style={{
+                border: true,
+                borderColor: "gray",
+                padding: 1,
+                marginTop: 1,
+                flexGrow: 1,
+              }}
             >
-              <Text color="gray" dimColor>
-                Code content will appear here...
-              </Text>
-            </Box>
+              <text
+                content="Code content will appear here..."
+                style={{ fg: "gray" }}
+              />
+            </box>
           </>
         ) : (
-          <Box
-            borderStyle="single"
-            borderColor="gray"
-            padding={2}
-            flexGrow={1}
-            justifyContent="center"
-            alignItems="center"
+          <box
+            style={{
+              border: true,
+              borderColor: "gray",
+              padding: 2,
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
-            <Text color="gray" dimColor>
-              No file selected
-            </Text>
-          </Box>
+            <text content="No file selected" style={{ fg: "gray" }} />
+          </box>
         )}
-      </Box>
+      </box>
 
-      <Box marginTop={1}>
-        <Text bold color="yellow">
-          🔧 File Tree
-        </Text>
-      </Box>
+      <box style={{ marginTop: 1 }}>
+        <text
+          content="🔧 File Tree"
+          style={{ fg: "yellow", attributes: TextAttributes.BOLD }}
+        />
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text color="gray">📁 src/</Text>
-        <Text color="gray">{"  "}📄 index.ts</Text>
-        <Text color="gray">{"  "}📁 components/</Text>
-        <Text color="gray">{"    "}📄 ComposerApp.tsx</Text>
-        <Text color="gray">{"    "}📄 ChatInterface.tsx</Text>
-      </Box>
-    </Box>
+      <box style={{ flexDirection: "column", marginTop: 1 }}>
+        <text content="📁 src/" style={{ fg: "gray" }} />
+        <text content="  📄 index.ts" style={{ fg: "gray" }} />
+        <text content="  📁 components/" style={{ fg: "gray" }} />
+        <text content="    📄 ComposerApp.tsx" style={{ fg: "gray" }} />
+        <text content="    📄 ChatInterface.tsx" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

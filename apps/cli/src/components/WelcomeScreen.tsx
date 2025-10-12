@@ -1,4 +1,4 @@
-import { Box, Text, useApp, useStdout } from "ink";
+import { TextAttributes } from "@opentui/core";
 import type React from "react";
 import { useState } from "react";
 import { CLI_VERSION } from "../lib/version.js";
@@ -12,13 +12,12 @@ interface WelcomeScreenProps {
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onCommandSelect,
 }) => {
-  const { exit } = useApp();
-  const { stdout } = useStdout();
+  
+  
   const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
 
-  // Get terminal dimensions for fullscreen (only when running in a real terminal)
-  const terminalHeight = stdout?.rows;
-  const terminalWidth = stdout?.columns;
+  // Terminal dimensions are handled by the renderer in opentui
+  // These are not needed as the renderer handles terminal size automatically
 
   // Define menu items based on available commands
   const menuItems: MenuItem[] = [
@@ -88,91 +87,77 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   ];
 
   const handleExit = () => {
-    exit();
+    process.exit(0);
   };
 
   return (
-    <Box
+    <box
       flexDirection="column"
-      {...(terminalHeight && { height: terminalHeight })}
-      {...(terminalWidth && { width: terminalWidth })}
     >
       {/* Header */}
-      <Box
+      <box
         borderStyle="double"
         borderColor="cyan"
         justifyContent="center"
         paddingY={1}
       >
-        <Text color="cyan" bold>
-          🎼 Open Composer CLI v{CLI_VERSION}
-        </Text>
-      </Box>
+        <text content={`🎼 Open Composer CLI v${CLI_VERSION}`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      </box>
 
       {/* Welcome Message */}
-      <Box
+      <box
         flexDirection="column"
         padding={2}
         borderStyle="single"
         borderColor="gray"
       >
-        <Text color="white" bold>
-          Welcome to Open Composer! 👋
-        </Text>
-        <Text color="gray">
-          An agent orchestration framework for building with AI
-        </Text>
-      </Box>
+        <text content="Welcome to Open Composer! 👋" style={{ fg: "white", attributes: TextAttributes.BOLD }} />
+        <text content="An agent orchestration framework for building with AI" style={{ fg: "gray" }} />
+      </box>
 
       {/* Main Content Area */}
-      <Box flexGrow={1} flexDirection="row">
+      <box flexGrow={1} flexDirection="row">
         {/* Main Menu */}
-        <Box width="60%">
+        <box width="60%">
           <MainMenu items={menuItems} onExit={handleExit} />
-        </Box>
+        </box>
 
         {/* Quick Info Panel */}
-        <Box
+        <box
           width="40%"
           flexDirection="column"
           padding={1}
           borderStyle="single"
           borderColor="gray"
         >
-          <Text bold color="yellow">
-            ℹ️ Quick Info
-          </Text>
-          <Box marginTop={1} flexDirection="column">
-            <Text color="gray">• Select a command to get started</Text>
-            <Text color="gray">• Use arrow keys or j/k to navigate</Text>
-            <Text color="gray">• Press number keys for quick access</Text>
-            <Text color="gray">• Press Enter to execute command</Text>
-            <Text color="gray">• Press q to quit</Text>
-          </Box>
+          <text content="ℹ️ Quick Info" style={{ fg: "yellow", attributes: TextAttributes.BOLD }} />
+          <box marginTop={1} flexDirection="column">
+            <text content="• Select a command to get started" style={{ fg: "gray" }} />
+            <text content="• Use arrow keys or j/k to navigate" style={{ fg: "gray" }} />
+            <text content="• Press number keys for quick access" style={{ fg: "gray" }} />
+            <text content="• Press Enter to execute command" style={{ fg: "gray" }} />
+            <text content="• Press q to quit" style={{ fg: "gray" }} />
+          </box>
 
           {selectedCommand && (
-            <Box marginTop={2} flexDirection="column">
-              <Text bold color="green">
-                Selected:
-              </Text>
-              <Text color="cyan">{selectedCommand}</Text>
-            </Box>
+            <box marginTop={2} flexDirection="column">
+              <text content="Selected:" style={{ fg: "green", attributes: TextAttributes.BOLD }} />
+              <text content={selectedCommand} style={{ fg: "cyan" }} />
+            </box>
           )}
 
-          <Box marginTop={2} flexDirection="column">
-            <Text bold color="magenta">
-              🚀 Get Started
-            </Text>
-            <Box marginTop={1} flexDirection="column">
-              <Text color="gray">Run 'open-composer --help' for CLI usage</Text>
-              <Text color="gray">Visit docs for more information</Text>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+          <box marginTop={2} flexDirection="column">
+            <text content="🚀 Get Started" style={{ fg: "magenta", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1} flexDirection="column">
+              <text content="Run 'open-composer --help' for CLI usage" style={{ fg: "gray" }} />
+              <text content="Visit docs for more information" style={{ fg: "gray" }} />
+            </box>
+          </box>
+        </box>
+      </box>
 
       {/* Status Bar */}
       <StatusBar status="Ready" />
-    </Box>
+    </box>
   );
 };

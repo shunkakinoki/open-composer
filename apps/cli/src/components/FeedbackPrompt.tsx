@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -15,7 +17,7 @@ export const FeedbackPrompt: React.FC<FeedbackPromptProps> = ({
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [currentInput, setCurrentInput] = useState("");
-  const { exit } = useApp();
+  
 
   useEffect(() => {
     if (step === "email") {
@@ -25,12 +27,12 @@ export const FeedbackPrompt: React.FC<FeedbackPromptProps> = ({
     }
   }, [step, email, message]);
 
-  useInput(
-    (input, key) => {
-      if (key.escape || (key.ctrl && input === "c")) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel?.();
-        exit();
-      } else if (key.return) {
+        process.exit(0);
+      } else if (key.name === "return") {
         if (key.shift && step === "message") {
           setCurrentInput((prev) => `${prev}\n`);
         } else {
@@ -40,12 +42,12 @@ export const FeedbackPrompt: React.FC<FeedbackPromptProps> = ({
           } else if (step === "message" && currentInput.trim()) {
             setMessage(currentInput);
             onSubmit(email, currentInput);
-            exit();
+            process.exit(0);
           }
         }
-      } else if (key.backspace || key.delete) {
+      } else if (key.name === "backspace" || key.name === "delete") {
         setCurrentInput((prev) => prev.slice(0, -1));
-      } else if (input && !key.ctrl && !key.meta) {
+      } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
         setCurrentInput((prev) => prev + input);
       }
     },
@@ -53,45 +55,37 @@ export const FeedbackPrompt: React.FC<FeedbackPromptProps> = ({
   );
 
   return (
-    <Box flexDirection="column" padding={2}>
-      <Text bold color="cyan">
-        💬 Share your feedback with Open Composer's team
-      </Text>
+    <box flexDirection="column" padding={2}>
+      <text content="💬 Share your feedback with Open Composer's team" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box marginTop={1} marginBottom={1}>
+      <box marginTop={1} marginBottom={1}>
         {step === "email" ? (
-          <Box>
-            <Text>? Email: </Text>
-            <Text>{currentInput || <Text dimColor>your@email.com</Text>}</Text>
-            <Text color="gray">_</Text>
-          </Box>
+          <box>
+            <text content="? Email: " />
+            <text content={currentInput || "your@email.com"} style={{ fg: currentInput ? undefined : "gray" }} />
+            <text content="_" style={{ fg: "gray" }} />
+          </box>
         ) : (
-          <Box flexDirection="column">
-            <Text>
-              ? Share your feedback with Open Composer's team (Enter to send,
-              Shift+Enter for a newline)
-            </Text>
-            <Box flexDirection="column">
+          <box flexDirection="column">
+            <text content="? Share your feedback with Open Composer's team (Enter to send, Shift+Enter for a newline)" />
+            <box flexDirection="column">
               {currentInput.split("\n").map((line, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: Bypass feedback line key warning
-                <Text key={line + i}>
-                  {line ||
-                    (i === 0 ? (
-                      <Text dimColor>Your feedback here...</Text>
-                    ) : (
-                      ""
-                    ))}
-                </Text>
+                <text
+                  key={line + i}
+                  content={line || (i === 0 ? "Your feedback here..." : "")}
+                  style={!line && i === 0 ? { fg: "gray" } : undefined}
+                />
               ))}
-              <Text color="gray">_</Text>
-            </Box>
-          </Box>
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+          </box>
         )}
-      </Box>
+      </box>
 
-      <Box marginTop={1}>
-        <Text dimColor>Press Enter to continue, Escape to cancel</Text>
-      </Box>
-    </Box>
+      <box marginTop={1}>
+        <text content="Press Enter to continue, Escape to cancel" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

@@ -1,6 +1,7 @@
 import { DatabaseLive } from "@open-composer/db";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import * as Effect from "effect/Effect";
-import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
 import { useState } from "react";
 import { RunService } from "../services/run-service.js";
@@ -83,7 +84,6 @@ export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
   );
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { exit } = useApp();
 
   const handleCreateRun = async () => {
     setIsCreating(true);
@@ -95,48 +95,47 @@ export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
         .createInteractive(runName, workspaceChoice, workspacePath)
         .pipe(Effect.provide(DatabaseLive), Effect.runPromise);
       onComplete(runId);
-      exit();
+      process.exit(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create run");
       setIsCreating(false);
     }
   };
 
-  useInput(
-    (input, key) => {
+  useKeyboard((key) => {
       if (isCreating) return;
 
-      if (key.escape || (key.ctrl && input === "c")) {
+      if (key.name === "escape" || (key.ctrl && key.name === "c")) {
         onCancel?.();
-        exit();
+        process.exit(0);
         return;
       }
 
       switch (step) {
         case "name":
-          if (key.return) {
+          if (key.name === "return") {
             if (runName.trim()) {
               setStep("workspace-choice");
             } else {
               setRunName(`Run ${Date.now()}`);
               setStep("workspace-choice");
             }
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setRunName(runName.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setRunName(runName + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setRunName(runName + key.sequence);
           }
           break;
 
         case "workspace-choice":
-          if (key.upArrow || key.downArrow) {
+          if (key.name === "up" || key.name === "down") {
             const choices: WorkspaceChoice[] = ["existing", "create", "none"];
             const currentIndex = choices.indexOf(workspaceChoice);
-            const nextIndex = key.upArrow
+            const nextIndex = key.name === "up"
               ? (currentIndex - 1 + choices.length) % choices.length
               : (currentIndex + 1) % choices.length;
             setWorkspaceChoice(choices[nextIndex]);
-          } else if (key.return) {
+          } else if (key.name === "return") {
             if (workspaceChoice === "none") {
               setStep("confirm");
             } else {
@@ -146,83 +145,76 @@ export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
           break;
 
         case "workspace-path":
-          if (key.return) {
+          if (key.name === "return") {
             if (workspacePath.trim()) {
               setStep("confirm");
             }
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setWorkspacePath(workspacePath.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setWorkspacePath(workspacePath + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setWorkspacePath(workspacePath + key.sequence);
           }
           break;
 
         case "confirm":
-          if (key.return) {
+          if (key.name === "return") {
             handleCreateRun();
           }
           break;
       }
-    },
-    { isActive: true },
+    }
   );
 
   const renderStep = () => {
     switch (step) {
       case "name":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🎯 Create New Run
-            </Text>
-            <Box marginTop={1}>
-              <Text>Enter run name (press Enter for auto-generated):</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="green">{runName}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">Press Enter to continue, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box style={{ flexDirection: "column" }}>
+            <text content="🎯 Create New Run" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box style={{ marginTop: 1 }}>
+              <text content="Enter run name (press Enter for auto-generated):" />
+            </box>
+            <box style={{ marginTop: 1 }}>
+              <text content={runName} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box style={{ marginTop: 1 }}>
+              <text content="Press Enter to continue, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "workspace-choice":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              📁 Choose Workspace Option
-            </Text>
-            <Box marginTop={1}>
-              <Text>Choose workspace option:</Text>
-            </Box>
-            <Box marginTop={1} flexDirection="column">
-              <Box>
-                <Text color={workspaceChoice === "existing" ? "green" : "gray"}>
-                  {workspaceChoice === "existing" ? "●" : "○"} 1. Use existing
-                  git workspace
-                </Text>
-              </Box>
-              <Box marginTop={1}>
-                <Text color={workspaceChoice === "create" ? "green" : "gray"}>
-                  {workspaceChoice === "create" ? "●" : "○"} 2. Create new
-                  workspace
-                </Text>
-              </Box>
-              <Box marginTop={1}>
-                <Text color={workspaceChoice === "none" ? "green" : "gray"}>
-                  {workspaceChoice === "none" ? "●" : "○"} 3. No workspace (just
-                  run tracking)
-                </Text>
-              </Box>
-            </Box>
-            <Box marginTop={2}>
-              <Text color="gray">
-                Use ↑↓ to select, Enter to confirm, Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box style={{ flexDirection: "column" }}>
+            <text content="📁 Choose Workspace Option" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box style={{ marginTop: 1 }}>
+              <text content="Choose workspace option:" />
+            </box>
+            <box style={{ flexDirection: "column", marginTop: 1 }}>
+              <box>
+                <text
+                  content={`${workspaceChoice === "existing" ? "●" : "○"} 1. Use existing git workspace`}
+                  style={{ fg: workspaceChoice === "existing" ? "green" : "gray" }}
+                />
+              </box>
+              <box style={{ marginTop: 1 }}>
+                <text
+                  content={`${workspaceChoice === "create" ? "●" : "○"} 2. Create new workspace`}
+                  style={{ fg: workspaceChoice === "create" ? "green" : "gray" }}
+                />
+              </box>
+              <box style={{ marginTop: 1 }}>
+                <text
+                  content={`${workspaceChoice === "none" ? "●" : "○"} 3. No workspace (just run tracking)`}
+                  style={{ fg: workspaceChoice === "none" ? "green" : "gray" }}
+                />
+              </box>
+            </box>
+            <box style={{ marginTop: 2 }}>
+              <text content="Use ↑↓ to select, Enter to confirm, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "workspace-path": {
@@ -232,78 +224,68 @@ export const RunCreatePrompt: React.FC<RunCreatePromptProps> = ({
             : "Enter path for new workspace";
 
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              📂{" "}
-              {workspaceChoice === "existing"
-                ? "Select Existing"
-                : "Create New"}{" "}
-              Workspace
-            </Text>
-            <Box marginTop={1}>
-              <Text>{placeholder}:</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="yellow">{workspacePath}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">Press Enter to continue, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box style={{ flexDirection: "column" }}>
+            <text
+              content={`📂 ${workspaceChoice === "existing" ? "Select Existing" : "Create New"} Workspace`}
+              style={{ fg: "cyan", attributes: TextAttributes.BOLD }}
+            />
+            <box style={{ marginTop: 1 }}>
+              <text content={`${placeholder}:`} />
+            </box>
+            <box style={{ marginTop: 1 }}>
+              <text content={workspacePath} style={{ fg: "yellow" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box style={{ marginTop: 1 }}>
+              <text content="Press Enter to continue, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
       }
 
       case "confirm":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              ✅ Confirm Run Creation
-            </Text>
-            <Box marginTop={1}>
-              <Text>
-                Run Name: <Text color="green">{runName}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>Workspace: </Text>
+          <box style={{ flexDirection: "column" }}>
+            <text content="✅ Confirm Run Creation" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box style={{ marginTop: 1 }}>
+              <text content="Run Name: " />
+              <text content={runName} style={{ fg: "green" }} />
+            </box>
+            <box style={{ marginTop: 1 }}>
+              <text content="Workspace: " />
               {workspaceChoice === "none" ? (
-                <Text color="gray">No workspace assigned</Text>
+                <text content="No workspace assigned" style={{ fg: "gray" }} />
               ) : (
-                <Text color="yellow">{workspacePath}</Text>
+                <text content={workspacePath} style={{ fg: "yellow" }} />
               )}
-            </Box>
-            <Box marginTop={2}>
-              <Text color="gray">
-                Press Enter to create run, Esc to cancel
-              </Text>
-            </Box>
+            </box>
+            <box style={{ marginTop: 2 }}>
+              <text content="Press Enter to create run, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
             {error && (
-              <Box marginTop={1}>
-                <Text color="red">❌ {error}</Text>
-              </Box>
+              <box style={{ marginTop: 1 }}>
+                <text content={`❌ ${error}`} style={{ fg: "red" }} />
+              </box>
             )}
-          </Box>
+          </box>
         );
     }
   };
 
   if (isCreating) {
     return (
-      <Box flexDirection="column" padding={2}>
-        <Text bold color="cyan">
-          🔄 Creating Run...
-        </Text>
-        <Box marginTop={1}>
-          <Text>Please wait while we set up your run.</Text>
-        </Box>
-      </Box>
+      <box style={{ flexDirection: "column", padding: 2 }}>
+        <text content="🔄 Creating Run..." style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+        <box style={{ marginTop: 1 }}>
+          <text content="Please wait while we set up your run." />
+        </box>
+      </box>
     );
   }
 
   return (
-    <Box flexDirection="column" padding={2}>
+    <box style={{ flexDirection: "column", padding: 2 }}>
       {renderStep()}
-    </Box>
+    </box>
   );
 };

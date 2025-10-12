@@ -1,4 +1,6 @@
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -17,22 +19,22 @@ interface MainMenuProps {
 export const MainMenu: React.FC<MainMenuProps> = ({ items, onExit }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useInput((input, key) => {
-    if (key.upArrow || input === "k") {
+  useKeyboard((key) => {
+    if (key.name === "up" || key.sequence === "k") {
       // Move up
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
-    } else if (key.downArrow || input === "j") {
+    } else if (key.name === "down" || key.sequence === "j") {
       // Move down
       setSelectedIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
-    } else if (key.return) {
+    } else if (key.name === "return") {
       // Select current item
       items[selectedIndex]?.onSelect();
-    } else if (input === "q" || key.escape) {
+    } else if (key.sequence === "q" || key.name === "escape") {
       // Exit
       onExit();
-    } else if (input >= "1" && input <= "9") {
+    } else if (key.sequence && key.sequence >= "1" && key.sequence <= "9") {
       // Quick select by number
-      const index = Number.parseInt(input, 10) - 1;
+      const index = Number.parseInt(key.sequence, 10) - 1;
       if (index >= 0 && index < items.length) {
         items[index]?.onSelect();
       }
@@ -40,37 +42,38 @@ export const MainMenu: React.FC<MainMenuProps> = ({ items, onExit }) => {
   });
 
   return (
-    <Box flexDirection="column" padding={1}>
-      <Text bold color="cyan">
-        Main Menu
-      </Text>
-      <Box borderStyle="single" borderColor="gray" marginTop={1} />
+    <box flexDirection="column" padding={1}>
+      <text content="Main Menu" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      <box borderStyle="single" borderColor="gray" marginTop={1} />
 
-      <Box flexDirection="column" marginTop={1}>
+      <box flexDirection="column" marginTop={1}>
         {items.map((item, index) => {
           const isSelected = index === selectedIndex;
           const numberLabel = `[${index + 1}]`;
+          const prefix = `${isSelected ? "▶ " : "  "}${numberLabel.padEnd(4)}`;
 
           return (
-            <Box key={item.key} marginY={0}>
-              <Text color={isSelected ? "green" : "gray"}>
-                {isSelected ? "▶ " : "  "}
-                {numberLabel.padEnd(4)}
-              </Text>
-              <Text color={isSelected ? "cyan" : "white"} bold={isSelected}>
-                {item.label.padEnd(16)}
-              </Text>
-              <Text color="gray">{item.description}</Text>
-            </Box>
+            <box key={item.key} marginY={0}>
+              <text
+                content={prefix}
+                style={{ fg: isSelected ? "green" : "gray" }}
+              />
+              <text
+                content={item.label.padEnd(16)}
+                style={{
+                  fg: isSelected ? "cyan" : "white",
+                  attributes: isSelected ? TextAttributes.BOLD : undefined
+                }}
+              />
+              <text content={item.description} style={{ fg: "gray" }} />
+            </box>
           );
         })}
-      </Box>
+      </box>
 
-      <Box marginTop={2}>
-        <Text color="gray" dimColor>
-          Use ↑↓/j/k to navigate, Enter to select, 'q' to quit
-        </Text>
-      </Box>
-    </Box>
+      <box marginTop={2}>
+        <text content="Use ↑↓/j/k to navigate, Enter to select, 'q' to quit" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

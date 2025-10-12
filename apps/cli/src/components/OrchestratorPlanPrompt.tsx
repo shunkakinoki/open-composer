@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -50,7 +52,7 @@ export const OrchestratorPlanPrompt: React.FC<OrchestratorPlanPromptProps> = ({
   const [techRequirements, setTechRequirements] = useState(
     initialTechRequirements,
   );
-  const { exit } = useApp();
+  
 
   const handleComplete = () => {
     const config: OrchestratorPlanConfig = {
@@ -67,64 +69,64 @@ export const OrchestratorPlanPrompt: React.FC<OrchestratorPlanPromptProps> = ({
     };
 
     onComplete(config);
-    exit();
+    process.exit(0);
   };
 
-  useInput(
-    (input, key) => {
-      if (key.escape || (key.ctrl && input === "c")) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel();
-        exit();
+        process.exit(0);
         return;
       }
 
       switch (step) {
         case "objective":
-          if (key.return) {
+          if (key.name === "return") {
             if (objective.trim()) {
               setStep("description");
             }
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setObjective(objective.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setObjective(objective + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setObjective(objective + key.sequence);
           }
           break;
 
         case "description":
-          if (key.return) {
+          if (key.name === "return") {
             if (description.trim()) {
               setStep("constraints");
             }
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setDescription(description.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setDescription(description + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setDescription(description + key.sequence);
           }
           break;
 
         case "constraints":
-          if (key.return) {
+          if (key.name === "return") {
             setStep("tech-requirements");
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setConstraints(constraints.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setConstraints(constraints + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setConstraints(constraints + key.sequence);
           }
           break;
 
         case "tech-requirements":
-          if (key.return) {
+          if (key.name === "return") {
             setStep("confirm");
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setTechRequirements(techRequirements.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setTechRequirements(techRequirements + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setTechRequirements(techRequirements + key.sequence);
           }
           break;
 
         case "confirm":
-          if (key.return) {
+          if (key.name === "return") {
             handleComplete();
           }
           break;
@@ -137,139 +139,107 @@ export const OrchestratorPlanPrompt: React.FC<OrchestratorPlanPromptProps> = ({
     switch (step) {
       case "objective":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🤖 Professor Oak Project Planner
-            </Text>
-            <Box marginTop={1}>
-              <Text>Project objective or goal: </Text>
-              <Text color="green">{objective}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">Press Enter to continue, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🤖 Professor Oak Project Planner" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Project objective or goal: " />
+              <text content={objective} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "description":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              📝 Project Description
-            </Text>
-            <Box marginTop={1}>
-              <Text>Detailed description: </Text>
-              <Text color="green">{description}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">Press Enter to continue, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="📝 Project Description" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Detailed description: " />
+              <text content={description} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "constraints":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              ⚠️ Constraints
-            </Text>
-            <Box marginTop={1}>
-              <Text>Constraints (comma-separated, optional): </Text>
-              <Text color="green">{constraints}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Examples: TypeScript,React,Must have tests
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Press Enter to continue (or skip), Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="⚠️ Constraints" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Constraints (comma-separated, optional): " />
+              <text content={constraints} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Examples: TypeScript,React,Must have tests" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue (or skip), Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "tech-requirements":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🔧 Technical Requirements
-            </Text>
-            <Box marginTop={1}>
-              <Text>Tech requirements (comma-separated, optional): </Text>
-              <Text color="green">{techRequirements}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">Examples: PostgreSQL,REST API,Docker</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Press Enter to continue (or skip), Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🔧 Technical Requirements" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Tech requirements (comma-separated, optional): " />
+              <text content={techRequirements} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Examples: PostgreSQL,REST API,Docker" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue (or skip), Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "confirm":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              ✅ Confirm Project Plan Request
-            </Text>
-            <Box marginTop={1}>
-              <Text>
-                Objective: <Text color="yellow">{objective.trim()}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Description: <Text color="yellow">{description.trim()}</Text>
-              </Text>
-            </Box>
+          <box flexDirection="column">
+            <text content="✅ Confirm Project Plan Request" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content={`Objective: ${objective.trim()}`} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Description: ${description.trim()}`} />
+            </box>
             {constraints.trim() && (
-              <Box marginTop={1}>
-                <Text>
-                  Constraints:{" "}
-                  <Text color="yellow">
-                    {constraints
-                      .split(",")
-                      .map((s) => s.trim())
-                      .join(", ")}
-                  </Text>
-                </Text>
-              </Box>
+              <box marginTop={1}>
+                <text
+                  content={`Constraints: ${constraints.split(",").map((s) => s.trim()).join(", ")}`}
+                  style={{ fg: "yellow" }}
+                />
+              </box>
             )}
             {techRequirements.trim() && (
-              <Box marginTop={1}>
-                <Text>
-                  Tech Requirements:{" "}
-                  <Text color="yellow">
-                    {techRequirements
-                      .split(",")
-                      .map((s) => s.trim())
-                      .join(", ")}
-                  </Text>
-                </Text>
-              </Box>
+              <box marginTop={1}>
+                <text
+                  content={`Tech Requirements: ${techRequirements.split(",").map((s) => s.trim()).join(", ")}`}
+                  style={{ fg: "yellow" }}
+                />
+              </box>
             )}
-            <Box marginTop={2}>
-              <Text color="gray">
-                Press Enter to generate plan, Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+            <box marginTop={2}>
+              <text content="Press Enter to generate plan, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
     }
   };
 
   return (
-    <Box flexDirection="column" padding={2}>
+    <box flexDirection="column" padding={2}>
       {renderStep()}
-    </Box>
+    </box>
   );
 };

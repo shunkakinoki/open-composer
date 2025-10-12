@@ -1,4 +1,5 @@
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import type React from "react";
 import { useState } from "react";
 
@@ -20,18 +21,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onSendMessage,
 }) => {
   const [input, setInput] = useState("");
-  const [_isTyping, _setIsTypingg] = useState(false);
 
-  useInput((input, key) => {
-    if (key.return) {
+  useKeyboard((key) => {
+    if (key.name === "return") {
       if (input.trim()) {
         onSendMessage(input.trim());
         setInput("");
       }
-    } else if (key.backspace || key.delete) {
+    } else if (key.name === "backspace" || key.name === "delete") {
       setInput((prev) => prev.slice(0, -1));
-    } else if (input.length === 1 && !key.ctrl && !key.meta) {
-      setInput((prev) => prev + input);
+    } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+      setInput((prev) => prev + key.sequence);
     }
   });
 
@@ -57,40 +57,37 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <Box flexDirection="column" padding={1}>
-      <Text bold color="green">
-        💬 Chat Interface
-      </Text>
+    <box style={{ flexDirection: "column", padding: 1 }}>
+      <text
+        content="💬 Chat Interface"
+        style={{ fg: "green", attributes: TextAttributes.BOLD }}
+      />
 
-      <Box flexDirection="column" flexGrow={1} marginTop={1}>
+      <box style={{ flexDirection: "column", flexGrow: 1, marginTop: 1 }}>
         {messages.map((message) => (
-          <Box key={message.id} flexDirection="column" marginBottom={1}>
-            <Box>
-              <Text color={message.sender === "user" ? "cyan" : "yellow"}>
-                {message.sender === "user" ? "👤" : getAgentIcon(message.agent)}{" "}
-                {message.sender === "user" ? "You" : message.agent || "Agent"}
-              </Text>
-              <Text color="gray" dimColor>
-                {" "}
-                {formatTime(message.timestamp)}
-              </Text>
-            </Box>
-            <Text> {message.content}</Text>
-          </Box>
+          <box key={message.id} style={{ flexDirection: "column", marginBottom: 1 }}>
+            <box>
+              <text
+                content={`${message.sender === "user" ? "👤" : getAgentIcon(message.agent)} ${message.sender === "user" ? "You" : message.agent || "Agent"}`}
+                style={{ fg: message.sender === "user" ? "cyan" : "yellow" }}
+              />
+              <text
+                content={` ${formatTime(message.timestamp)}`}
+                style={{ fg: "gray" }}
+              />
+            </box>
+            <text content={` ${message.content}`} />
+          </box>
         ))}
-      </Box>
+      </box>
 
-      <Box borderStyle="single" borderColor="blue" marginTop={1}>
-        <Text color="blue">💭 </Text>
-        <Text>{input}</Text>
-        <Text color="gray" dimColor>
-          _
-        </Text>
-      </Box>
+      <box style={{ border: true, borderColor: "blue", marginTop: 1 }}>
+        <text content="💭 " style={{ fg: "blue" }} />
+        <text content={input} />
+        <text content="_" style={{ fg: "gray" }} />
+      </box>
 
-      <Text color="gray" dimColor>
-        Type your message and press Enter...
-      </Text>
-    </Box>
+      <text content="Type your message and press Enter..." style={{ fg: "gray" }} />
+    </box>
   );
 };

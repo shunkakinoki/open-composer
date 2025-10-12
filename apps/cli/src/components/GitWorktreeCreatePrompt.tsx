@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -33,7 +35,7 @@ export const GitWorktreeCreatePrompt: React.FC<
     noCheckout: false,
     branchForce: false,
   });
-  const { exit } = useApp();
+  
 
   const updateOption = <K extends keyof GitWorktreeCreateOptions>(
     key: K,
@@ -58,7 +60,7 @@ export const GitWorktreeCreatePrompt: React.FC<
     if (!options.path.trim()) return; // Require at least a path
 
     onSubmit(options);
-    exit();
+    process.exit(0);
   };
 
   const toggleOption = (
@@ -70,22 +72,22 @@ export const GitWorktreeCreatePrompt: React.FC<
     updateOption(option, !options[option]);
   };
 
-  useInput(
-    (input, key) => {
-      if (key.shift && key.tab) {
+  useKeyboard(
+    (key) => {
+      if (key.shift && key.name === "tab") {
         prevField();
-      } else if (key.tab) {
+      } else if (key.name === "tab") {
         nextField();
-      } else if (key.return) {
+      } else if (key.name === "return") {
         if (currentField === "options") {
           handleSubmit();
         } else {
           nextField();
         }
-      } else if (key.escape || (key.ctrl && input === "c")) {
+      } else if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel?.();
-        exit();
-      } else if (key.backspace || key.delete) {
+        process.exit(0);
+      } else if (key.name === "backspace" || key.name === "delete") {
         // Handle backspace for current field
         if (currentField === "path") {
           updateOption("path", options.path.slice(0, -1));
@@ -103,7 +105,7 @@ export const GitWorktreeCreatePrompt: React.FC<
         } else if (currentField === "branch") {
           updateOption("branch", (options.branch || "") + input);
         }
-      } else if (key.upArrow || key.downArrow) {
+      } else if (key.name === "up" || key.name === "down") {
         // Handle option toggling when in options field
         if (currentField === "options") {
           const optionOrder: (keyof GitWorktreeCreateOptions)[] = [
@@ -131,84 +133,69 @@ export const GitWorktreeCreatePrompt: React.FC<
     placeholder: string,
     required = false,
   ) => (
-    <Box>
-      <Text color="cyan">{fieldName}:</Text>
-      <Text
-        color={
-          currentField ===
-          (fieldName.toLowerCase() as "path" | "ref" | "branch" | "options")
-            ? "green"
-            : "gray"
-        }
-      >
-        {value || placeholder}
-        {required && !value ? " *" : ""}
-      </Text>
+    <box>
+      <text content={`${fieldName}:`} style={{ fg: "cyan" }} />
+      <text
+        content={`${value || placeholder}${required && !value ? " *" : ""}`}
+        style={{
+          fg: currentField === (fieldName.toLowerCase() as "path" | "ref" | "branch" | "options") ? "green" : "gray"
+        }}
+      />
       {currentField === (fieldName.toLowerCase() as typeof currentField) && (
-        <Text color="gray" dimColor>
-          _
-        </Text>
+        <text content="_" style={{ fg: "gray" }} />
       )}
-    </Box>
+    </box>
   );
 
   const renderOption = (name: string, value: boolean, keyBinding?: string) => (
-    <Box>
-      <Text color={value ? "green" : "red"}>
-        [{value ? "●" : "○"}] {name}
-      </Text>
-      {keyBinding && (
-        <Text color="gray" dimColor>
-          {" "}
-          ({keyBinding})
-        </Text>
-      )}
-    </Box>
+    <box>
+      <text
+        content={`[${value ? "●" : "○"}] ${name}${keyBinding ? ` (${keyBinding})` : ""}`}
+        style={{ fg: value ? "green" : "red" }}
+      />
+    </box>
   );
 
   return (
-    <Box flexDirection="column" padding={2}>
-      <Text bold color="cyan">
-        🚀 Create Git Worktree
-      </Text>
+    <box flexDirection="column" padding={2}>
+      <text content="🚀 Create Git Worktree" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>Create a new git worktree with interactive configuration.</Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="Create a new git worktree with interactive configuration." />
+      </box>
 
-      <Box marginTop={2} marginBottom={1}>
-        <Text bold>Configuration:</Text>
-      </Box>
+      <box marginTop={2} marginBottom={1}>
+        <text content="Configuration:" style={{ attributes: TextAttributes.BOLD }} />
+      </box>
 
       {renderField("Path", options.path, "Enter worktree path", true)}
       {renderField("Ref", options.ref || "", "Optional commit/branch ref")}
       {renderField("Branch", options.branch || "", "Optional branch name")}
 
-      <Box marginTop={2} marginBottom={1}>
-        <Text bold>Options:</Text>
-      </Box>
+      <box marginTop={2} marginBottom={1}>
+        <text content="Options:" style={{ attributes: TextAttributes.BOLD }} />
+      </box>
 
-      <Box flexDirection="column">
+      <box flexDirection="column">
         {renderOption("Force", options.force, "F")}
         {renderOption("Detach", options.detach, "D")}
         {renderOption("No Checkout", options.noCheckout, "N")}
         {renderOption("Branch Force", options.branchForce, "B")}
-      </Box>
+      </box>
 
-      <Box marginTop={2}>
-        <Text color="gray">
-          Tab/Shift+Tab: Navigate • Enter: Next/Submit • ↑/↓: Toggle options •
-          Esc: Cancel
-        </Text>
-      </Box>
+      <box marginTop={2}>
+        <text
+          content="Tab/Shift+Tab: Navigate • Enter: Next/Submit • ↑/↓: Toggle options • Esc: Cancel"
+          style={{ fg: "gray" }}
+        />
+      </box>
 
-      <Box marginTop={1}>
-        <Text color="yellow">
-          {!options.path.trim()
-            ? "⚠️  Path is required"
-            : "✅ Ready to create worktree"}
-        </Text>
-      </Box>
-    </Box>
+      <box marginTop={1}>
+        <text
+          content={!options.path.trim() ? "⚠️  Path is required" : "✅ Ready to create worktree"}
+          style={{ fg: "yellow" }}
+        />
+      </box>
+    </box>
   );
 };

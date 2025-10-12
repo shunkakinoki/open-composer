@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -28,7 +30,7 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
   const [baseBranch, setBaseBranch] = useState("main");
   const [createPR, setCreatePR] = useState(false);
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
-  const { exit } = useApp();
+  
 
   const toggleAgent = (agent: string) => {
     setSelectedAgents((prev) =>
@@ -47,72 +49,72 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
     };
 
     onComplete(config);
-    exit();
+    process.exit(0);
   };
 
-  useInput(
-    (input, key) => {
-      if (key.escape || (key.ctrl && input === "c")) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel();
-        exit();
+        process.exit(0);
         return;
       }
 
       switch (step) {
         case "session-name":
-          if (key.return) {
+          if (key.name === "return") {
             setStep("agents");
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setSessionName(sessionName.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setSessionName(sessionName + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setSessionName(sessionName + key.sequence);
           }
           break;
 
         case "agents":
-          if (input === " ") {
+          if (key.sequence === " ") {
             const agent = availableAgents[currentAgentIndex];
             toggleAgent(agent);
-          } else if (key.upArrow) {
+          } else if (key.name === "up") {
             setCurrentAgentIndex((prev) =>
               prev > 0 ? prev - 1 : availableAgents.length - 1,
             );
-          } else if (key.downArrow) {
+          } else if (key.name === "down") {
             setCurrentAgentIndex((prev) =>
               prev < availableAgents.length - 1 ? prev + 1 : 0,
             );
-          } else if (key.return) {
+          } else if (key.name === "return") {
             setStep("base-branch");
           }
           break;
 
         case "base-branch":
-          if (key.return) {
+          if (key.name === "return") {
             if (baseBranch.trim()) {
               setStep("create-pr");
             }
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setBaseBranch(baseBranch.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setBaseBranch(baseBranch + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setBaseBranch(baseBranch + key.sequence);
           }
           break;
 
         case "create-pr":
           if (
-            key.leftArrow ||
-            key.rightArrow ||
-            input.toLowerCase() === "y" ||
-            input.toLowerCase() === "n"
+            key.name === "left" ||
+            key.name === "right" ||
+            key.sequence?.toLowerCase() === "y" ||
+            key.sequence?.toLowerCase() === "n"
           ) {
             setCreatePR(!createPR);
-          } else if (key.return) {
+          } else if (key.name === "return") {
             setStep("confirm");
           }
           break;
 
         case "confirm":
-          if (key.return) {
+          if (key.name === "return") {
             handleComplete();
           }
           break;
@@ -125,148 +127,107 @@ export const SpawnPrompt: React.FC<SpawnPromptProps> = ({
     switch (step) {
       case "session-name":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🪄 Spawn Interactive Session
-            </Text>
-            <Box marginTop={1}>
-              <Text>name for the session: </Text>
-              <Text color="green">{sessionName}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Press Enter to continue (auto-generated if empty), Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🪄 Spawn Interactive Session" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="name for the session: " />
+              <text content={sessionName} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue (auto-generated if empty), Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "agents":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🤖 Select Agents
-            </Text>
-            <Box marginTop={1}>
-              <Text>
-                Select one or multiple coding agents: (use space to select,
-                enter to confirm)
-              </Text>
-            </Box>
-            <Box marginTop={1} flexDirection="column">
-              {availableAgents.map((agent, index) => (
-                <Box key={agent}>
-                  <Text
-                    color={selectedAgents.includes(agent) ? "green" : "gray"}
-                  >
-                    {selectedAgents.includes(agent) ? "[x]" : "[ ]"} {agent}
-                    {index === currentAgentIndex && (
-                      <Text color="yellow"> ←</Text>
-                    )}
-                  </Text>
-                </Box>
-              ))}
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Use ↑↓ to navigate, Space to toggle, Enter to confirm, Esc to
-                cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🤖 Select Agents" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Select one or multiple coding agents: (use space to select, enter to confirm)" />
+            </box>
+            <box marginTop={1} flexDirection="column">
+              {availableAgents.map((agent, index) => {
+                const checkbox = selectedAgents.includes(agent) ? "[x]" : "[ ]";
+                const arrow = index === currentAgentIndex ? " ←" : "";
+                return (
+                  <box key={agent}>
+                    <text
+                      content={`${checkbox} ${agent}${arrow}`}
+                      style={{ fg: selectedAgents.includes(agent) ? "green" : (index === currentAgentIndex ? "yellow" : "gray") }}
+                    />
+                  </box>
+                );
+              })}
+            </box>
+            <box marginTop={1}>
+              <text content="Use ↑↓ to navigate, Space to toggle, Enter to confirm, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "base-branch":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🌿 Base Branch
-            </Text>
-            <Box marginTop={1}>
-              <Text>select the branch to branch from: </Text>
-              <Text color="green">{baseBranch}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Press Enter to continue (default: main), Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🌿 Base Branch" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="select the branch to branch from: " />
+              <text content={baseBranch} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue (default: main), Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "create-pr":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🔗 Create PRs
-            </Text>
-            <Box marginTop={1}>
-              <Text>Create PRs for spawned worktrees?</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color={createPR ? "green" : "red"}>
-                {createPR ? "[x] Yes" : "[ ] No"}
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Use ←→ or Y/N to toggle, Enter to confirm, Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🔗 Create PRs" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Create PRs for spawned worktrees?" />
+            </box>
+            <box marginTop={1}>
+              <text
+                content={createPR ? "[x] Yes" : "[ ] No"}
+                style={{ fg: createPR ? "green" : "red" }}
+              />
+            </box>
+            <box marginTop={1}>
+              <text content="Use ←→ or Y/N to toggle, Enter to confirm, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "confirm":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              ✅ Confirm Spawn Configuration
-            </Text>
-            <Box marginTop={1}>
-              <Text>
-                Session Name:{" "}
-                <Text color="green">
-                  {sessionName.trim() || `spawn-${Date.now()}`}
-                </Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Agents:{" "}
-                <Text color="yellow">
-                  {selectedAgents.length > 0
-                    ? selectedAgents.join(", ")
-                    : "codex"}
-                </Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Base Branch:{" "}
-                <Text color="yellow">{baseBranch.trim() || "main"}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Create PRs:{" "}
-                <Text color={createPR ? "green" : "red"}>
-                  {createPR ? "Yes" : "No"}
-                </Text>
-              </Text>
-            </Box>
-            <Box marginTop={2}>
-              <Text color="gray">Press Enter to spawn, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="✅ Confirm Spawn Configuration" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content={`Session Name: ${sessionName.trim() || `spawn-${Date.now()}`}`} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Agents: ${selectedAgents.length > 0 ? selectedAgents.join(", ") : "codex"}`} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Base Branch: ${baseBranch.trim() || "main"}`} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Create PRs: ${createPR ? "Yes" : "No"}`} />
+            </box>
+            <box marginTop={2}>
+              <text content="Press Enter to spawn, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
     }
   };
 
   return (
-    <Box flexDirection="column" padding={2}>
+    <box flexDirection="column" padding={2}>
       {renderStep()}
-    </Box>
+    </box>
   );
 };

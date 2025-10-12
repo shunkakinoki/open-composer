@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core"; 
 import type React from "react";
 import type { AgentTeam, OpenComposerAgent } from "@open-composer/agent-registry";
 
@@ -17,71 +17,69 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
   const tierColor = tier === "legendary" ? "yellow" : tier === "evolved" ? "blue" : "green";
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
-      <Box justifyContent="space-between">
-        <Text>
-          {sprite} <Text color={tierColor} bold>{name}</Text>
-        </Text>
-      </Box>
+    <box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
+      <box justifyContent="space-between">
+        <text content={`${sprite} ${name}`} style={{ fg: tierColor, attributes: TextAttributes.BOLD }} />
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Box>
-          <Text color="cyan">Type: </Text>
-          <Text>{type}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Tier: </Text>
-          <Text color={tierColor}>{tier}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Provider: </Text>
-          <Text>{provider}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Model: </Text>
-          <Text>{modelName}</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" marginTop={1}>
+        <box>
+          <text content="Type: " style={{ fg: "cyan" }} />
+          <text content={type} />
+        </box>
+        <box>
+          <text content="Tier: " style={{ fg: "cyan" }} />
+          <text content={tier} style={{ fg: tierColor }} />
+        </box>
+        <box>
+          <text content="Provider: " style={{ fg: "cyan" }} />
+          <text content={provider} />
+        </box>
+        <box>
+          <text content="Model: " style={{ fg: "cyan" }} />
+          <text content={modelName} />
+        </box>
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text bold>Stats</Text>
+      <box flexDirection="column" marginTop={1}>
+        <text content="Stats" style={{ attributes: TextAttributes.BOLD }} />
         <StatBar label="Speed" value={stats.speed} />
         <StatBar label="Accuracy" value={stats.accuracy} />
         <StatBar label="Power" value={stats.power} />
         <StatBar label="Efficiency" value={stats.efficiency} />
         <StatBar label="Versatility" value={stats.versatility} />
-      </Box>
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text bold>Performance</Text>
-        <Box>
-          <Text color="cyan">Requests: </Text>
-          <Text>{performance.totalRequests}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Tokens: </Text>
-          <Text>{performance.totalTokensUsed}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Success: </Text>
-          <Text>{performance.successRate.toFixed(1)}%</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Latency: </Text>
-          <Text>{performance.averageLatency.toFixed(0)}ms</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" marginTop={1}>
+        <text content="Performance" style={{ attributes: TextAttributes.BOLD }} />
+        <box>
+          <text content="Requests: " style={{ fg: "cyan" }} />
+          <text content={performance.totalRequests} />
+        </box>
+        <box>
+          <text content="Tokens: " style={{ fg: "cyan" }} />
+          <text content={performance.totalTokensUsed} />
+        </box>
+        <box>
+          <text content="Success: " style={{ fg: "cyan" }} />
+          <text content={`${performance.successRate.toFixed(1)}%`} />
+        </box>
+        <box>
+          <text content="Latency: " style={{ fg: "cyan" }} />
+          <text content={`${performance.averageLatency.toFixed(0)}ms`} />
+        </box>
+      </box>
 
       {(evolvesFrom || evolvesTo) && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="gray">Evolution:</Text>
-          <Box>
-            {evolvesFrom && <Text color="gray">← {evolvesFrom} </Text>}
-            {evolvesTo && <Text color="gray">→ {evolvesTo}</Text>}
-          </Box>
-        </Box>
+        <box flexDirection="column" marginTop={1}>
+          <text content="Evolution:" style={{ fg: "gray" }} />
+          <box>
+            {evolvesFrom && <text content={`← ${evolvesFrom} `} style={{ fg: "gray" }} />}
+            {evolvesTo && <text content={`→ ${evolvesTo}`} style={{ fg: "gray" }} />}
+          </box>
+        </box>
       )}
-    </Box>
+    </box>
   );
 };
 
@@ -100,12 +98,12 @@ const StatBar: React.FC<StatBarProps> = ({ label, value }) => {
   const empty = barLength - filled;
 
   return (
-    <Box>
-      <Text>{label.padEnd(12)} </Text>
-      <Text color="green">{"█".repeat(filled)}</Text>
-      <Text color="gray">{"░".repeat(empty)}</Text>
-      <Text> {value.toString().padStart(3)}</Text>
-    </Box>
+    <box>
+      <text content={`${label.padEnd(12)} `} />
+      <text content={"█".repeat(filled)} style={{ fg: "green" }} />
+      <text content={"░".repeat(empty)} style={{ fg: "gray" }} />
+      <text content={` ${value.toString().padStart(3)}`} />
+    </box>
   );
 };
 
@@ -119,28 +117,29 @@ interface AgentListProps {
 
 export const AgentList: React.FC<AgentListProps> = ({ agents }) => {
   return (
-    <Box flexDirection="column">
-      <Box>
-        <Text bold>
-          {"#".padEnd(4)}{"Name".padEnd(25)}{"Type".padEnd(20)}{"Tier".padEnd(15)}{"Provider".padEnd(15)}
-        </Text>
-      </Box>
-      <Box>
-        <Text color="gray">{"─".repeat(79)}</Text>
-      </Box>
+    <box flexDirection="column">
+      <box>
+        <text
+          content={`${"#".padEnd(4)}${"Name".padEnd(25)}${"Type".padEnd(20)}${"Tier".padEnd(15)}${"Provider".padEnd(15)}`}
+          style={{ attributes: TextAttributes.BOLD }}
+        />
+      </box>
+      <box>
+        <text content={"─".repeat(79)} style={{ fg: "gray" }} />
+      </box>
       {agents.map((agent, index) => {
         const tierColor = agent.tier === "legendary" ? "yellow" : agent.tier === "evolved" ? "blue" : "green";
         return (
-          <Box key={agent.id}>
-            <Text>{(index + 1).toString().padEnd(4)}</Text>
-            <Text>{agent.pokemonAttributes.sprite} {agent.name.padEnd(23)}</Text>
-            <Text>{agent.pokemonAttributes.type.padEnd(20)}</Text>
-            <Text color={tierColor}>{agent.tier.padEnd(15)}</Text>
-            <Text>{agent.provider.padEnd(15)}</Text>
-          </Box>
+          <box key={agent.id}>
+            <text content={(index + 1).toString().padEnd(4)} />
+            <text content={`${agent.pokemonAttributes.sprite} ${agent.name.padEnd(23)}`} />
+            <text content={agent.pokemonAttributes.type.padEnd(20)} />
+            <text content={agent.tier.padEnd(15)} style={{ fg: tierColor }} />
+            <text content={agent.provider.padEnd(15)} />
+          </box>
         );
       })}
-    </Box>
+    </box>
   );
 };
 
@@ -156,42 +155,42 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({ team }) => {
   const { name, description, agents, config } = team;
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
-      <Box flexDirection="column">
-        <Text bold color="cyan">SQUAD: {name}</Text>
-        <Text color="gray">{description.slice(0, 50)}</Text>
-      </Box>
+    <box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
+      <box flexDirection="column">
+        <text content={`SQUAD: ${name}`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+        <text content={description.slice(0, 50)} style={{ fg: "gray" }} />
+      </box>
 
       {config && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="cyan">Configuration:</Text>
-          <Box marginLeft={2}>
-            <Text>Max Concurrent: {config.maxConcurrent}</Text>
-          </Box>
+        <box flexDirection="column" marginTop={1}>
+          <text content="Configuration:" style={{ fg: "cyan" }} />
+          <box marginLeft={2}>
+            <text content={`Max Concurrent: ${config.maxConcurrent}`} />
+          </box>
           {config.taskDistribution && (
-            <Box marginLeft={2}>
-              <Text>Task Distribution: {config.taskDistribution}</Text>
-            </Box>
+            <box marginLeft={2}>
+              <text content={`Task Distribution: ${config.taskDistribution}`} />
+            </box>
           )}
-          <Box marginLeft={2}>
-            <Text>Fallback: {config.fallbackEnabled.toString()}</Text>
-          </Box>
-        </Box>
+          <box marginLeft={2}>
+            <text content={`Fallback: ${config.fallbackEnabled.toString()}`} />
+          </box>
+        </box>
       )}
 
-      <Box flexDirection="column" marginTop={1}>
+      <box flexDirection="column" marginTop={1}>
         {agents.map((agent, i) => (
-          <Box key={agent.id} flexDirection="column">
-            <Box>
-              <Text>{i + 1}. {agent.pokemonAttributes.sprite} {agent.name}</Text>
-            </Box>
-            <Box marginLeft={3}>
-              <Text color="gray">{agent.tier} | {agent.provider} | {agent.modelName}</Text>
-            </Box>
-          </Box>
+          <box key={agent.id} flexDirection="column">
+            <box>
+              <text content={`${i + 1}. ${agent.pokemonAttributes.sprite} ${agent.name}`} />
+            </box>
+            <box marginLeft={3}>
+              <text content={`${agent.tier} | ${agent.provider} | ${agent.modelName}`} style={{ fg: "gray" }} />
+            </box>
+          </box>
         ))}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 };
 
@@ -208,24 +207,24 @@ export const EvolutionTree: React.FC<EvolutionTreeProps> = ({ agent }) => {
   const { evolvesFrom, evolvesTo } = pokemonAttributes;
 
   return (
-    <Box flexDirection="column">
-      <Text bold color="cyan">Evolution Tree for {name}:</Text>
-      <Box flexDirection="column" marginTop={1} marginLeft={2}>
+    <box flexDirection="column">
+      <text content={`Evolution Tree for ${name}:`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      <box flexDirection="column" marginTop={1} marginLeft={2}>
         {evolvesFrom && (
           <>
-            <Text color="gray">{evolvesFrom}</Text>
-            <Text color="gray">  ↓</Text>
+            <text content={evolvesFrom} style={{ fg: "gray" }} />
+            <text content="  ↓" style={{ fg: "gray" }} />
           </>
         )}
-        <Text bold color="green">{name} {pokemonAttributes.sprite}</Text>
+        <text content={`${name} ${pokemonAttributes.sprite}`} style={{ fg: "green", attributes: TextAttributes.BOLD }} />
         {evolvesTo && (
           <>
-            <Text color="gray">  ↓</Text>
-            <Text color="yellow">{evolvesTo}</Text>
+            <text content="  ↓" style={{ fg: "gray" }} />
+            <text content={evolvesTo} style={{ fg: "yellow" }} />
           </>
         )}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 };
 
@@ -247,17 +246,17 @@ export const TaskSpecializations: React.FC<TaskSpecializationsProps> = ({ agent 
   };
 
   return (
-    <Box flexDirection="column">
-      <Text bold color="cyan">Task Specializations for {agent.name}:</Text>
-      <Box flexDirection="column" marginTop={1} marginLeft={2}>
+    <box flexDirection="column">
+      <text content={`Task Specializations for ${agent.name}:`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      <box flexDirection="column" marginTop={1} marginLeft={2}>
         {agent.taskSpecializations.map((task) => (
-          <Box key={task}>
-            <Text>{taskIcons[task] || "📋"} </Text>
-            <Text color="green">{task}</Text>
-          </Box>
+          <box key={task}>
+            <text content={`${taskIcons[task] || "📋"} `} />
+            <text content={task} style={{ fg: "green" }} />
+          </box>
         ))}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 };
 
@@ -279,49 +278,49 @@ interface RegistryStatsProps {
 
 export const RegistryStats: React.FC<RegistryStatsProps> = ({ stats }) => {
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
-      <Text bold color="cyan">Agent Registry Statistics</Text>
+    <box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
+      <text content="Agent Registry Statistics" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box flexDirection="column" marginTop={1}>
-        <Box>
-          <Text color="cyan">Total Agents: </Text>
-          <Text>{stats.totalAgents}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Total Squads: </Text>
-          <Text>{stats.totalTeams}</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" marginTop={1}>
+        <box>
+          <text content="Total Agents: " style={{ fg: "cyan" }} />
+          <text content={stats.totalAgents} />
+        </box>
+        <box>
+          <text content="Total Squads: " style={{ fg: "cyan" }} />
+          <text content={stats.totalTeams} />
+        </box>
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text bold>Tiers</Text>
-        <Box marginLeft={2}>
-          <Text>Starter: {stats.tierCounts.starter || 0}</Text>
-        </Box>
-        <Box marginLeft={2}>
-          <Text>Evolved: {stats.tierCounts.evolved || 0}</Text>
-        </Box>
-        <Box marginLeft={2}>
-          <Text>Legendary: {stats.tierCounts.legendary || 0}</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" marginTop={1}>
+        <text content="Tiers" style={{ attributes: TextAttributes.BOLD }} />
+        <box marginLeft={2}>
+          <text content={`Starter: ${stats.tierCounts.starter || 0}`} />
+        </box>
+        <box marginLeft={2}>
+          <text content={`Evolved: ${stats.tierCounts.evolved || 0}`} />
+        </box>
+        <box marginLeft={2}>
+          <text content={`Legendary: ${stats.tierCounts.legendary || 0}`} />
+        </box>
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text bold>Performance</Text>
-        <Box>
-          <Text color="cyan">Total Requests: </Text>
-          <Text>{stats.totalRequests}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Total Tokens: </Text>
-          <Text>{stats.totalTokensUsed}</Text>
-        </Box>
-        <Box>
-          <Text color="cyan">Avg Success: </Text>
-          <Text>{stats.averageSuccessRate.toFixed(1)}%</Text>
-        </Box>
-      </Box>
-    </Box>
+      <box flexDirection="column" marginTop={1}>
+        <text content="Performance" style={{ attributes: TextAttributes.BOLD }} />
+        <box>
+          <text content="Total Requests: " style={{ fg: "cyan" }} />
+          <text content={stats.totalRequests} />
+        </box>
+        <box>
+          <text content="Total Tokens: " style={{ fg: "cyan" }} />
+          <text content={stats.totalTokensUsed} />
+        </box>
+        <box>
+          <text content="Avg Success: " style={{ fg: "cyan" }} />
+          <text content={`${stats.averageSuccessRate.toFixed(1)}%`} />
+        </box>
+      </box>
+    </box>
   );
 };
 
@@ -343,25 +342,25 @@ export const AgentComparison: React.FC<AgentComparisonProps> = ({ agent1, agent2
     const color2 = val2 > val1 ? "green" : val2 < val1 ? "red" : "yellow";
 
     return (
-      <Box>
-        <Text>{label.padEnd(15)} </Text>
-        <Text color={color1}>{val1.toString().padStart(3)}</Text>
-        <Text color="gray"> vs </Text>
-        <Text color={color2}>{val2.toString().padStart(3)}</Text>
-      </Box>
+      <box>
+        <text content={`${label.padEnd(15)} `} />
+        <text content={val1.toString().padStart(3)} style={{ fg: color1 }} />
+        <text content=" vs " style={{ fg: "gray" }} />
+        <text content={val2.toString().padStart(3)} style={{ fg: color2 }} />
+      </box>
     );
   };
 
   return (
-    <Box flexDirection="column">
-      <Text bold color="cyan">Agent Comparison: {agent1.name} vs {agent2.name}</Text>
-      <Box flexDirection="column" marginTop={1} marginLeft={2}>
+    <box flexDirection="column">
+      <text content={`Agent Comparison: ${agent1.name} vs ${agent2.name}`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      <box flexDirection="column" marginTop={1} marginLeft={2}>
         <ComparisonRow label="Speed" val1={stats1.speed} val2={stats2.speed} />
         <ComparisonRow label="Accuracy" val1={stats1.accuracy} val2={stats2.accuracy} />
         <ComparisonRow label="Power" val1={stats1.power} val2={stats2.power} />
         <ComparisonRow label="Efficiency" val1={stats1.efficiency} val2={stats2.efficiency} />
         <ComparisonRow label="Versatility" val1={stats1.versatility} val2={stats2.versatility} />
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 };

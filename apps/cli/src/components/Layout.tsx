@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 import type React from "react";
 import { CLI_VERSION } from "../lib/version.js";
 
@@ -8,24 +8,27 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <Box flexDirection="column" height="100%">
-      <Box borderStyle="single" borderColor="blue" justifyContent="center">
-        <Text color="blue" bold>
-          🎼 Open Composer CLI v{CLI_VERSION}
-        </Text>
-      </Box>
+    <box style={{ flexDirection: "column", height: "100%" }}>
+      <box style={{ border: true, borderColor: "blue", justifyContent: "center" }}>
+        <text
+          content={`🎼 Open Composer CLI v${CLI_VERSION}`}
+          style={{ fg: "blue", attributes: TextAttributes.BOLD }}
+        />
+      </box>
 
-      <Box flexGrow={1}>{children}</Box>
+      <box style={{ flexGrow: 1 }}>{children}</box>
 
-      <Box
-        borderStyle="single"
-        borderColor="gray"
-        justifyContent="space-between"
-        flexDirection="row"
+      <box
+        style={{
+          border: true,
+          borderColor: "gray",
+          justifyContent: "space-between",
+          flexDirection: "row",
+        }}
       >
-        <Text color="gray">Ready</Text>
-        <Text color="gray">Ctrl+C to exit</Text>
-      </Box>
-    </Box>
+        <text content="Ready" style={{ fg: "gray" }} />
+        <text content="Ctrl+C to exit" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

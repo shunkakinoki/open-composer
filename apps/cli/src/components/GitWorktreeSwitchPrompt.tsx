@@ -1,5 +1,7 @@
+import { TextAttributes } from "@opentui/core";
+
 import type { Worktree } from "@open-composer/git-worktrees";
-import { Box, Text, useApp, useInput } from "ink";
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -13,34 +15,34 @@ export const GitWorktreeSwitchPrompt: React.FC<
   GitWorktreeSwitchPromptProps
 > = ({ worktrees, onSubmit, onCancel }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { exit } = useApp();
+  
 
   const handleSubmit = () => {
     if (worktrees.length === 0) return;
 
     const selectedWorktree = worktrees[selectedIndex];
     onSubmit(selectedWorktree.path);
-    exit();
+    process.exit(0);
   };
 
   const handleCancel = () => {
     onCancel?.();
-    exit();
+    process.exit(0);
   };
 
-  useInput(
-    (input, key) => {
-      if (key.upArrow) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "up") {
         setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : worktrees.length - 1,
         );
-      } else if (key.downArrow) {
+      } else if (key.name === "down") {
         setSelectedIndex((prev) =>
           prev < worktrees.length - 1 ? prev + 1 : 0,
         );
-      } else if (key.return) {
+      } else if (key.name === "return") {
         handleSubmit();
-      } else if (key.escape || (key.ctrl && input === "c")) {
+      } else if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         handleCancel();
       }
     },
@@ -49,72 +51,55 @@ export const GitWorktreeSwitchPrompt: React.FC<
 
   if (worktrees.length === 0) {
     return (
-      <Box flexDirection="column" padding={2}>
-        <Text bold color="yellow">
-          ⚠️ No Git Worktrees Found
-        </Text>
-        <Box marginTop={1}>
-          <Text>No worktrees available to switch to.</Text>
-        </Box>
-        <Box marginTop={1}>
-          <Text color="gray">Press Esc to cancel</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" padding={2}>
+        <text content="⚠️ No Git Worktrees Found" style={{ fg: "yellow", attributes: TextAttributes.BOLD }} />
+        <box marginTop={1}>
+          <text content="No worktrees available to switch to." />
+        </box>
+        <box marginTop={1}>
+          <text content="Press Esc to cancel" style={{ fg: "gray" }} />
+        </box>
+      </box>
     );
   }
 
   return (
-    <Box flexDirection="column" padding={2}>
-      <Text bold color="cyan">
-        🔄 Switch Git Worktree
-      </Text>
+    <box flexDirection="column" padding={2}>
+      <text content="🔄 Switch Git Worktree" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>Select a worktree to switch to:</Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="Select a worktree to switch to:" />
+      </box>
 
-      <Box flexDirection="column">
+      <box flexDirection="column">
         {worktrees.map((worktree, index) => {
           const isSelected = index === selectedIndex;
           const isCurrent = worktree.path === process.cwd();
 
+          const prefix = `${isSelected ? "▶ " : "  "}${isCurrent ? "📍 " : "   "}`;
+          const branchText = worktree.branch || "(detached)";
+          const lockedText = worktree.locked ? ` [locked: ${worktree.locked.reason || "unknown"}]` : "";
+          const prunableText = worktree.prunable ? ` [prunable: ${worktree.prunable.reason || "unknown"}]` : "";
+          const fullText = `${prefix}${branchText} at ${worktree.path}${lockedText}${prunableText}`;
+
           return (
-            <Box key={worktree.path}>
-              <Text color={isSelected ? "green" : "gray"}>
-                {isSelected ? "▶ " : "  "}
-                {isCurrent ? "📍 " : "   "}
-                <Text color={isSelected ? "green" : "white"}>
-                  {worktree.branch || "(detached)"}
-                </Text>
-                <Text color="gray"> at </Text>
-                <Text color={isSelected ? "cyan" : "gray"}>
-                  {worktree.path}
-                </Text>
-                {worktree.locked && (
-                  <Text color="yellow">
-                    {" "}
-                    [locked: {worktree.locked.reason || "unknown"}]
-                  </Text>
-                )}
-                {worktree.prunable && (
-                  <Text color="red">
-                    {" "}
-                    [prunable: {worktree.prunable.reason || "unknown"}]
-                  </Text>
-                )}
-              </Text>
-            </Box>
+            <box key={worktree.path}>
+              <text
+                content={fullText}
+                style={{ fg: isSelected ? "green" : "gray" }}
+              />
+            </box>
           );
         })}
-      </Box>
+      </box>
 
-      <Box marginTop={2}>
-        <Text color="gray">↑/↓: Navigate • Enter: Switch • Esc: Cancel</Text>
-      </Box>
+      <box marginTop={2}>
+        <text content="↑/↓: Navigate • Enter: Switch • Esc: Cancel" style={{ fg: "gray" }} />
+      </box>
 
-      <Box marginTop={1}>
-        <Text color="yellow">📍 = current worktree</Text>
-      </Box>
-    </Box>
+      <box marginTop={1}>
+        <text content="📍 = current worktree" style={{ fg: "yellow" }} />
+      </box>
+    </box>
   );
 };
