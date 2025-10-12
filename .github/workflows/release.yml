@@ -86,7 +86,7 @@ jobs:
       - name: Update Homebrew Tap
         run: ./scripts/release-homebrew-formula.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-chocolatey:
     needs: release-upload
     if: false
@@ -102,7 +102,7 @@ jobs:
       - name: Update Chocolatey Package
         run: ./scripts/release-chocolatey-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-winget:
     needs: release-upload
     if: false
@@ -117,7 +117,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Update WinGet Package
-        run: ./scripts/release-winget-package.ps1 -Tag "${{ github.event.release.tag_name || github.event.inputs.tag }}" -GitHubToken "${{ secrets.GITHUB_TOKEN }}"
+        run: ./scripts/release-winget-package.ps1 -Tag "${{ github.event.release.tag_name || github.event.inputs.tag }}" -GitHubToken "${{ secrets.PAT_TOKEN }}"
         shell: pwsh
   release-scoop:
     needs: release-upload
@@ -134,7 +134,7 @@ jobs:
       - name: Update Scoop Package
         run: ./scripts/release-scoop-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-paru:
     needs: release-upload
     if: false
@@ -150,7 +150,7 @@ jobs:
       - name: Update Paru/AUR Package
         run: ./scripts/release-paru-package.sh "${{ github.event.release.tag_name || github.event.inputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   release-check:
     if: always()
     needs:
