@@ -2,4 +2,4 @@
 "open-composer": patch
 ---
 
-Added version upgrade detection
+Enhanced binary path detection for Bun-compiled binaries
