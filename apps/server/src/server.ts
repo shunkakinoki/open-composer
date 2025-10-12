@@ -283,7 +283,5 @@ export function startServerEffect(
 export const ServerInstanceLive = (options: ServerOptions = {}): Layer.Layer<ServerInstance, ServerStartError | ServerConfigError> =>
   Layer.effect(
     ServerInstance,
-    startServerEffect(options).pipe(
-      Effect.map((instance) => ServerInstance.of(instance)),
-    ),
+    startServerEffect(options),
   )
