@@ -12,9 +12,32 @@ import { startServer } from "@open-composer/server";
 // -----------------------------------------------------------------------------
 
 export function buildServeCommand(): CommandBuilder<"serve"> {
+  const portOption = Options.integer("port").pipe(
+    Options.withDefault(3000),
+    Options.withDescription("Port to run the server on (default: 3000)"),
+  );
+
   const command = () =>
-    Command.make("serve").pipe(
+    Command.make("serve", { port: portOption }).pipe(
       Command.withDescription("Start the OpenComposer PTY server"),
+      Command.withHandler((config) =>
+        Effect.gen(function* () {
+          const portValue = config.port;
+
+          yield* trackCommand("serve", "start");
+          yield* trackFeatureUsage("serve_start", {
+            port: portValue,
+          });
+
+          // Start the server using the exported function
+          startServer({ port: portValue });
+
+          // Server is running - wait indefinitely
+          yield* Effect.never;
+
+          return undefined;
+        }),
+      ),
       Command.withSubcommands([buildStartCommand()]),
     );
 

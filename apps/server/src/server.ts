@@ -10,6 +10,7 @@ import { openapi } from '@elysiajs/openapi'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Context from 'effect/Context'
+import * as Console from 'effect/Console'
 import { ptyRoutes } from './routes/pty.js'
 import { ptyService } from './services/pty-service.js'
 
@@ -222,10 +223,6 @@ export function startServerEffect(
     const started = yield* Effect.try({
       try: () => {
         app.listen(port)
-        console.log(`🚀 OpenComposer Server (Elysia + Bun) starting on port ${port}...`)
-        console.log(`✅ Server running at http://localhost:${port}`)
-        console.log(`📡 PTY endpoints available under /session/:sid/pty`)
-        console.log(`🦊 Using Bun-native subprocess (no node-pty dependency)`)
         return true
       },
       catch: (error) =>
@@ -239,18 +236,24 @@ export function startServerEffect(
       return yield* Effect.fail(new ServerStartError('Server failed to start'))
     }
 
+    // Log startup messages using Effect Console
+    yield* Console.log(`🚀 OpenComposer Server (Elysia + Bun) starting on port ${port}...`)
+    yield* Console.log(`✅ Server running at http://localhost:${port}`)
+    yield* Console.log(`📡 PTY endpoints available under /session/:sid/pty`)
+    yield* Console.log(`🦊 Using Bun-native subprocess (no node-pty dependency)`)
+
     // Setup cleanup timer
     const cleanupTimer = setInterval(() => {
       const cleaned = ptyService.cleanupIdle(maxIdleTime)
       if (cleaned > 0) {
-        console.log(`🧹 Cleaned up ${cleaned} idle PTY session(s)`)
+        Effect.runSync(Console.log(`🧹 Cleaned up ${cleaned} idle PTY session(s)`))
       }
     }, cleanupInterval)
 
     // Setup shutdown handlers
     const shutdown = () => {
-      console.log('\n🛑 Shutting down gracefully...')
-      console.log('Cleaning up PTY sessions...')
+      Effect.runSync(Console.log('\n🛑 Shutting down gracefully...'))
+      Effect.runSync(Console.log('Cleaning up PTY sessions...'))
       clearInterval(cleanupTimer)
       app.stop()
     }
