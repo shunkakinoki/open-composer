@@ -7,6 +7,9 @@
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
+import * as Effect from 'effect/Effect'
+import * as Layer from 'effect/Layer'
+import * as Context from 'effect/Context'
 import { ptyRoutes } from './routes/pty.js'
 import { ptyService } from './services/pty-service.js'
 
@@ -142,3 +145,145 @@ export function startServer(options: ServerOptions = {}) {
 
   return app
 }
+
+// -----------------------------------------------------------------------------
+// Effect TS Wrapper Types and Services
+// -----------------------------------------------------------------------------
+
+/**
+ * Server configuration error types
+ */
+export class ServerConfigError {
+  readonly _tag = 'ServerConfigError'
+  constructor(readonly message: string) {}
+}
+
+export class ServerStartError {
+  readonly _tag = 'ServerStartError'
+  constructor(readonly message: string, readonly cause?: unknown) {}
+}
+
+/**
+ * Server instance type
+ */
+export interface ServerInstanceType {
+  readonly app: ReturnType<typeof createApp>
+  readonly port: number
+  readonly cleanup: () => void
+}
+
+/**
+ * Server instance context
+ */
+export class ServerInstance extends Context.Tag('ServerInstance')<
+  ServerInstance,
+  ServerInstanceType
+>() {}
+
+/**
+ * Effect-wrapped server creation
+ * Returns an Effect that creates the Elysia app
+ */
+export function createAppEffect(): Effect.Effect<ReturnType<typeof createApp>, ServerConfigError> {
+  return Effect.try({
+    try: () => createApp(),
+    catch: (error) =>
+      new ServerConfigError(
+        `Failed to create server app: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+  })
+}
+
+/**
+ * Effect-wrapped server startup
+ * Returns an Effect that starts the server and provides cleanup
+ */
+export function startServerEffect(
+  options: ServerOptions = {},
+): Effect.Effect<ServerInstanceType, ServerStartError | ServerConfigError> {
+  return Effect.gen(function* () {
+    const {
+      port = 3000,
+      cleanupInterval = 5 * 60 * 1000,
+      maxIdleTime = 30 * 60 * 1000,
+    } = options
+
+    // Validate port
+    if (port < 0 || port > 65535) {
+      return yield* Effect.fail(
+        new ServerConfigError(`Invalid port: ${port}. Must be between 0 and 65535.`),
+      )
+    }
+
+    // Create app
+    const app = yield* createAppEffect()
+
+    // Start server
+    const started = yield* Effect.try({
+      try: () => {
+        app.listen(port)
+        console.log(`🚀 OpenComposer Server (Elysia + Bun) starting on port ${port}...`)
+        console.log(`✅ Server running at http://localhost:${port}`)
+        console.log(`📡 PTY endpoints available under /session/:sid/pty`)
+        console.log(`🦊 Using Bun-native subprocess (no node-pty dependency)`)
+        return true
+      },
+      catch: (error) =>
+        new ServerStartError(
+          `Failed to start server on port ${port}`,
+          error,
+        ),
+    })
+
+    if (!started) {
+      return yield* Effect.fail(new ServerStartError('Server failed to start'))
+    }
+
+    // Setup cleanup timer
+    const cleanupTimer = setInterval(() => {
+      const cleaned = ptyService.cleanupIdle(maxIdleTime)
+      if (cleaned > 0) {
+        console.log(`🧹 Cleaned up ${cleaned} idle PTY session(s)`)
+      }
+    }, cleanupInterval)
+
+    // Setup shutdown handlers
+    const shutdown = () => {
+      console.log('\n🛑 Shutting down gracefully...')
+      console.log('Cleaning up PTY sessions...')
+      clearInterval(cleanupTimer)
+      app.stop()
+    }
+
+    process.on('SIGINT', shutdown)
+    process.on('SIGTERM', shutdown)
+    process.on('beforeExit', () => {
+      clearInterval(cleanupTimer)
+    })
+
+    // Return server instance with cleanup
+    const cleanup = () => {
+      clearInterval(cleanupTimer)
+      app.stop()
+      process.off('SIGINT', shutdown)
+      process.off('SIGTERM', shutdown)
+    }
+
+    return {
+      app,
+      port,
+      cleanup,
+    }
+  })
+}
+
+/**
+ * Create a Layer that provides ServerInstance
+ */
+export const ServerInstanceLive = (options: ServerOptions = {}): Layer.Layer<ServerInstance, ServerStartError | ServerConfigError> =>
+  Layer.effect(
+    ServerInstance,
+    startServerEffect(options).pipe(
+      Effect.map((instance) => ServerInstance.of(instance)),
+    ),
+  )

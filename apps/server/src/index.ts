@@ -20,3 +20,4 @@ const port = portIndex !== -1 ? Number.parseInt(args[portIndex + 1], 10) : 3000
 const app = startServer({ port })
 
 export default app
+export { startServer }

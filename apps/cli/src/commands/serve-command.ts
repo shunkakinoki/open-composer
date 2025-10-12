@@ -5,7 +5,7 @@ import {
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
-import { startServer } from "@open-composer/server/server";
+import { startServer } from "@open-composer/server";
 
 // -----------------------------------------------------------------------------
 // Command Builder

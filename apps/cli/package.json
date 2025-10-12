@@ -52,6 +52,7 @@
     "@open-composer/git-worktrees": "workspace:*",
     "@open-composer/orchestrator": "workspace:*",
     "@open-composer/process-runner": "workspace:*",
+    "@open-composer/server": "workspace:*",
     "drizzle-orm": "^0.44.6",
     "effect": "^3.18.4",
     "ink": "^6.3.1",

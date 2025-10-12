@@ -159,6 +159,7 @@
         "@open-composer/git-worktrees": "workspace:*",
         "@open-composer/orchestrator": "workspace:*",
         "@open-composer/process-runner": "workspace:*",
+        "@open-composer/server": "workspace:*",
         "drizzle-orm": "^0.44.6",
         "effect": "^3.18.4",
         "ink": "^6.3.1",
@@ -218,10 +219,13 @@
       "name": "@open-composer/server",
       "version": "0.1.0",
       "dependencies": {
+        "@effect/platform": "^0.92.1",
+        "@effect/platform-bun": "^0.81.1",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/openapi": "^1.4.11",
         "@xterm/addon-serialize": "^0.13.0",
         "@xterm/headless": "^5.5.0",
+        "effect": "^3.18.4",
         "elysia": "^1.4.11",
       },
       "devDependencies": {
