@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src", "migrations", "tests"],
+  "compilerOptions": {
+    "types": ["bun", "node"],
+    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
+    "rootDir": ".",
+    "noEmit": true
+  }
+}

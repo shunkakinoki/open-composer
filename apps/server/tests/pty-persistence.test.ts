@@ -15,7 +15,6 @@ import {
   getSnapshot,
   connectSSE,
   randomSessionID,
-  waitFor,
 } from './helpers.js'
 
 describe('PTY Persistence - Snapshot Recovery', () => {
@@ -542,6 +541,7 @@ describe('PTY Persistence - Edge Cases', () => {
     await Bun.sleep(500)
 
     const snapshot1 = await getSnapshot(baseURL, sessionID, ptyID)
+    expect(snapshot1).toContain('Before resize')
 
     // Resize terminal
     await fetch(`${baseURL}/session/${sessionID}/pty/${ptyID}/resize`, {
