@@ -5,7 +5,7 @@ import {
   trackFeatureUsage,
 } from "../services/telemetry-service.js";
 import type { CommandBuilder } from "../types/commands.js";
-import * as path from "node:path";
+import { startServer } from "@open-composer/server/server";
 
 // -----------------------------------------------------------------------------
 // Command Builder
@@ -48,37 +48,11 @@ export function buildStartCommand() {
           port: portValue,
         });
 
-        console.log(`🚀 Starting OpenComposer PTY Server on port ${portValue}...`);
+        // Start the server using the exported function
+        startServer({ port: portValue });
 
-        // Get the server package directory
-        // Assuming the CLI is in apps/cli and server is in apps/server
-        const cliDir = import.meta.dir;
-        const appsDir = path.resolve(cliDir, "../../..");
-        const serverDir = path.join(appsDir, "apps/server");
-        const serverEntry = path.join(serverDir, "src/index.ts");
-
-        console.log(`📦 Server directory: ${serverDir}`);
-        console.log(`📄 Server entry: ${serverEntry}`);
-
-        // Run the server with Bun
-        const proc = Bun.spawn(
-          ["bun", "run", serverEntry, "--port", portValue.toString()],
-          {
-            cwd: serverDir,
-            stdio: ["inherit", "inherit", "inherit"],
-            env: {
-              ...process.env,
-            },
-          },
-        );
-
-        // Wait for the process to exit using Effect
-        const exitCode = yield* Effect.promise(() => proc.exited);
-
-        if (exitCode !== 0) {
-          console.error(`❌ Server exited with code ${exitCode}`);
-          return yield* Effect.fail(new Error(`Server exited with code ${exitCode}`));
-        }
+        // Server is running - wait indefinitely
+        yield* Effect.never;
 
         return undefined;
       }),
