@@ -31,8 +31,8 @@ describe('PTY Snapshots', () => {
     const ptyID = await createPTY(baseURL, sessionID)
 
     const snapshot = await getSnapshot(baseURL, sessionID, ptyID)
-    expect(snapshot).toBeTruthy()
     expect(typeof snapshot).toBe('string')
+    // Empty string is valid for new PTY
 
     // Clean up
     await killPTY(baseURL, sessionID, ptyID)

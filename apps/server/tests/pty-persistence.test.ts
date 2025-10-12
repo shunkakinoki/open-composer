@@ -500,9 +500,9 @@ describe('PTY Persistence - Edge Cases', () => {
       await reader.close()
     }
 
-    // PTY should still be healthy
+    // PTY should still be healthy (snapshot returns string, even if empty)
     const snapshot = await getSnapshot(baseURL, sessionID, ptyID)
-    expect(snapshot).toBeTruthy()
+    expect(typeof snapshot).toBe('string')
 
     // Clean up
     await killPTY(baseURL, sessionID, ptyID)
@@ -574,9 +574,8 @@ describe('PTY Persistence - Edge Cases', () => {
     // Immediate snapshot (before any output)
     const snapshot = await getSnapshot(baseURL, sessionID, ptyID)
 
-    expect(snapshot).toBeTruthy()
     expect(typeof snapshot).toBe('string')
-    // Should be empty or minimal
+    // Should be empty or minimal (empty string is valid)
     expect(snapshot.length).toBeGreaterThanOrEqual(0)
 
     // Clean up

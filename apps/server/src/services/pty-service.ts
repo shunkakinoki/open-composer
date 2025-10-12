@@ -203,9 +203,14 @@ class PTYService {
     // Kill subprocess
     handle.proc.kill()
 
-    // Close streams
+    // Close streams - catch errors as stream may already be closed
     if (handle.reader) {
-      handle.reader.releaseLock()
+      try {
+        handle.reader.cancel()
+        handle.reader.releaseLock()
+      } catch (err) {
+        // Stream already cancelled or closed, ignore
+      }
     }
     // stdin is a FileSink, no need to close
 
