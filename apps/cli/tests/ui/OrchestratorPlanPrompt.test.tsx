@@ -4,22 +4,23 @@ import { OrchestratorPlanPrompt } from "../../src/components/OrchestratorPlanPro
 import { render } from "../utils.js";
 
 describe("OrchestratorPlanPrompt", () => {
-  test("renders objective step snapshot by default", () => {
+  test("renders objective step snapshot by default", async () => {
     const onComplete = mock(() => {});
     const onCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <OrchestratorPlanPrompt onComplete={onComplete} onCancel={onCancel} />,
     );
 
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders description step snapshot", () => {
+  test("renders description step snapshot", async () => {
     const onComplete = mock(() => {});
     const onCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <OrchestratorPlanPrompt
         onComplete={onComplete}
         onCancel={onCancel}
@@ -32,13 +33,14 @@ describe("OrchestratorPlanPrompt", () => {
     );
 
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders constraints step snapshot", () => {
+  test("renders constraints step snapshot", async () => {
     const onComplete = mock(() => {});
     const onCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <OrchestratorPlanPrompt
         onComplete={onComplete}
         onCancel={onCancel}
@@ -52,13 +54,14 @@ describe("OrchestratorPlanPrompt", () => {
     );
 
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders tech requirements step snapshot", () => {
+  test("renders tech requirements step snapshot", async () => {
     const onComplete = mock(() => {});
     const onCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <OrchestratorPlanPrompt
         onComplete={onComplete}
         onCancel={onCancel}
@@ -73,13 +76,14 @@ describe("OrchestratorPlanPrompt", () => {
     );
 
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders confirm step snapshot", () => {
+  test("renders confirm step snapshot", async () => {
     const onComplete = mock(() => {});
     const onCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <OrchestratorPlanPrompt
         onComplete={onComplete}
         onCancel={onCancel}
@@ -94,5 +98,6 @@ describe("OrchestratorPlanPrompt", () => {
     );
 
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

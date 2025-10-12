@@ -1,4 +1,3 @@
-import { Box } from "ink";
 import type React from "react";
 import { useState } from "react";
 import { ChatInterface } from "./ChatInterface.js";
@@ -82,27 +81,27 @@ export const ComposerApp: React.FC = () => {
 
   return (
     <Layout>
-      <Box flexDirection="row" height="100%">
-        <Box width="30%" borderStyle="single" borderColor="gray">
+      <box style={{ flexDirection: "row", height: "100%" }}>
+        <box style={{ width: "30%", border: true, borderColor: "gray" }}>
           <Sidebar
             worktrees={state.worktrees}
             currentBranch={state.currentBranch}
           />
-        </Box>
+        </box>
 
-        <Box width="40%" borderStyle="single" borderColor="gray">
+        <box style={{ width: "40%", border: true, borderColor: "gray" }}>
           <ChatInterface
             messages={state.chatMessages}
             onSendMessage={handleSendMessage}
           />
-        </Box>
+        </box>
 
-        <Box width="30%" borderStyle="single" borderColor="gray">
+        <box style={{ width: "30%", border: true, borderColor: "gray" }}>
           <CodeEditor
             {...(state.currentFile && { currentFile: state.currentFile })}
           />
-        </Box>
-      </Box>
+        </box>
+      </box>
     </Layout>
   );
 };

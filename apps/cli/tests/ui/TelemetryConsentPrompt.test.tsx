@@ -4,16 +4,17 @@ import { TelemetryConsentPrompt } from "../../src/components/TelemetryConsentPro
 import { render } from "../utils.js";
 
 describe("TelemetryConsentPrompt", () => {
-  test("renders correctly", () => {
+  test("renders correctly", async () => {
     const mockOnConsent = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <TelemetryConsentPrompt
         onConsent={mockOnConsent}
         onCancel={mockOnCancel}
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

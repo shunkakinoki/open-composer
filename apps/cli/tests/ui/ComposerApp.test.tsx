@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+import React from "react";
 
 // Mock ComposerApp utility functions before importing
 const mockCreateTimestamp = mock(() => new Date("2024-01-01T10:00:00Z"));
@@ -20,8 +21,9 @@ import { ComposerApp } from "../../src/components/ComposerApp.js";
 import { render } from "../utils.js";
 
 describe("ComposerApp", () => {
-  test("renders correctly", () => {
-    const { lastFrame } = render(<ComposerApp />);
+  test("renders correctly", async () => {
+    const { lastFrame, cleanup } = await render(<ComposerApp />);
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

@@ -3,7 +3,7 @@ import React from "react";
 import { ComposerApp as App } from "../src/index.js";
 
 describe("CLI App", () => {
-  it("App component is properly exported", () => {
+  it("App component is properly exported", async () => {
     expect(App).toBeDefined();
     expect(typeof App).toBe("function");
 
@@ -12,7 +12,7 @@ describe("CLI App", () => {
     expect(element.type).toBe(App);
   });
 
-  it("App component is a valid React component", () => {
+  it("App component is a valid React component", async () => {
     expect(App).toBeDefined();
     expect(typeof App).toBe("function");
 

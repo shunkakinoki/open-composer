@@ -1,17 +1,29 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`MainMenu matches snapshot 1`] = `
-"
- Main Menu
-
- ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
- └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
- ▶ [1] Sessions        List all sessions
-   [2] Cache           Manage cache
-   [3] Worktree        Manage worktrees
-
-
- Use ↑↓/j/k to navigate, Enter to select, 'q' to quit
+"                                                                                
+ Main Menu                                                                      
+                                                                                
+ ┌────────────────────────────────────────────────────────────────────────────┐ 
+ └────────────────────────────────────────────────────────────────────────────┘ 
+                                                                                
+ ▶ [1]                                                                          
+ Sessions                                                                       
+ List all sessions                                                              
+   [2]                                                                          
+ Cache                                                                          
+ Manage cache                                                                   
+   [3]                                                                          
+ Worktree                                                                       
+ Manage worktrees                                                               
+                                                                                
+                                                                                
+ Use ↑↓/j/k to navigate, Enter to select, 'q' to quit                           
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;

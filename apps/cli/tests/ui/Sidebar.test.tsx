@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import React from "react";
 
 import { Sidebar } from "../../src/components/Sidebar.js";
 import { render } from "../utils.js";
 
 describe("Sidebar", () => {
-  test("renders correctly with worktrees", () => {
+  test("renders correctly with worktrees", async () => {
     const worktrees = [
       {
         name: "main",
@@ -20,9 +21,10 @@ describe("Sidebar", () => {
       },
     ];
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <Sidebar worktrees={worktrees} currentBranch="main" />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

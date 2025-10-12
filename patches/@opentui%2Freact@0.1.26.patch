@@ -1,0 +1,33 @@
+diff --git a/index.js b/index.js
+index 578dd795604422fef3e41871e49324b09e0d65aa..0ad1508fdd5f28704536feb19bafe48ddfd2ab78 100644
+--- a/index.js
++++ b/index.js
+@@ -374,7 +374,9 @@ var hostConfig = {
+     return false;
+   },
+   finalizeInitialChildren(instance, type, props, rootContainerInstance, hostContext) {
+-    setInitialProperties(instance, type, props);
++    // PATCHED: Props are already set in createInstance constructor
++    // Setting them via setInitialProperties causes issues with fg/bg props
++    // setInitialProperties(instance, type, props);
+     return false;
+   },
+   commitMount(instance, type, props, internalInstanceHandle) {},
+@@ -515,6 +517,7 @@ export {
+   useKeyboard,
+   useAppContext,
+   render,
++  _render,
+   getComponentCatalogue,
+   extend,
+   componentCatalogue,
+diff --git a/src/index.d.ts b/src/index.d.ts
+index d14dc531b54579517fdf7f1173a011f1b5673462..2a27cd23f06340e356fd33c9b9dd6b3bd66e98ac 100644
+--- a/src/index.d.ts
++++ b/src/index.d.ts
+@@ -2,4 +2,5 @@ export * from "./components";
+ export * from "./components/app";
+ export * from "./hooks";
+ export * from "./reconciler/renderer";
++export * from "./reconciler/reconciler";
+ export * from "./types/components";

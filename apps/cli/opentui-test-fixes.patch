@@ -1,0 +1,26 @@
+diff --git a/packages/react/src/index.ts b/packages/react/src/index.ts
+index 6505fb5..27059fb 100644
+--- a/packages/react/src/index.ts
++++ b/packages/react/src/index.ts
+@@ -5,4 +5,5 @@ export * from "./hooks/use-renderer"
+ export * from "./hooks/use-resize"
+ export * from "./hooks/use-terminal-dimensions"
+ export * from "./reconciler/renderer"
++export * from "./reconciler/reconciler"
+ export * from "./types/components"
+diff --git a/packages/react/src/reconciler/host-config.ts b/packages/react/src/reconciler/host-config.ts
+index 437394b..62d1070 100644
+--- a/packages/react/src/reconciler/host-config.ts
++++ b/packages/react/src/reconciler/host-config.ts
+@@ -133,7 +133,10 @@ export const hostConfig: HostConfig<
+     rootContainerInstance: Container,
+     hostContext: HostContext,
+   ) {
+-    setInitialProperties(instance, type, props)
++    // NOTE: Props are already set in createInstance constructor, so we don't need to set them again.
++    // Setting them via setInitialProperties causes issues with certain props like `fg` and `bg`
++    // which have setters that don't work correctly when called after construction.
++    // setInitialProperties(instance, type, props)
+     return false
+   },
+ 

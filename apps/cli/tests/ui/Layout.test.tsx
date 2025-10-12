@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { Text } from "ink";
+import React from "react";
 
 // Mock the CLI version specifically for Layout tests
 mock.module("../../src/lib/version.js", () => ({
@@ -10,12 +10,13 @@ import { Layout } from "../../src/components/Layout.js";
 import { render } from "../utils.js";
 
 describe("Layout", () => {
-  test("renders correctly", () => {
-    const { lastFrame } = render(
+  test("renders correctly", async () => {
+    const { lastFrame, cleanup } = await render(
       <Layout>
-        <Text>Test content</Text>
+        <text content="Test content" />
       </Layout>,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

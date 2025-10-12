@@ -11,24 +11,25 @@ mock.module("../../src/services/runs-cli.js", () => ({
 }));
 
 describe("RunCreatePrompt", () => {
-  test("renders name input step when no props provided", () => {
+  test("renders name input step when no props provided", async () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <RunCreatePrompt
         onComplete={mockOnComplete}
         onCancel={mockOnCancel}
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders workspace choice step when name is provided", () => {
+  test("renders workspace choice step when name is provided", async () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <RunCreatePrompt
         initialName="Test Run"
         onComplete={mockOnComplete}
@@ -36,13 +37,14 @@ describe("RunCreatePrompt", () => {
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders workspace path step when name and choice are provided", () => {
+  test("renders workspace path step when name and choice are provided", async () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <RunCreatePrompt
         initialName="Test Run"
         initialWorkspaceChoice="existing"
@@ -51,13 +53,14 @@ describe("RunCreatePrompt", () => {
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 
-  test("renders confirmation step when all props are provided", () => {
+  test("renders confirmation step when all props are provided", async () => {
     const mockOnComplete = mock(() => {});
     const mockOnCancel = mock(() => {});
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <RunCreatePrompt
         initialName="Test Run"
         initialWorkspaceChoice="none"
@@ -66,5 +69,6 @@ describe("RunCreatePrompt", () => {
       />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

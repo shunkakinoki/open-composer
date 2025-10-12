@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import React from "react";
 
 import { ChatInterface } from "../../src/components/ChatInterface.js";
 import { render } from "../utils.js";
 
 describe("ChatInterface", () => {
-  test("renders correctly with messages", () => {
+  test("renders correctly with messages", async () => {
     const messages = [
       {
         id: "1",
@@ -21,9 +22,10 @@ describe("ChatInterface", () => {
       },
     ];
 
-    const { lastFrame } = render(
+    const { lastFrame, cleanup } = await render(
       <ChatInterface messages={messages} onSendMessage={() => {}} />,
     );
     expect(lastFrame()).toMatchSnapshot();
+    cleanup();
   });
 });

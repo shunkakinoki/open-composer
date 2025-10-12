@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -12,86 +14,73 @@ export const TelemetryConsentPrompt: React.FC<TelemetryConsentPromptProps> = ({
   onCancel,
 }) => {
   const [selected, setSelected] = useState<"yes" | "no">("yes");
-  const { exit } = useApp();
+  
 
-  useInput(
-    (input, key) => {
-      if (key.leftArrow || key.rightArrow) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "left" || key.name === "right") {
         setSelected(selected === "yes" ? "no" : "yes");
-      } else if (key.return) {
+      } else if (key.name === "return") {
         onConsent(selected === "yes");
-        exit(); // Exit the Ink app after handling consent
-      } else if (key.escape || (key.ctrl && input === "c")) {
+        process.exit(0); // Exit the Ink app after handling consent
+      } else if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel?.();
-        exit(); // Exit the Ink app after handling cancellation
+        process.exit(0); // Exit the Ink app after handling cancellation
       }
     },
     { isActive: true },
   );
 
   return (
-    <Box flexDirection="column" padding={2}>
-      <Text bold color="cyan">
-        🔒 Open Composer - Privacy Notice
-      </Text>
+    <box flexDirection="column" padding={2}>
+      <text content="🔒 Open Composer - Privacy Notice" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>
-          Open Composer respects your privacy and is committed to protecting
-          your data.
-        </Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="Open Composer respects your privacy and is committed to protecting your data." />
+      </box>
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text bold>📊 Telemetry Collection (Optional)</Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="📊 Telemetry Collection (Optional)" style={{ attributes: TextAttributes.BOLD }} />
+      </box>
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>
-          We can collect anonymous usage statistics to help improve Open
-          Composer.
-        </Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="We can collect anonymous usage statistics to help improve Open Composer." />
+      </box>
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>
-          This includes command usage, error reports, and performance metrics.
-        </Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="This includes command usage, error reports, and performance metrics." />
+      </box>
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>All data is anonymized and cannot be used to identify you.</Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="All data is anonymized and cannot be used to identify you." />
+      </box>
 
-      <Box marginTop={1} marginBottom={1}>
-        <Text>
-          You can change this setting anytime with: open-composer telemetry
-          disable
-        </Text>
-      </Box>
+      <box marginTop={1} marginBottom={1}>
+        <text content="You can change this setting anytime with: open-composer telemetry disable" />
+      </box>
 
-      <Box marginTop={2}>
-        <Text>Enable telemetry collection?</Text>
-      </Box>
+      <box marginTop={2}>
+        <text content="Enable telemetry collection?" />
+      </box>
 
-      <Box marginTop={1}>
-        <Text color="gray">
-          Use arrow keys to select, Enter to confirm, Esc to skip
-        </Text>
-      </Box>
+      <box marginTop={1}>
+        <text content="Use arrow keys to select, Enter to confirm, Esc to skip" style={{ fg: "gray" }} />
+      </box>
 
-      <Box marginTop={2}>
-        <Box marginRight={2} key="yes-option">
-          <Text color={selected === "yes" ? "green" : "gray"}>
-            {selected === "yes" ? "●" : "○"} Yes, enable telemetry
-          </Text>
-        </Box>
-        <Box key="no-option">
-          <Text color={selected === "no" ? "red" : "gray"}>
-            {selected === "no" ? "●" : "○"} No, keep disabled
-          </Text>
-        </Box>
-      </Box>
-    </Box>
+      <box marginTop={2}>
+        <box marginRight={2} key="yes-option">
+          <text
+            content={`${selected === "yes" ? "●" : "○"} Yes, enable telemetry`}
+            style={{ fg: selected === "yes" ? "green" : "gray" }}
+          />
+        </box>
+        <box key="no-option">
+          <text
+            content={`${selected === "no" ? "●" : "○"} No, keep disabled`}
+            style={{ fg: selected === "no" ? "red" : "gray" }}
+          />
+        </box>
+      </box>
+    </box>
   );
 };

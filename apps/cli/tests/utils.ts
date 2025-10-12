@@ -1,134 +1,91 @@
-// Custom implementation based on: https://github.com/vadimdemedes/ink-testing-library/blob/master/source/index.ts
-// License: MIT
-// Note: This is not a direct copy. The code has been adapted and modified for project-specific testing needs.
+// Testing utilities for OpenTUI components
+// Uses OpenTUI's built-in test renderer for proper snapshot testing
 
-import { EventEmitter } from "node:events";
-import { type Instance as InkInstance, render as inkRender } from "ink";
-import type { ReactElement } from "react";
+import { createTestRenderer, type TestRenderer } from "@opentui/core/testing"
+import React, { type ReactNode } from "react"
+import { AppContext } from "@opentui/react"
+import { _render as reconcilerRender } from "@opentui/react"
 
-// Minimal interfaces for testing
-interface TestWritable {
-  write(chunk: string): void;
-  end(): void;
+export type RenderInstance = {
+  rerender: (tree: ReactNode) => Promise<void>
+  unmount: () => void
+  cleanup: () => void
+  frames: string[]
+  lastFrame: () => string
+  renderer: TestRenderer
+  renderOnce: () => Promise<void>
 }
 
-interface TestReadable {
-  write(chunk: string): void;
-  setEncoding(encoding: BufferEncoding): this;
-  setRawMode(mode: boolean): void;
-  read(): string | null;
-  ref(): this;
-  unref(): this;
-}
+/**
+ * Render function for OpenTUI components using the test renderer.
+ *
+ * This provides proper snapshot testing support by capturing rendered frames.
+ *
+ * @param tree - React element to render
+ * @param options - Test renderer options (width, height)
+ * @returns Test instance with utility methods
+ */
+export async function render(
+  tree: ReactNode,
+  options: { width?: number; height?: number } = {}
+): Promise<RenderInstance> {
+  const { renderer, renderOnce, captureCharFrame } = await createTestRenderer({
+    width: options.width || 80,
+    height: options.height || 24,
+  })
 
-class TestWritableStream extends EventEmitter implements TestWritable {
-  readonly frames: string[] = [];
-  private _lastFrame?: string;
+  // Use the renderer's keyInput property as the keyHandler
+  const keyHandler = renderer.keyInput
 
-  write(chunk: string): void {
-    this.frames.push(chunk);
-    this._lastFrame = chunk;
-  }
+  // Render the tree with AppContext - wrap in promise to wait for React reconciler to flush
+  await new Promise((resolve) => {
+    reconcilerRender(
+      React.createElement(AppContext.Provider, { value: { keyHandler, renderer } }, tree),
+      renderer.root
+    )
+    // Give React time to flush the reconciler
+    setTimeout(resolve, 0)
+  })
 
-  end(): void {
-    // Do nothing for testing
-  }
+  // Do initial render - need to call multiple times to let React fully flush all updates
+  // Components with hooks (useState, useEffect, etc.) need additional render cycles
+  // Some components with useEffect hooks need even more cycles
+  await renderOnce()
+  await renderOnce()
+  await renderOnce()
+  await renderOnce()
+  await renderOnce()
+  await renderOnce()
 
-  lastFrame = () => {
-    if (!this._lastFrame) return undefined;
-    // Strip ANSI escape codes to prevent them from appearing in snapshots
-    return this._lastFrame.replace(
-      new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"),
-      "",
-    );
-  };
-}
-
-class Stdout extends TestWritableStream {
-  get columns() {
-    return 100;
-  }
-}
-
-class Stderr extends TestWritableStream {}
-
-class Stdin extends EventEmitter implements TestReadable {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  isTTY = true;
-  private data: string = "";
-
-  constructor(options: { isTTY?: boolean } = {}) {
-    super();
-    this.isTTY = options.isTTY ?? true;
-  }
-
-  write(chunk: string): void {
-    this.data += chunk;
-  }
-
-  setEncoding(_encoding: BufferEncoding): this {
-    return this;
-  }
-
-  setRawMode(_mode: boolean): void {
-    // Do nothing
-  }
-
-  read(): string | null {
-    if (this.data) {
-      const result = this.data;
-      this.data = "";
-      return result;
-    }
-    return null;
-  }
-
-  ref(): this {
-    return this;
-  }
-
-  unref(): this {
-    return this;
-  }
-}
-
-type Instance = {
-  rerender: (tree: ReactElement) => void;
-  unmount: () => void;
-  cleanup: () => void;
-  stdout: Stdout;
-  stderr: Stderr;
-  stdin: Stdin;
-  frames: string[];
-  lastFrame: () => string | undefined;
-};
-
-const instances: InkInstance[] = [];
-
-export const render = (tree: ReactElement): Instance => {
-  const stdout = new Stdout();
-  const stderr = new Stderr();
-  const stdin = new Stdin();
-
-  const instance = inkRender(tree, {
-    stdout: stdout as unknown as NodeJS.WriteStream,
-    stderr: stderr as unknown as NodeJS.WriteStream,
-    stdin: stdin as unknown as NodeJS.ReadStream,
-    debug: true,
-    exitOnCtrlC: false,
-    patchConsole: false,
-  });
-
-  instances.push(instance);
+  const frames: string[] = [captureCharFrame()]
 
   return {
-    rerender: instance.rerender,
-    unmount: instance.unmount,
-    cleanup: instance.cleanup,
-    stdout,
-    stderr,
-    stdin,
-    frames: stdout.frames,
-    lastFrame: stdout.lastFrame,
-  };
-};
+    rerender: async (newTree: ReactNode) => {
+      await new Promise((resolve) => {
+        reconcilerRender(
+          React.createElement(AppContext.Provider, { value: { keyHandler, renderer } }, newTree),
+          renderer.root
+        )
+        setTimeout(resolve, 0)
+      })
+      await renderOnce()
+      frames.push(captureCharFrame())
+    },
+    unmount: () => {
+      renderer.destroy()
+    },
+    cleanup: () => {
+      frames.length = 0
+      renderer.destroy()
+    },
+    frames,
+    lastFrame: () => {
+      return frames[frames.length - 1] || ""
+    },
+    renderer,
+    renderOnce: async () => {
+      await renderOnce()
+      frames.push(captureCharFrame())
+    },
+  }
+}

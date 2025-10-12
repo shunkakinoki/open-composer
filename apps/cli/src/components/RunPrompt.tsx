@@ -1,4 +1,6 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useState } from "react";
 
@@ -33,7 +35,7 @@ export const RunPrompt: React.FC<RunPromptProps> = ({
   const [baseBranch, setBaseBranch] = useState(initialBaseBranch);
   const [createPR, setCreatePR] = useState(initialCreatePR);
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
-  const { exit } = useApp();
+  
 
   const handleComplete = () => {
     const config: RunConfig = {
@@ -44,58 +46,58 @@ export const RunPrompt: React.FC<RunPromptProps> = ({
     };
 
     onComplete(config);
-    exit();
+    process.exit(0);
   };
 
-  useInput(
-    (input, key) => {
-      if (key.escape || (key.ctrl && input === "c")) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel();
-        exit();
+        process.exit(0);
         return;
       }
 
       switch (step) {
         case "agent":
-          if (key.upArrow) {
+          if (key.name === "up") {
             setCurrentAgentIndex((prev) =>
               prev > 0 ? prev - 1 : availableAgents.length - 1,
             );
-          } else if (key.downArrow) {
+          } else if (key.name === "down") {
             setCurrentAgentIndex((prev) =>
               prev < availableAgents.length - 1 ? prev + 1 : 0,
             );
-          } else if (key.return) {
+          } else if (key.name === "return") {
             setSelectedAgent(availableAgents[currentAgentIndex]);
             setStep("base-branch");
           }
           break;
 
         case "base-branch":
-          if (key.return) {
+          if (key.name === "return") {
             setStep("create-pr");
-          } else if (key.backspace || key.delete) {
+          } else if (key.name === "backspace" || key.name === "delete") {
             setBaseBranch(baseBranch.slice(0, -1));
-          } else if (input && !key.ctrl && !key.meta) {
-            setBaseBranch(baseBranch + input);
+          } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+            setBaseBranch(baseBranch + key.sequence);
           }
           break;
 
         case "create-pr":
           if (
-            key.leftArrow ||
-            key.rightArrow ||
-            input.toLowerCase() === "y" ||
-            input.toLowerCase() === "n"
+            key.name === "left" ||
+            key.name === "right" ||
+            key.sequence?.toLowerCase() === "y" ||
+            key.sequence?.toLowerCase() === "n"
           ) {
             setCreatePR(!createPR);
-          } else if (key.return) {
+          } else if (key.name === "return") {
             setStep("confirm");
           }
           break;
 
         case "confirm":
-          if (key.return) {
+          if (key.name === "return") {
             handleComplete();
           }
           break;
@@ -108,113 +110,92 @@ export const RunPrompt: React.FC<RunPromptProps> = ({
     switch (step) {
       case "agent":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🚀 Run Task: {description}
-            </Text>
-            <Text color="gray">Select an AI agent to execute this task:</Text>
-            <Box marginTop={1} flexDirection="column">
-              {availableAgents.map((agent, index) => (
-                <Box key={agent}>
-                  <Text
-                    color={index === currentAgentIndex ? "yellow" : "white"}
-                  >
-                    {index === currentAgentIndex ? "→ " : "  "} {agent}
-                  </Text>
-                </Box>
-              ))}
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Use ↑↓ to navigate, Enter to select, Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content={`🚀 Run Task: ${description}`} style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <text content="Select an AI agent to execute this task:" style={{ fg: "gray" }} />
+            <box marginTop={1} flexDirection="column">
+              {availableAgents.map((agent, index) => {
+                const isSelected = index === currentAgentIndex;
+                return (
+                  <box key={agent}>
+                    <text
+                      content={`${isSelected ? "→ " : "  "}${agent}`}
+                      style={{ fg: isSelected ? "yellow" : "white" }}
+                    />
+                  </box>
+                );
+              })}
+            </box>
+            <box marginTop={1}>
+              <text content="Use ↑↓ to navigate, Enter to select, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "base-branch":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🌿 Base Branch
-            </Text>
-            <Box marginTop={1}>
-              <Text>select the branch to branch from: </Text>
-              <Text color="green">{baseBranch}</Text>
-              <Text color="gray">_</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Press Enter to continue (default: main), Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🌿 Base Branch" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="select the branch to branch from: " />
+              <text content={baseBranch} style={{ fg: "green" }} />
+              <text content="_" style={{ fg: "gray" }} />
+            </box>
+            <box marginTop={1}>
+              <text content="Press Enter to continue (default: main), Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "create-pr":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              🔗 Create PR
-            </Text>
-            <Box marginTop={1}>
-              <Text>Create a PR for this task?</Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color={createPR ? "green" : "red"}>
-                {createPR ? "[x] Yes" : "[ ] No"}
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text color="gray">
-                Use ←→ or Y/N to toggle, Enter to confirm, Esc to cancel
-              </Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="🔗 Create PR" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content="Create a PR for this task?" />
+            </box>
+            <box marginTop={1}>
+              <text
+                content={createPR ? "[x] Yes" : "[ ] No"}
+                style={{ fg: createPR ? "green" : "red" }}
+              />
+            </box>
+            <box marginTop={1}>
+              <text content="Use ←→ or Y/N to toggle, Enter to confirm, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
 
       case "confirm":
         return (
-          <Box flexDirection="column">
-            <Text bold color="cyan">
-              ✅ Confirm Run Configuration
-            </Text>
-            <Box marginTop={1}>
-              <Text>
-                Task: <Text color="yellow">{description}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Agent:{" "}
-                <Text color="green">{selectedAgent || availableAgents[0]}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Base Branch:{" "}
-                <Text color="yellow">{baseBranch.trim() || "main"}</Text>
-              </Text>
-            </Box>
-            <Box marginTop={1}>
-              <Text>
-                Create PR:{" "}
-                <Text color={createPR ? "green" : "red"}>
-                  {createPR ? "Yes" : "No"}
-                </Text>
-              </Text>
-            </Box>
-            <Box marginTop={2}>
-              <Text color="gray">Press Enter to run, Esc to cancel</Text>
-            </Box>
-          </Box>
+          <box flexDirection="column">
+            <text content="✅ Confirm Run Configuration" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+            <box marginTop={1}>
+              <text content={`Task: ${description}`} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Agent: ${selectedAgent || availableAgents[0]}`} style={{ fg: "green" }} />
+            </box>
+            <box marginTop={1}>
+              <text content={`Base Branch: ${baseBranch.trim() || "main"}`} style={{ fg: "yellow" }} />
+            </box>
+            <box marginTop={1}>
+              <text
+                content={`Create PR: ${createPR ? "Yes" : "No"}`}
+                style={{ fg: createPR ? "green" : "red" }}
+              />
+            </box>
+            <box marginTop={2}>
+              <text content="Press Enter to run, Esc to cancel" style={{ fg: "gray" }} />
+            </box>
+          </box>
         );
     }
   };
 
   return (
-    <Box flexDirection="column" padding={2}>
+    <box flexDirection="column" padding={2}>
       {renderStep()}
-    </Box>
+    </box>
   );
 };

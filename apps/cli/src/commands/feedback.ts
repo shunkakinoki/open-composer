@@ -1,7 +1,7 @@
 import { Command } from "@effect/cli";
 import { submitFeedback } from "@open-composer/feedback";
 import * as Effect from "effect/Effect";
-import { render } from "ink";
+import { render } from "@opentui/react";
 import React from "react";
 import { FeedbackPrompt } from "../components/FeedbackPrompt.js";
 import { trackCommand } from "../services/telemetry-service.js";
@@ -19,8 +19,8 @@ export function buildFeedbackCommand(): CommandBuilder<"feedback"> {
         Effect.gen(function* () {
           yield* trackCommand("feedback", "submit");
 
-          yield* Effect.async<void>((resume) => {
-            const { unmount } = render(
+          yield* Effect.async<void>(async (resume) => {
+            const { unmount } = await render(
               React.createElement(FeedbackPrompt, {
                 onSubmit: async (email: string, message: string) => {
                   try {

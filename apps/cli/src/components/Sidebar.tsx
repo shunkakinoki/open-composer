@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 import type React from "react";
 
 interface Worktree {
@@ -18,45 +18,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentBranch,
 }) => {
   return (
-    <Box flexDirection="column" padding={1}>
-      <Text bold color="blue">
-        📂 Workspaces
-      </Text>
+    <box style={{ flexDirection: "column", padding: 1 }}>
+      <text
+        content="📂 Workspaces"
+        style={{ fg: "blue", attributes: TextAttributes.BOLD }}
+      />
 
-      <Box flexDirection="column" marginTop={1}>
+      <box style={{ flexDirection: "column", marginTop: 1 }}>
         {worktrees.map((worktree) => (
-          <Box key={worktree.name} marginY={0}>
-            <Text color={worktree.active ? "green" : "gray"}>
-              {worktree.active ? "●" : "○"} {worktree.name}
-            </Text>
-          </Box>
+          <box key={worktree.name} style={{ marginY: 0 }}>
+            <text
+              content={`${worktree.active ? "●" : "○"} ${worktree.name}`}
+              style={{ fg: worktree.active ? "green" : "gray" }}
+            />
+          </box>
         ))}
-      </Box>
+      </box>
 
-      <Box marginTop={2}>
-        <Text bold color="yellow">
-          🌿 Branches
-        </Text>
-      </Box>
+      <box style={{ marginTop: 2 }}>
+        <text
+          content="🌿 Branches"
+          style={{ fg: "yellow", attributes: TextAttributes.BOLD }}
+        />
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text color="green">● {currentBranch}</Text>
-        <Text color="gray" dimColor>
-          + New worktree
-        </Text>
-      </Box>
+      <box style={{ flexDirection: "column", marginTop: 1 }}>
+        <text content={`● ${currentBranch}`} style={{ fg: "green" }} />
+        <text content="+ New worktree" style={{ fg: "gray" }} />
+      </box>
 
-      <Box marginTop={2}>
-        <Text bold color="magenta">
-          🤖 Agents
-        </Text>
-      </Box>
+      <box style={{ marginTop: 2 }}>
+        <text
+          content="🤖 Agents"
+          style={{ fg: "magenta", attributes: TextAttributes.BOLD }}
+        />
+      </box>
 
-      <Box flexDirection="column" marginTop={1}>
-        <Text color="green">● claude-code</Text>
-        <Text color="gray">○ codex-nation</Text>
-        <Text color="gray">○ cursor-agent</Text>
-      </Box>
-    </Box>
+      <box style={{ flexDirection: "column", marginTop: 1 }}>
+        <text content="● claude-code" style={{ fg: "green" }} />
+        <text content="○ codex-nation" style={{ fg: "gray" }} />
+        <text content="○ cursor-agent" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

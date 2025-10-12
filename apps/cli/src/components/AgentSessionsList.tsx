@@ -1,7 +1,9 @@
+import { TextAttributes } from "@opentui/core";
+
 import type { AgentSession } from "@open-composer/agent-sessions";
 import { AgentSessionsService } from "@open-composer/agent-sessions";
 import * as Effect from "effect/Effect";
-import { Box, Text, useApp, useInput, useStdout } from "ink";
+import { useKeyboard } from "@opentui/react"; 
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -81,8 +83,8 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
   const [filterAgent, setFilterAgent] = useState<AgentSession["agent"] | "all">(
     "all",
   );
-  const { exit } = useApp();
-  const { stdout } = useStdout();
+  
+  
 
   // Get terminal dimensions for fullscreen (only when running in a real terminal)
   const terminalHeight = stdout?.rows;
@@ -108,38 +110,38 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
     loadSessions();
   }, []);
 
-  useInput(
-    (input, key) => {
-      if (key.escape || (key.ctrl && input === "c")) {
+  useKeyboard(
+    (key) => {
+      if (key.name === "escape" || (key.ctrl && key.sequence === "c")) {
         onCancel?.();
-        exit();
+        process.exit(0);
         return;
       }
 
-      if (key.upArrow || input === "k") {
+      if (key.name === "up" || key.sequence === "k") {
         setSelectedIndex(Math.max(0, selectedIndex - 1));
-      } else if (key.downArrow || input === "j") {
+      } else if (key.name === "down" || key.sequence === "j") {
         setSelectedIndex(
           Math.min(filteredSessions.length - 1, selectedIndex + 1),
         );
-      } else if (input === "1") {
+      } else if (key.sequence === "1") {
         setFilterAgent("all");
         setSelectedIndex(0);
-      } else if (input === "2") {
+      } else if (key.sequence === "2") {
         setFilterAgent("codex");
         setSelectedIndex(0);
-      } else if (input === "3") {
+      } else if (key.sequence === "3") {
         setFilterAgent("cursor-agent");
         setSelectedIndex(0);
-      } else if (input === "4") {
+      } else if (key.sequence === "4") {
         setFilterAgent("claude-code");
         setSelectedIndex(0);
-      } else if (input === "5") {
+      } else if (key.sequence === "5") {
         setFilterAgent("opencode");
         setSelectedIndex(0);
-      } else if (key.return) {
+      } else if (key.name === "return") {
         onComplete?.();
-        exit();
+        process.exit(0);
       }
     },
     { isActive: true },
@@ -152,122 +154,108 @@ export const AgentSessionsList: React.FC<AgentSessionsListProps> = ({
 
   if (isLoading) {
     return (
-      <Box flexDirection="column" padding={1}>
-        <Text bold color="cyan">
-          🔄 Loading Agent Sessions...
-        </Text>
-      </Box>
+      <box flexDirection="column" padding={1}>
+        <text content="🔄 Loading Agent Sessions..." style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+      </box>
     );
   }
 
   if (error) {
     return (
-      <Box flexDirection="column" padding={1}>
-        <Text bold color="red">
-          ❌ Error Loading Agent Sessions
-        </Text>
-        <Box marginTop={1}>
-          <Text color="red">{error}</Text>
-        </Box>
-      </Box>
+      <box flexDirection="column" padding={1}>
+        <text content="❌ Error Loading Agent Sessions" style={{ fg: "red", attributes: TextAttributes.BOLD }} />
+        <box marginTop={1}>
+          <text content={error} style={{ fg: "red" }} />
+        </box>
+      </box>
     );
   }
 
   return (
-    <Box
+    <box
       flexDirection="column"
       padding={1}
       {...(terminalHeight && { height: terminalHeight })}
       {...(terminalWidth && { width: terminalWidth })}
     >
-      <Text bold color="cyan">
-        🤖 AI Agent Sessions
-      </Text>
+      <text content="🤖 AI Agent Sessions" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
 
-      <Box marginTop={1}>
-        <Text color="gray">
-          Filter: {filterAgent === "all" ? "All" : filterAgent} | Total:{" "}
-          {filteredSessions.length}
-        </Text>
-      </Box>
+      <box marginTop={1}>
+        <text
+          content={`Filter: ${filterAgent === "all" ? "All" : filterAgent} | Total: ${filteredSessions.length}`}
+          style={{ fg: "gray" }}
+        />
+      </box>
 
-      <Box marginTop={1} flexDirection="row" gap={2}>
-        <Text color={filterAgent === "all" ? "green" : "gray"}>1. All</Text>
-        <Text color={filterAgent === "codex" ? "green" : "gray"}>2. Codex</Text>
-        <Text color={filterAgent === "cursor-agent" ? "green" : "gray"}>
-          3. Cursor
-        </Text>
-        <Text color={filterAgent === "claude-code" ? "green" : "gray"}>
-          4. Claude Code
-        </Text>
-        <Text color={filterAgent === "opencode" ? "green" : "gray"}>
-          5. OpenCode
-        </Text>
-      </Box>
+      <box marginTop={1} flexDirection="row" gap={2}>
+        <text content="1. All" style={{ fg: filterAgent === "all" ? "green" : "gray" }} />
+        <text content="2. Codex" style={{ fg: filterAgent === "codex" ? "green" : "gray" }} />
+        <text content="3. Cursor" style={{ fg: filterAgent === "cursor-agent" ? "green" : "gray" }} />
+        <text content="4. Claude Code" style={{ fg: filterAgent === "claude-code" ? "green" : "gray" }} />
+        <text content="5. OpenCode" style={{ fg: filterAgent === "opencode" ? "green" : "gray" }} />
+      </box>
 
-      <Box
+      <box
         marginTop={1}
         borderStyle="single"
         borderColor="gray"
         flexDirection="column"
       >
-        <Box paddingX={1}>
-          <Box width={30}>
-            <Text bold>Agent</Text>
-          </Box>
-          <Box width={20}>
-            <Text bold>Status</Text>
-          </Box>
-          <Box width={15}>
-            <Text bold>Time</Text>
-          </Box>
-          <Box width={40}>
-            <Text bold>Repository</Text>
-          </Box>
-        </Box>
+        <box paddingX={1}>
+          <box width={30}>
+            <text content="Agent" style={{ attributes: TextAttributes.BOLD }} />
+          </box>
+          <box width={20}>
+            <text content="Status" style={{ attributes: TextAttributes.BOLD }} />
+          </box>
+          <box width={15}>
+            <text content="Time" style={{ attributes: TextAttributes.BOLD }} />
+          </box>
+          <box width={40}>
+            <text content="Repository" style={{ attributes: TextAttributes.BOLD }} />
+          </box>
+        </box>
 
         {filteredSessions.length === 0 ? (
-          <Box paddingX={1} paddingY={1}>
-            <Text color="gray">No sessions found</Text>
-          </Box>
+          <box paddingX={1} paddingY={1}>
+            <text content="No sessions found" style={{ fg: "gray" }} />
+          </box>
         ) : (
           filteredSessions.slice(0, 20).map((session, index) => {
             const isSelected = index === selectedIndex;
             const bgColor = isSelected ? "blue" : undefined;
 
             return (
-              <Box key={session.id} paddingX={1} backgroundColor={bgColor}>
-                <Box width={30}>
-                  <Text color={getAgentColor(session.agent)}>
-                    {session.agent.padEnd(15)}
-                  </Text>
-                </Box>
-                <Box width={20}>
-                  <Text color={getStatusColor(session.status)}>
-                    {getStatusIcon(session.status)} {session.status}
-                  </Text>
-                </Box>
-                <Box width={15}>
-                  <Text color="gray">{formatTimestamp(session.timestamp)}</Text>
-                </Box>
-                <Box width={40}>
-                  <Text>
-                    {session.repository?.slice(-40) ||
-                      session.cwd?.slice(-40) ||
-                      "-"}
-                  </Text>
-                </Box>
-              </Box>
+              <box key={session.id} paddingX={1} backgroundColor={bgColor}>
+                <box width={30}>
+                  <text
+                    content={session.agent.padEnd(15)}
+                    style={{ fg: getAgentColor(session.agent) }}
+                  />
+                </box>
+                <box width={20}>
+                  <text
+                    content={`${getStatusIcon(session.status)} ${session.status}`}
+                    style={{ fg: getStatusColor(session.status) }}
+                  />
+                </box>
+                <box width={15}>
+                  <text content={formatTimestamp(session.timestamp)} style={{ fg: "gray" }} />
+                </box>
+                <box width={40}>
+                  <text
+                    content={session.repository?.slice(-40) || session.cwd?.slice(-40) || "-"}
+                  />
+                </box>
+              </box>
             );
           })
         )}
-      </Box>
+      </box>
 
-      <Box marginTop={1}>
-        <Text color="gray">
-          ↑↓/jk: navigate | 1-5: filter | Enter: exit | Esc: cancel
-        </Text>
-      </Box>
-    </Box>
+      <box marginTop={1}>
+        <text content="↑↓/jk: navigate | 1-5: filter | Enter: exit | Esc: cancel" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

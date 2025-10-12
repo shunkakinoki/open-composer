@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core"; 
 import type React from "react";
 
 interface StatusBarProps {
@@ -15,46 +15,42 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   status = "Ready",
 }) => {
   return (
-    <Box
+    <box
       borderStyle="single"
       borderColor="gray"
       justifyContent="space-between"
       flexDirection="row"
       paddingX={1}
     >
-      <Box>
-        <Text color="green">{status}</Text>
+      <box>
+        <text content={status} style={{ fg: "green" }} />
         {branch && (
           <>
-            <Text color="gray"> | Branch: </Text>
-            <Text color="yellow">{branch}</Text>
+            <text content=" | Branch: " style={{ fg: "gray" }} />
+            <text content={branch} style={{ fg: "yellow" }} />
           </>
         )}
         {worktree && (
           <>
-            <Text color="gray"> | Worktree: </Text>
-            <Text color="cyan">{worktree}</Text>
+            <text content=" | Worktree: " style={{ fg: "gray" }} />
+            <text content={worktree} style={{ fg: "cyan" }} />
           </>
         )}
         {agent && (
           <>
-            <Text color="gray"> | Agent: </Text>
-            <Text color="magenta">{agent}</Text>
+            <text content=" | Agent: " style={{ fg: "gray" }} />
+            <text content={agent} style={{ fg: "magenta" }} />
           </>
         )}
-      </Box>
+      </box>
 
-      <Box>
-        <Text color="gray">Press </Text>
-        <Text color="cyan" bold>
-          q
-        </Text>
-        <Text color="gray"> to quit | </Text>
-        <Text color="cyan" bold>
-          ?
-        </Text>
-        <Text color="gray"> for help</Text>
-      </Box>
-    </Box>
+      <box>
+        <text content="Press " style={{ fg: "gray" }} />
+        <text content="q" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+        <text content=" to quit | " style={{ fg: "gray" }} />
+        <text content="?" style={{ fg: "cyan", attributes: TextAttributes.BOLD }} />
+        <text content=" for help" style={{ fg: "gray" }} />
+      </box>
+    </box>
   );
 };

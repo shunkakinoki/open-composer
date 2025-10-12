@@ -8,7 +8,7 @@ import { GitLive } from "@open-composer/git";
 import { GitStackLive } from "@open-composer/git-stack";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { render } from "ink";
+import { render } from "@opentui/react";
 import React from "react";
 import { WelcomeScreen } from "../components/WelcomeScreen.js";
 import { CLI_VERSION } from "../lib/version.js";
@@ -152,7 +152,7 @@ export function buildRootCommand() {
       // Launch TUI
       return Effect.tryPromise({
         try: async () => {
-          const { waitUntilExit } = render(
+          await render(
             React.createElement(WelcomeScreen, {
               onCommandSelect: (commandName) => {
                 // For now, just log the selected command
@@ -165,7 +165,7 @@ export function buildRootCommand() {
               patchConsole: false,
             },
           );
-          await waitUntilExit();
+          ;
         },
         catch: (error) =>
           new Error(

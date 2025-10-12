@@ -1,72 +1,141 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`OrchestratorPlanPrompt renders objective step snapshot by default 1`] = `
-"
-
-  🤖 Professor Oak Project Planner
-
-  Project objective or goal: _
-
-  Press Enter to continue, Esc to cancel
-
+"                                                                                
+                                                                                
+  🤖 Professor Oak Project Planner                                              
+                                                                                
+  Project objective or goal:                                                    
+                                                                                
+  _                                                                             
+                                                                                
+  Press Enter to continue, Esc to cancel                                        
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`OrchestratorPlanPrompt renders description step snapshot 1`] = `
-"
-
-  📝 Project Description
-
-  Detailed description: Plan execution strategy_
-
-  Press Enter to continue, Esc to cancel
-
+"                                                                                
+                                                                                
+  📝 Project Description                                                        
+                                                                                
+  Detailed description:                                                         
+  Plan execution strategy                                                       
+  _                                                                             
+                                                                                
+  Press Enter to continue, Esc to cancel                                        
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`OrchestratorPlanPrompt renders constraints step snapshot 1`] = `
-"
-
-  ⚠️ Constraints
-
-  Constraints (comma-separated, optional): TypeScript,React,Must include docs_
-
-  Examples: TypeScript,React,Must have tests
-
-  Press Enter to continue (or skip), Esc to cancel
-
+"                                                                                
+                                                                                
+  ⚠️ Constraints                                                                 
+                                                                                
+  Constraints (comma-separated, optional):                                      
+  TypeScript,React,Must include docs                                            
+  _                                                                             
+                                                                                
+  Examples: TypeScript,React,Must have tests                                    
+                                                                                
+  Press Enter to continue (or skip), Esc to cancel                              
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`OrchestratorPlanPrompt renders tech requirements step snapshot 1`] = `
-"
-
-  🔧 Technical Requirements
-
-  Tech requirements (comma-separated, optional): PostgreSQL,REST API,Docker_
-
-  Examples: PostgreSQL,REST API,Docker
-
-  Press Enter to continue (or skip), Esc to cancel
-
+"                                                                                
+                                                                                
+  🔧 Technical Requirements                                                     
+                                                                                
+  Tech requirements (comma-separated, optional):                                
+  PostgreSQL,REST API,Docker                                                    
+  _                                                                             
+                                                                                
+  Examples: PostgreSQL,REST API,Docker                                          
+                                                                                
+  Press Enter to continue (or skip), Esc to cancel                              
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;
 
 exports[`OrchestratorPlanPrompt renders confirm step snapshot 1`] = `
-"
-
-  ✅ Confirm Project Plan Request
-
-  Objective: Launch new CLI tool
-
-  Description: Plan execution strategy
-
-  Constraints: TypeScript, React, Must include docs
-
-  Tech Requirements: PostgreSQL, REST API, Docker
-
-
-  Press Enter to generate plan, Esc to cancel
-
+"                                                                                
+                                                                                
+  ✅ Confirm Project Plan Request                                               
+                                                                                
+  Objective: Launch new CLI tool                                                
+                                                                                
+  Description: Plan execution strategy                                          
+                                                                                
+  Constraints: TypeScript, React, Must include docs                             
+                                                                                
+  Tech Requirements: PostgreSQL, REST API, Docker                               
+                                                                                
+                                                                                
+  Press Enter to generate plan, Esc to cancel                                   
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;

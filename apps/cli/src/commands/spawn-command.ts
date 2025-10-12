@@ -14,7 +14,7 @@ import {
 } from "@open-composer/process-runner";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
-import { render } from "ink";
+import { render } from "@opentui/react";
 import React from "react";
 import { type RunConfig, RunPrompt } from "../components/RunPrompt.js";
 import { GitWorktreeService } from "../services/git-worktree-service.js";
@@ -132,8 +132,8 @@ function buildRunCommandInternal() {
           const availableAgentNames = yield* getAvailableAgentNamesInternal;
           const runConfig = yield* Effect.tryPromise({
             try: async () => {
-              return new Promise<RunConfig>((resolve, reject) => {
-                const { waitUntilExit } = render(
+              return new Promise<RunConfig>(async (resolve, reject) => {
+                await render(
                   React.createElement(RunPrompt, {
                     description: config.description,
                     availableAgents: availableAgentNames,
@@ -147,7 +147,6 @@ function buildRunCommandInternal() {
                     },
                   }),
                 );
-                waitUntilExit().catch(reject);
               });
             },
             catch: (error) => {
