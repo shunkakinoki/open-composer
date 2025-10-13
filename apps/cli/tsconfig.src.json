@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "include": ["src", "tests"],
   "compilerOptions": {
-    "types": ["node", "bun-types"],
+    "types": ["bun", "node"],
     "jsx": "react-jsx",
     "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
     "rootDir": ".",

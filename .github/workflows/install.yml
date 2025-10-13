@@ -76,7 +76,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           open-composer --version
         shell: bash
-  install-e2e-brew:
+  install-e2e-homebrew:
     if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
     runs-on: macos-latest
     timeout-minutes: 10
@@ -90,23 +90,143 @@ jobs:
           ref: ${{ github.event.release.tag_name || github.ref }}
       - name: Setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
-      - name: Add shunkakinoki/homebrew-tap
-        run: brew tap shunkakinoki/homebrew-tap
       - name: Install open-composer via brew with retry
         uses: nick-fields/retry@v3
         with:
           retry_wait_seconds: 30
           timeout_seconds: 300
           max_attempts: 10
-          command: brew install open-composer
+          command: brew install shunkakinoki/tap/open-composer
       - name: Verify open-composer command after brew install
         run: open-composer --version
+  install-e2e-chocolatey:
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Setup Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          choco --version
+        shell: pwsh
+      - name: Install open-composer via Chocolatey with retry
+        uses: nick-fields/retry@v3
+        with:
+          retry_wait_seconds: 30
+          timeout_seconds: 300
+          max_attempts: 10
+          command: choco install open-composer -y
+      - name: Verify open-composer command after Chocolatey install
+        run: open-composer --version
+        shell: pwsh
+  install-e2e-winget:
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Install open-composer via WinGet with retry
+        uses: nick-fields/retry@v3
+        with:
+          retry_wait_seconds: 30
+          timeout_seconds: 300
+          max_attempts: 10
+          command: winget install open-composer
+      - name: Verify open-composer command after WinGet install
+        run: open-composer --version
+        shell: pwsh
+  install-e2e-scoop:
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Setup Scoop
+        run: |
+          Set-ExecutionPolicy RemoteSigned -scope Process
+          iwr -useb get.scoop.sh | iex
+          scoop --version
+        shell: pwsh
+      - name: Add extras bucket
+        run: scoop bucket add extras
+        shell: pwsh
+      - name: Install open-composer via Scoop with retry
+        uses: nick-fields/retry@v3
+        with:
+          retry_wait_seconds: 30
+          timeout_seconds: 300
+          max_attempts: 10
+          command: scoop install extras/open-composer
+      - name: Verify open-composer command after Scoop install
+        run: open-composer --version
+        shell: pwsh
+  install-e2e-paru:
+    # if: (github.event.release.tag_name && startsWith(github.event.release.tag_name, 'open-composer@')) || (github.event.inputs.tag && startsWith(github.event.inputs.tag, 'open-composer@')) || github.event_name == 'schedule'
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - name: Setup Arch Linux container
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+      - name: Test AUR package in Arch Linux container
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace archlinux:latest /bin/bash -c "
+            pacman -Syu --noconfirm
+            pacman -S --noconfirm git base-devel
+            useradd -m -G wheel builder
+            echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+            su builder -c '
+              cd /tmp
+              git clone https://aur.archlinux.org/paru.git
+              cd paru
+              makepkg -si --noconfirm
+              paru -S open-composer --noconfirm
+              open-composer --version
+            '
+          "
   install-check:
     if: always()
     needs:
       - install-e2e-cli
       - install-e2e-script
-      - install-e2e-brew
+      - install-e2e-homebrew
+      - install-e2e-chocolatey
+      - install-e2e-winget
+      - install-e2e-scoop
+      - install-e2e-paru
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -114,4 +234,4 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: install-e2e-cli,install-e2e-script,install-e2e-brew
+          allowed-skips: install-e2e-cli,install-e2e-script,install-e2e-homebrew,install-e2e-chocolatey,install-e2e-winget,install-e2e-scoop,install-e2e-paru

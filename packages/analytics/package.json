@@ -22,7 +22,7 @@
     "@open-composer/agent-registry": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.23",
+    "@types/bun": "^1.3.0",
     "typescript": "^5.9.3"
   },
   "publishConfig": {
