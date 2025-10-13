@@ -7,48 +7,34 @@ mock.module("../../src/lib/version.js", () => ({
   CLI_VERSION: "0.0.0-test",
 }));
 
-test("WelcomeScreen renders header", () => {
+test("WelcomeScreen renders ASCII logo", () => {
   const { lastFrame } = render(<WelcomeScreen />);
   const output = lastFrame();
 
-  expect(output).toContain("Open Composer CLI");
+  // Check for ASCII art characters that make up the logo
+  expect(output).toContain("___");
+  expect(output).toContain("____");
 });
 
-test("WelcomeScreen renders welcome message", () => {
+test("WelcomeScreen renders command shortcuts", () => {
   const { lastFrame } = render(<WelcomeScreen />);
   const output = lastFrame();
 
-  expect(output).toContain("Welcome to Open Composer!");
-  expect(output).toContain(
-    "An agent orchestration framework for building with AI",
-  );
+  // Check for command shortcuts
+  expect(output).toContain("/sessions");
+  expect(output).toContain("/run");
+  expect(output).toContain("/spawn");
+  expect(output).toContain("/status");
+  expect(output).toContain("/stack");
+  expect(output).toContain("/settings");
 });
 
-test("WelcomeScreen renders main menu items", () => {
+test("WelcomeScreen renders input bar", () => {
   const { lastFrame } = render(<WelcomeScreen />);
   const output = lastFrame();
 
-  // Check for some key menu items
-  expect(output).toContain("Sessions");
-  expect(output).toContain("Run");
-  expect(output).toContain("Spawn");
-  expect(output).toContain("Status");
-});
-
-test("WelcomeScreen renders quick info panel", () => {
-  const { lastFrame } = render(<WelcomeScreen />);
-  const output = lastFrame();
-
-  expect(output).toContain("Quick Info");
-  expect(output).toContain("Select a command to get started");
-  expect(output).toContain("Use arrow keys or j/k to navigate");
-});
-
-test("WelcomeScreen renders status bar", () => {
-  const { lastFrame } = render(<WelcomeScreen />);
-  const output = lastFrame();
-
-  expect(output).toContain("Ready");
+  expect(output).toContain(">");
+  expect(output).toContain("Press ESC or q to quit");
 });
 
 test("WelcomeScreen calls onCommandSelect when provided", () => {
