@@ -18,9 +18,6 @@ export type InstallMethod = "npm" | "binary" | "unknown";
 // Main Functions
 // -----------------------------------------------------------------------------
 
-// Export internal function for testing
-export { detectInstallMethod };
-
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
@@ -36,7 +33,7 @@ export { detectInstallMethod };
  * Binary installs go to:
  * - ~/.local/bin
  */
-async function detectInstallMethod(): Promise<InstallInfo> {
+export async function detectInstallMethod(): Promise<InstallInfo> {
   try {
     // Get the path to the currently running binary
     // For Bun-compiled binaries, process.argv[1] is "/$bunfs/root/binary-name"
