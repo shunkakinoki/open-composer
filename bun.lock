@@ -9,7 +9,7 @@
         "@changesets/cli": "^2.29.7",
         "@effect/language-service": "^0.44.0",
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "knip": "^5.64.3",
         "lefthook": "^1.13.6",
         "npm-check-updates": "^19.0.0",
@@ -27,7 +27,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -40,7 +40,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -53,7 +53,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -66,7 +66,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -79,7 +79,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -96,7 +96,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -104,7 +104,7 @@
       "name": "@open-composer/agent-sessions",
       "version": "0.1.0",
       "dependencies": {
-        "@ai-sdk/openai": "^2.0.48",
+        "@ai-sdk/openai": "^2.0.50",
         "@open-composer/agent-claude-code": "workspace:*",
         "@open-composer/agent-codex": "workspace:*",
         "@open-composer/agent-cursor": "workspace:*",
@@ -114,7 +114,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -126,7 +126,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -170,7 +170,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "@types/react": "^19.2.2",
         "typescript": "^5.9.3",
       },
@@ -189,7 +189,7 @@
       },
       "devDependencies": {
         "@tailwindcss/postcss": "^4.1.14",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.1",
         "typescript": "^5.9.3",
@@ -209,7 +209,7 @@
       },
       "devDependencies": {
         "@tailwindcss/postcss": "^4.1.14",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.1",
         "typescript": "^5.9.3",
@@ -228,7 +228,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -251,11 +251,11 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
       "optionalDependencies": {
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
       },
       "peerDependencies": {
         "effect": "^3.0.0",
@@ -269,7 +269,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
       "peerDependencies": {
@@ -289,7 +289,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -298,7 +298,7 @@
       "version": "0.2.0",
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -310,7 +310,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -323,7 +323,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -335,7 +335,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -347,7 +347,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -360,7 +360,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -373,7 +373,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -381,7 +381,7 @@
       "name": "@open-composer/orchestrator",
       "version": "0.1.0",
       "dependencies": {
-        "@ai-sdk/openai": "^2.0.48",
+        "@ai-sdk/openai": "^2.0.50",
         "@langchain/core": "^0.3.78",
         "@langchain/langgraph": "^0.4.9",
         "ai": "^5.0.68",
@@ -390,7 +390,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
       "peerDependencies": {
@@ -409,7 +409,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -421,7 +421,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
       },
     },
@@ -435,7 +435,7 @@
       "devDependencies": {
         "@cloudflare/vitest-pool-workers": "^0.9.12",
         "@cloudflare/workers-types": "^4.20251011.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "typescript": "^5.9.3",
         "vitest": "^3.2.4",
         "wrangler": "^4.42.2",
@@ -447,7 +447,7 @@
       "devDependencies": {
         "@cloudflare/vitest-pool-workers": "^0.9.12",
         "@cloudflare/workers-types": "^4.20251011.0",
-        "@types/node": "^24.7.1",
+        "@types/node": "^24.7.2",
         "cloudflare": "^5.2.0",
         "typescript": "^5.9.3",
         "vitest": "^3.2.4",
@@ -458,7 +458,7 @@
   "packages": {
     "@ai-sdk/gateway": ["@ai-sdk/gateway@1.0.39", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.12", "@vercel/oidc": "3.0.2" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-ijYCKG2sbn2RBVfIgaXNXvzHAf2HpFXxQODtjMI+T7Z4CLryflytchsZZ9qrGtsjiQVopKOV6m6kj4lq5fnbsg=="],
 
-    "@ai-sdk/openai": ["@ai-sdk/openai@2.0.48", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.12" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-dIGOVtHaScTNIQzxkE4I8T5PpoutFWxonR/awdRz+5sCpoO7V2kVL44+X6piJbQIMdFYUK/h+HTX3+BjTbRHmw=="],
+    "@ai-sdk/openai": ["@ai-sdk/openai@2.0.50", "", { "dependencies": { "@ai-sdk/provider": "2.0.0", "@ai-sdk/provider-utils": "3.0.12" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-Ws7QrenAEg2qagySpECh11OA1nSrXfmAVoEE03NIJqdQlMKjXBCg1mldoCayYhgckDGOFJ7Ar2N15H02BsE47Q=="],
 
     "@ai-sdk/provider": ["@ai-sdk/provider@2.0.0", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA=="],
 
@@ -1048,7 +1048,7 @@
 
     "@types/minimist": ["@types/minimist@1.2.5", "", {}, "sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag=="],
 
-    "@types/node": ["@types/node@24.7.1", "", { "dependencies": { "undici-types": "~7.14.0" } }, "sha512-CmyhGZanP88uuC5GpWU9q+fI61j2SkhO3UGMUdfYRE6Bcy0ccyzn1Rqj9YAB/ZY4kOXmNf0ocah5GtphmLMP6Q=="],
+    "@types/node": ["@types/node@24.7.2", "", { "dependencies": { "undici-types": "~7.14.0" } }, "sha512-/NbVmcGTP+lj5oa4yiYxxeBjRivKQ5Ns1eSZeB99ExsEQ6rX5XYU1Zy/gGxY/ilqtD4Etx9mKyrPxZRetiahhA=="],
 
     "@types/node-fetch": ["@types/node-fetch@2.6.13", "", { "dependencies": { "@types/node": "*", "form-data": "^4.0.4" } }, "sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw=="],
 
@@ -1995,6 +1995,8 @@
     "@vercel/toolbar/@vercel/microfrontends": ["@vercel/microfrontends@1.3.0", "", { "dependencies": { "@next/env": "15.1.6", "ajv": "^8.17.1", "commander": "^12.1.0", "cookie": "0.4.0", "fast-glob": "^3.3.2", "http-proxy": "^1.18.1", "jsonc-parser": "^3.3.1", "nanoid": "^3.3.9", "path-to-regexp": "6.2.1" }, "peerDependencies": { "@sveltejs/kit": ">=1", "@vercel/analytics": ">=1.5.0", "@vercel/speed-insights": ">=1.2.0", "next": ">=13", "react": ">=17.0.0", "react-dom": ">=17.0.0", "vite": ">=5" }, "optionalPeers": ["@sveltejs/kit", "@vercel/analytics", "@vercel/speed-insights", "next", "react", "react-dom", "vite"], "bin": { "microfrontends": "cli/index.cjs" } }, "sha512-7hvza7+osdfowUllyDthk3QerhoU/8kQgr9QNsIxOJQxpbpwGlN3mMNvYG7CaPB41kQutY6D7StCiOg0E0xGFg=="],
 
     "anymatch/picomatch": ["picomatch@2.3.1", "", {}, "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="],
+
+    "bun-types/@types/node": ["@types/node@24.7.1", "", { "dependencies": { "undici-types": "~7.14.0" } }, "sha512-CmyhGZanP88uuC5GpWU9q+fI61j2SkhO3UGMUdfYRE6Bcy0ccyzn1Rqj9YAB/ZY4kOXmNf0ocah5GtphmLMP6Q=="],
 
     "camelcase-keys/camelcase": ["camelcase@5.3.1", "", {}, "sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg=="],
 
