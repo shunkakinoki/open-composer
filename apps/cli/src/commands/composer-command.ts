@@ -33,6 +33,7 @@ import { buildFeedbackCommand } from "./feedback.js";
 import { buildGHPRCommand } from "./gh-pr-command.js";
 import { buildGitWorktreeCommand } from "./git-worktree-command.js";
 import { buildOrchestratorCommand } from "./orchestrator-command.js";
+import { buildServeCommand } from "./serve-command.js";
 import { buildSpawnCommand } from "./spawn-command.js";
 import { buildProcessCommand } from "./process-command.js";
 import { buildRunCommand } from "./run-command.js";
@@ -77,6 +78,7 @@ const ALL_COMMAND_BUILDERS = [
   buildOrchestratorCommand,
   buildProcessCommand,
   buildRunCommand,
+  buildServeCommand,
   buildSessionsCommand,
   buildSessionsViewerCommand,
   buildSettingsCommand,

@@ -15,8 +15,8 @@ if [ -z "$TAG" ]; then
   exit 1
 fi
 
-if [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ]; then
-  echo "Error: HOMEBREW_TAP_GITHUB_TOKEN not set"
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo "Error: GITHUB_TOKEN not set"
   exit 1
 fi
 
@@ -24,7 +24,7 @@ fi
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"
 
-git clone "https://x-access-token:${HOMEBREW_TAP_GITHUB_TOKEN}@github.com/${REPO_OWNER}/${TAP_REPO}.git"
+git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_OWNER}/${TAP_REPO}.git"
 cd "$TAP_REPO"
 
 # Create Formula directory if it doesn't exist
@@ -58,25 +58,17 @@ class OpenComposer < Formula
   end
 
   def install
-    # Determine the binary name based on OS and architecture
     os = OS.mac? ? "darwin" : "linux"
-    arch = Hardware::CPU.arch.to_s
-
-    arch = case arch
+    arch = case Hardware::CPU.arch.to_s
            when "x86_64" then "x64"
-           when "arm64" then "arm64"
-           else arch
+           when "arm64"  then "arm64"
+           else Hardware::CPU.arch.to_s
            end
 
-    os_suffix = if os == "linux" && arch == "arm64"
-                  "linux-aarch64-musl"
-                else
-                  "#{os}-#{arch}"
-                end
+    os_suffix = os == "linux" && arch == "arm64" ? "linux-aarch64-musl" : "#{os}-#{arch}"
+    bin_path = "cli-#{os_suffix}/bin/open-composer"
 
-    binary_dir = "@open-composer/cli-#{os_suffix}"
-
-    bin.install "#{binary_dir}/bin/open-composer"
+    bin.install bin_path => "open-composer"
     bin.install_symlink bin/"open-composer" => "oc"
     bin.install_symlink bin/"open-composer" => "opencomposer"
   end

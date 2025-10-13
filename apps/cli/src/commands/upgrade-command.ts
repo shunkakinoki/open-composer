@@ -18,6 +18,7 @@ import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import { CLI_VERSION } from "../lib/version.js";
 import { trackFeatureUsage } from "../services/telemetry-service.js";
+import { detectInstallMethod, type InstallInfo } from "../services/upgrade-service.js";
 import type { CommandBuilder } from "../types/commands.js";
 
 // -----------------------------------------------------------------------------
@@ -51,12 +52,6 @@ const makeUpgradeError = (params: {
   };
 };
 
-type InstallMethod = "npm" | "binary" | "unknown";
-
-interface InstallInfo {
-  method: InstallMethod;
-  binaryPath: string;
-}
 
 // -----------------------------------------------------------------------------
 // Command Builder
@@ -75,56 +70,6 @@ export function buildUpgradeCommand(): CommandBuilder<"upgrade"> {
 // -----------------------------------------------------------------------------
 // Helper Functions
 // -----------------------------------------------------------------------------
-
-/**
- * Detect how open-composer was installed by checking the binary path.
- *
- * npm global installs typically go to:
- * - /usr/local/bin (macOS/Linux)
- * - ~/.npm-global/bin
- * - C:\Users\{user}\AppData\Roaming\npm (Windows)
- *
- * Binary installs go to:
- * - ~/.local/bin
- */
-async function detectInstallMethod(): Promise<InstallInfo> {
-  try {
-    // Get the path to the currently running binary
-    const binaryPath = process.argv[1];
-
-    if (!binaryPath) {
-      return { method: "unknown", binaryPath: "" };
-    }
-
-    // Resolve symlinks to get the actual binary location
-    const realBinaryPath = await realpath(binaryPath);
-
-    // Check if it's in typical npm global directories
-    if (
-      realBinaryPath.includes("/npm/") ||
-      realBinaryPath.includes("\\npm\\") ||
-      realBinaryPath.includes("/node_modules/") ||
-      realBinaryPath.includes("\\node_modules\\") ||
-      realBinaryPath.includes(".npm-global") ||
-      realBinaryPath.includes("/usr/local/lib/node_modules/")
-    ) {
-      return { method: "npm", binaryPath: realBinaryPath };
-    }
-
-    // Check if it's in ~/.local/bin or similar binary install locations
-    if (
-      realBinaryPath.includes(".local/bin") ||
-      realBinaryPath.includes(".open-composer")
-    ) {
-      return { method: "binary", binaryPath: realBinaryPath };
-    }
-
-    // Default to binary if we can't determine
-    return { method: "binary", binaryPath: realBinaryPath };
-  } catch {
-    return { method: "unknown", binaryPath: "" };
-  }
-}
 
 // -----------------------------------------------------------------------------
 // Platform Detection
