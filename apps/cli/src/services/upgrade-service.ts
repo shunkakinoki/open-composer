@@ -12,7 +12,7 @@ export interface InstallInfo {
   binaryPath: string;
 }
 
-export type InstallMethod = "npm" | "binary" | "unknown";
+type InstallMethod = "npm" | "binary" | "unknown";
 
 // -----------------------------------------------------------------------------
 // Main Functions

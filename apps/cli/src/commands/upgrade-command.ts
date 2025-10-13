@@ -18,7 +18,7 @@ import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
 import { CLI_VERSION } from "../lib/version.js";
 import { trackFeatureUsage } from "../services/telemetry-service.js";
-import { detectInstallMethod, type InstallInfo, type InstallMethod } from "../services/upgrade-service.js";
+import { detectInstallMethod, type InstallInfo } from "../services/upgrade-service.js";
 import type { CommandBuilder } from "../types/commands.js";
 
 // -----------------------------------------------------------------------------
