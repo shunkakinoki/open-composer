@@ -5,11 +5,16 @@
   "license": "MIT",
   "author": "Shun Kakinoki",
   "type": "module",
-  "main": "./index.js",
-  "module": "./index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
+  },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "files": [
     "README.md",
-    "package.json"
+    "package.json",
+    "src"
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target=bun",
@@ -22,9 +27,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
+    "@elysiajs/openapi": "^1.4.11",
     "@xterm/addon-serialize": "^0.13.0",
     "@xterm/headless": "^5.5.0",
-    "hono": "^4.7.11"
+    "effect": "^3.18.4",
+    "elysia": "^1.4.11"
   },
   "devDependencies": {
     "@types/bun": "^1.3.0",

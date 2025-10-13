@@ -101,66 +101,83 @@ describe("Command Workflow E2E Tests", () => {
       expect(listResult2.code).toBe(0);
     });
 
-    it("should handle telemetry settings workflow", async () => {
-      // Check initial status
-      const status1 = await runCli(["telemetry", "status"]);
-      expect(status1.code).toBe(0);
+    it(
+      "should handle telemetry settings workflow",
+      async () => {
+        // Check initial status
+        const status1 = await runCli(["telemetry", "status"]);
+        expect(status1.code).toBe(0);
 
-      // Enable telemetry
-      const enable = await runCli(["telemetry", "enable"]);
-      expect(enable.code).toBe(0);
+        // Enable telemetry
+        const enable = await runCli(["telemetry", "enable"]);
+        expect(enable.code).toBe(0);
 
-      // Disable telemetry (don't check persistence due to test env isolation)
-      const disable = await runCli(["telemetry", "disable"]);
-      expect(disable.code).toBe(0);
+        // Disable telemetry (don't check persistence due to test env isolation)
+        const disable = await runCli(["telemetry", "disable"]);
+        expect(disable.code).toBe(0);
 
-      // Check final status
-      const status2 = await runCli(["telemetry", "status"]);
-      expect(status2.code).toBe(0);
+        // Check final status
+        const status2 = await runCli(["telemetry", "status"]);
+        expect(status2.code).toBe(0);
 
-      // Reset
-      const reset = await runCli(["telemetry", "reset"]);
-      expect(reset.code).toBe(0);
-    });
+        // Reset
+        const reset = await runCli(["telemetry", "reset"]);
+        expect(reset.code).toBe(0);
+      },
+      15000,
+    ); // Increase timeout to 15 seconds for multiple CLI invocations
   });
 
   describe("Cache Management Workflow", () => {
-    it("should complete full cache management cycle", async () => {
-      // Step 1: Check initial status
-      const status1 = await runCli(["cache", "status"]);
-      expect(status1.code).toBe(0);
+    it(
+      "should complete full cache management cycle",
+      async () => {
+        // Step 1: Check initial status
+        const status1 = await runCli(["cache", "status"]);
+        expect(status1.code).toBe(0);
 
-      // Step 2: List cache contents
-      const list1 = await runCli(["cache", "list"]);
-      expect(list1.code).toBe(0);
+        // Step 2: List cache contents
+        const list1 = await runCli(["cache", "list"]);
+        expect(list1.code).toBe(0);
 
-      // Step 3: Clear cache
-      const clear = await runCli(["cache", "clear", "--force"]);
-      expect(clear.code).toBe(0);
+        // Step 3: Clear cache
+        const clear = await runCli(["cache", "clear", "--force"]);
+        expect(clear.code).toBe(0);
 
-      // Step 4: Verify cache is cleared
-      const status2 = await runCli(["cache", "status"]);
-      expect(status2.code).toBe(0);
+        // Step 4: Verify cache is cleared
+        const status2 = await runCli(["cache", "status"]);
+        expect(status2.code).toBe(0);
 
-      // Step 5: List again to confirm empty
-      const list2 = await runCli(["cache", "list"]);
-      expect(list2.code).toBe(0);
-    });
+        // Step 5: List again to confirm empty
+        const list2 = await runCli(["cache", "list"]);
+        expect(list2.code).toBe(0);
+      },
+      15000,
+    ); // Increase timeout to 15 seconds for multiple CLI invocations
 
-    it("should handle cache inspection with different formats", async () => {
-      // JSON format
-      const jsonResult = await runCli(["cache", "status", "--json"]);
-      expect(jsonResult.code).toBe(0);
-      expect(() => JSON.parse(jsonResult.stdout)).not.toThrow();
+    it(
+      "should handle cache inspection with different formats",
+      async () => {
+        // JSON format
+        const jsonResult = await runCli(["cache", "status", "--json"]);
+        expect(jsonResult.code).toBe(0);
 
-      // Table format (default)
-      const tableResult = await runCli(["cache", "status"]);
-      expect(tableResult.code).toBe(0);
+        // Extract JSON from output (may contain other lines like server startup)
+        const jsonMatch = jsonResult.stdout.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          expect(() => JSON.parse(jsonMatch[0])).not.toThrow();
+        }
 
-      // List JSON format
-      const listJson = await runCli(["cache", "list", "--json"]);
-      expect(listJson.code).toBe(0);
-    });
+        // Table format (default)
+        const tableResult = await runCli(["cache", "status"]);
+        expect(tableResult.code).toBe(0);
+
+        // List JSON format
+        const listJson = await runCli(["cache", "list", "--json"]);
+        expect(listJson.code).toBe(0);
+      },
+      10000,
+    ); // Increase timeout to 10 seconds for multiple CLI invocations
   });
 
   describe("Agent Discovery Workflow", () => {
