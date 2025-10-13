@@ -67,6 +67,7 @@ export function buildTerminalCommand(): CommandBuilder<"terminal"> {
                 ? config.cwd.value
                 : process.cwd();
 
+              // Render with stdin handling based on TTY availability
               const { waitUntilExit } = render(
                 React.createElement(Terminal, {
                   serverUrl: config.server,
@@ -76,7 +77,13 @@ export function buildTerminalCommand(): CommandBuilder<"terminal"> {
                   onExit: (code) => {
                     process.exit(code);
                   },
-                })
+                }),
+                {
+                  // Only use stdin if it's a TTY
+                  stdin: process.stdin.isTTY ? process.stdin : undefined,
+                  stdout: process.stdout,
+                  stderr: process.stderr,
+                }
               );
 
               await waitUntilExit();

@@ -55,12 +55,23 @@ export const Terminal: React.FC<TerminalProps> = ({
   const cols = stdout?.columns || 80;
   const rows = stdout?.rows || 24;
 
-  // Create PTY on mount
+  // Create PTY on mount (only once)
   useEffect(() => {
+    if (ptyId) return; // Already have a PTY, don't create another
+
     let mounted = true;
+    let timeoutId: Timer;
 
     const createPTY = async () => {
       try {
+        // Add timeout for PTY creation
+        timeoutId = setTimeout(() => {
+          if (mounted && !ptyId) {
+            setError("PTY creation timed out after 10 seconds");
+            setIsConnecting(false);
+          }
+        }, 10000);
+
         const response = await fetch(`${serverUrl}/session/${sessionId}/pty`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -73,17 +84,21 @@ export const Terminal: React.FC<TerminalProps> = ({
           }),
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create PTY");
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Server returned ${response.status}`);
         }
 
         const data = await response.json();
+
         if (mounted) {
           setPtyId(data.ptyID);
           setIsConnecting(false);
         }
       } catch (err) {
+        clearTimeout(timeoutId);
         if (mounted) {
           setError(
             err instanceof Error ? err.message : "Failed to create PTY"
@@ -97,6 +112,7 @@ export const Terminal: React.FC<TerminalProps> = ({
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
     };
   }, [serverUrl, sessionId, cmd, cwd, env, cols, rows]);
 
@@ -290,6 +306,8 @@ export const Terminal: React.FC<TerminalProps> = ({
     return (
       <Box flexDirection="column">
         <Text color="cyan">Connecting to terminal...</Text>
+        <Text color="gray">Server: {serverUrl}</Text>
+        <Text color="gray">Session: {sessionId}</Text>
       </Box>
     );
   }
@@ -302,8 +320,19 @@ export const Terminal: React.FC<TerminalProps> = ({
     );
   }
 
+  // Show terminal output
+  if (terminalOutput.length === 0) {
+    return (
+      <Box flexDirection="column">
+        <Text color="yellow">Connected. Waiting for output...</Text>
+        <Text color="gray">PTY ID: {ptyId}</Text>
+        <Text color="gray">Press Ctrl+C to exit</Text>
+      </Box>
+    );
+  }
+
   return (
-    <Box flexDirection="column" width="100%" height="100%">
+    <Box flexDirection="column">
       {terminalOutput.map((line, index) => (
         <Text key={`terminal-line-${index}`}>{line}</Text>
       ))}
