@@ -2,6 +2,7 @@ import { Box, Text, useInput, useStdout } from "ink";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Terminal as XTerminal } from "@xterm/headless";
+import { EventSource } from "eventsource";
 
 interface TerminalProps {
   /**
@@ -134,10 +135,11 @@ export const Terminal: React.FC<TerminalProps> = ({
     });
 
     // Handle errors
-    eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
-      eventSource.close();
-      setError("Lost connection to terminal");
+    eventSource.onerror = () => {
+      if (eventSource.readyState === EventSource.CLOSED) {
+        eventSource.close();
+        setError("Lost connection to terminal");
+      }
     };
 
     // Helper to extract visible lines from terminal
@@ -163,7 +165,7 @@ export const Terminal: React.FC<TerminalProps> = ({
     };
   }, [ptyId, serverUrl, sessionId, cols, rows, onExit]);
 
-  // Handle keyboard input
+  // Handle keyboard input (only if stdin is a TTY)
   useInput(
     (input, key) => {
       if (!ptyId) return;
@@ -224,7 +226,7 @@ export const Terminal: React.FC<TerminalProps> = ({
         });
       }
     },
-    { isActive: !!ptyId }
+    { isActive: !!ptyId && process.stdin.isTTY }
   );
 
   // Handle terminal resize
@@ -303,7 +305,7 @@ export const Terminal: React.FC<TerminalProps> = ({
   return (
     <Box flexDirection="column" width="100%" height="100%">
       {terminalOutput.map((line, index) => (
-        <Text key={index}>{line}</Text>
+        <Text key={`terminal-line-${index}`}>{line}</Text>
       ))}
     </Box>
   );
