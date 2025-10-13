@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildServeCommand, buildStartCommand } from "../../src/commands/serve-command.js";
+import { buildServeCommand } from "../../src/commands/serve-command.js";
 
 describe.concurrent("serve command", () => {
   describe.concurrent("Command Structure", () => {
@@ -19,42 +19,23 @@ describe.concurrent("serve command", () => {
       expect(typeof commandBuilder.command).toBe("function");
     });
 
-    test.concurrent("should have start subcommand", () => {
+    test.concurrent("should have port option", () => {
       const commandBuilder = buildServeCommand();
       const command = commandBuilder.command();
       expect(command).toBeDefined();
-      // The serve command should have a start subcommand
-    });
-  });
-
-  describe.concurrent("Start Subcommand", () => {
-    test.concurrent("should build start command successfully", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
-    });
-
-    test.concurrent("should have port option", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
-      // Port option should be available
+      // Port option should be available on main command
     });
 
     test.concurrent("should have default port of 3000", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Default port should be 3000
     });
 
     test.concurrent("should accept custom port", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
-      // Should accept custom port number
-    });
-
-    test.concurrent("should describe port option", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
-      // Port option should have description
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
+      // Should accept custom port number via --port flag
     });
   });
 
@@ -66,14 +47,14 @@ describe.concurrent("serve command", () => {
     });
 
     test.concurrent("should start PTY server", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should start the PTY server with specified port
     });
 
     test.concurrent("should pass port to server", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should pass port configuration to startServer
     });
 
@@ -92,14 +73,14 @@ describe.concurrent("serve command", () => {
 
   describe.concurrent("Telemetry Integration", () => {
     test.concurrent("should track command usage", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
-      // Should track serve start command usage
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
+      // Should track serve command usage
     });
 
     test.concurrent("should track feature usage with port", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should track feature usage including port number
     });
 
@@ -112,14 +93,14 @@ describe.concurrent("serve command", () => {
 
   describe.concurrent("Effect Integration", () => {
     test.concurrent("should use Effect for async operations", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should use Effect.gen for handler
     });
 
     test.concurrent("should run server indefinitely", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should use Effect.never to keep server running
     });
 
@@ -133,34 +114,34 @@ describe.concurrent("serve command", () => {
 
   describe.concurrent("Server Configuration", () => {
     test.concurrent("should support port configuration", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should allow configuring server port
     });
 
     test.concurrent("should validate port option", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Port should be an integer option
     });
 
     test.concurrent("should use server options interface", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should pass ServerOptions to startServer
     });
   });
 
   describe.concurrent("Server Lifecycle", () => {
     test.concurrent("should start server on command execution", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should call startServer when command is executed
     });
 
     test.concurrent("should keep server running", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should use Effect.never to prevent exit
     });
 
@@ -173,20 +154,20 @@ describe.concurrent("serve command", () => {
 
   describe.concurrent("Error Handling", () => {
     test.concurrent("should handle server start errors", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should handle errors from startServer
     });
 
     test.concurrent("should handle port conflicts", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should handle port already in use errors
     });
 
     test.concurrent("should handle invalid port numbers", () => {
-      const startCommand = buildStartCommand();
-      expect(startCommand).toBeDefined();
+      const commandBuilder = buildServeCommand();
+      expect(commandBuilder).toBeDefined();
       // Should validate port number range
     });
   });

@@ -38,7 +38,6 @@ export function buildServeCommand(): CommandBuilder<"serve"> {
           return undefined;
         }),
       ),
-      Command.withSubcommands([buildStartCommand()]),
     );
 
   return {
@@ -50,35 +49,3 @@ export function buildServeCommand(): CommandBuilder<"serve"> {
   };
 }
 
-// -----------------------------------------------------------------------------
-// Command Implementations
-// -----------------------------------------------------------------------------
-
-export function buildStartCommand() {
-  const portOption = Options.integer("port").pipe(
-    Options.withDefault(3000),
-    Options.withDescription("Port to run the server on (default: 3000)"),
-  );
-
-  return Command.make("start", { port: portOption }).pipe(
-    Command.withDescription("Start the PTY server"),
-    Command.withHandler((config) =>
-      Effect.gen(function* () {
-        const portValue = config.port;
-
-        yield* trackCommand("serve", "start");
-        yield* trackFeatureUsage("serve_start", {
-          port: portValue,
-        });
-
-        // Start the server using the exported function
-        startServer({ port: portValue });
-
-        // Server is running - wait indefinitely
-        yield* Effect.never;
-
-        return undefined;
-      }),
-    ),
-  );
-}
