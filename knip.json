@@ -14,7 +14,7 @@
     "**/tests/create-fixtures.ts",
     "bun-test-setup.ts",
     "**/apps/cli/src/components/Terminal/**",
-    "**/apps/cli/tests/streaming/**"
+    "**/apps/cli/examples/**"
   ],
   "ignoreBinaries": ["microfrontends"],
   "ignoreDependencies": ["tailwindcss"],
