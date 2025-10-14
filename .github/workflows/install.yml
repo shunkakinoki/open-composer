@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name || github.ref }}
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
       - name: Install open-composer globally with retry
         uses: nick-fields/retry@v3
         with:
