@@ -12,7 +12,9 @@
     "**/tests/setup.ts",
     "**/tests/types.d.ts",
     "**/tests/create-fixtures.ts",
-    "bun-test-setup.ts"
+    "bun-test-setup.ts",
+    "**/apps/cli/src/components/Terminal/**",
+    "**/apps/cli/examples/**"
   ],
   "ignoreBinaries": ["microfrontends"],
   "ignoreDependencies": ["tailwindcss"],
