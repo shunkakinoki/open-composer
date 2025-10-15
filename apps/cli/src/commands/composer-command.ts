@@ -42,6 +42,7 @@ import { buildSquadCommand } from "./squad-command.js";
 import { buildStackCommand } from "./stack-command.js";
 import { buildStatusCommand } from "./status-command.js";
 import { buildTelemetryCommand } from "./telemetry-command.js";
+import { buildTerminalCommand } from "./terminal-command.js";
 import { buildTUICommand } from "./tui-command.js";
 import { buildUpgradeCommand } from "./upgrade-command.js";
 
@@ -87,6 +88,7 @@ const ALL_COMMAND_BUILDERS = [
   buildStackCommand,
   buildStatusCommand,
   buildTelemetryCommand,
+  buildTerminalCommand,
   buildTUICommand,
   buildUpgradeCommand,
 ];
