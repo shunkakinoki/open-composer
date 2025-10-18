@@ -15,6 +15,7 @@
   "workspaces": [
     "apps/*",
     "agents/*",
+    "components/*",
     "packages/*",
     "workers/*"
   ],
