@@ -1,5 +1,11 @@
 # open-composer
 
+## 0.8.22
+
+### Patch Changes
+
+- [#329](https://github.com/shunkakinoki/open-composer/pull/329) [`09bfbf0`](https://github.com/shunkakinoki/open-composer/commit/09bfbf0e2540f1fd21ccfe26a60375d1ec4600f7) Thanks [@shunkakinoki](https://github.com/shunkakinoki)! - Add open-composer serve
+
 ## 0.8.21
 
 ### Patch Changes
