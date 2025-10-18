@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { Terminal } from '@xterm/headless';
+import { Effect, Stream, Queue } from 'effect';
 import { serializeTerminalToObject, type AnsiOutput } from './terminalSerializer.js';
 import { getPty, type PtyImplementation } from './getPty.js';
 
@@ -302,3 +303,77 @@ export class PtyManager {
     return this.childProcess?.pid;
   }
 }
+
+/**
+ * Effect-based API for PTY management
+ * Creates a stream of PTY events using Effect
+ */
+export const createPtyStream = (
+  config: PtyConfig
+): Stream.Stream<PtyEvent, never> =>
+  Stream.async<PtyEvent>((emit) => {
+    let manager: PtyManager | null = null;
+
+    // Create the PTY manager
+    PtyManager.create(config, (event) => {
+      emit.single(event);
+    })
+      .then((ptyManager) => {
+        manager = ptyManager;
+      })
+      .catch((error) => {
+        console.error('Failed to create PTY manager:', error);
+        emit.end();
+      });
+
+    // Cleanup function
+    return Effect.sync(() => {
+      manager?.dispose();
+    });
+  });
+
+/**
+ * Effect-based API for running a command and collecting output
+ * Runs a command and returns the final output and exit code
+ */
+export const runCommand = (
+  config: PtyConfig
+): Effect.Effect<{ output: AnsiOutput; code: number }, Error> =>
+  Effect.gen(function* () {
+    const queue = yield* Queue.unbounded<PtyEvent>();
+    let finalOutput: AnsiOutput = [];
+    let exitCode = 0;
+
+    // Create PTY manager using Effect
+    const manager = yield* Effect.tryPromise({
+      try: () =>
+        PtyManager.create(config, (event: PtyEvent) => {
+          Effect.runFork(Queue.offer(queue, event));
+        }),
+      catch: () => new Error('Failed to create PTY manager'),
+    });
+
+    // Process events from queue
+    yield* Effect.async<void>((resume) => {
+      const processQueue = async () => {
+        while (true) {
+          const event = await Effect.runPromise(Queue.take(queue));
+
+          if (event.type === 'data') {
+            finalOutput = event.output;
+          } else if (event.type === 'exit') {
+            exitCode = event.code;
+            resume(Effect.void);
+            break;
+          }
+        }
+      };
+
+      processQueue();
+    });
+
+    // Cleanup
+    manager.dispose();
+
+    return { output: finalOutput, code: exitCode };
+  });
