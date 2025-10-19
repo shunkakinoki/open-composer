@@ -62,9 +62,9 @@ export const AnsiText: React.FC<AnsiTextProps> = ({
   return (
     <Box flexDirection="column" width={width}>
       {displayLines.map((line, lineIndex) => (
-        <Box key={lineIndex}>
+        <Box key={`line-${lineIndex}`}>
           {line.map((token, tokenIndex) => (
-            <StyledToken key={tokenIndex} token={token} />
+            <StyledToken key={`token-${lineIndex}-${tokenIndex}`} token={token} />
           ))}
         </Box>
       ))}
