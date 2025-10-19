@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { Terminal } from '@xterm/headless';
-import { serializeTerminalToObject, convertColorToHex, ColorMode } from './terminalSerializer.js';
+import { serializeTerminalToObject, convertColorToHex, ColorMode } from '../src/terminalSerializer.js';
 
 describe('terminalSerializer', () => {
   describe('convertColorToHex', () => {
