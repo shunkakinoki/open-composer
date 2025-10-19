@@ -1,81 +1,157 @@
 #!/usr/bin/env bun
 
-import React from 'react';
-import { render } from 'ink';
+import React, { useState } from 'react';
+import { render, Box, Text } from 'ink';
 import { Terminal } from '../src/index.js';
 
 /**
- * Usage:
- *
- * 1. Non-interactive example (works with bun run):
- *    bun run components/terminal/examples/terminal-example.tsx
- *
- * 2. Interactive terminal example:
- *    ./components/terminal/examples/interactive-terminal-example.tsx
- *
- * Note: Interactive terminals require raw mode support, which is only
- * available when running directly in a real terminal, not through script runners.
+ * Example 1: Non-interactive terminal running a command
  */
+const SimpleExample: React.FC = () => {
+  const [exitCode, setExitCode] = useState<number | null>(null);
+
+  return (
+    <Box flexDirection="column">
+      <Text bold color="cyan">
+        Simple Terminal Example - Running 'ls -la'
+      </Text>
+      <Text dimColor>─────────────────────────────────────</Text>
+      <Terminal
+        command="ls"
+        args={['-la']}
+        cols={80}
+        rows={20}
+        onExit={(code) => {
+          setExitCode(code);
+        }}
+      />
+      {exitCode !== null && (
+        <Text color={exitCode === 0 ? 'green' : 'red'}>
+          Process exited with code: {exitCode}
+        </Text>
+      )}
+    </Box>
+  );
+};
 
 /**
- * Example showing how to use the Terminal component
- * This demonstrates calling <Terminal /> with an echo command
- * that displays the pwd output format
- *
- * Run with: bun run components/terminal/examples/terminal-example.tsx
+ * Example 2: Interactive terminal (like a shell)
  */
-export const TerminalExample: React.FC = () => {
+const InteractiveExample: React.FC = () => {
+  const [exitCode, setExitCode] = useState<number | null>(null);
+
   return (
-    <Terminal
-      command="echo"
-      args={['❯ pwd /Users/shunkakinoki/ghq/github.com/shunkakinoki/bun-playground']}
-      cwd="/Users/shunkakinoki/ghq/github.com/shunkakinoki/bun-playground"
-      cols={80}
-      rows={24}
-      interactive={false}
-      onExit={(code) => {
-        console.log(`\nTerminal exited with code: ${code}`);
-        // Let Ink handle the exit gracefully
-        setTimeout(() => process.exit(code), 100);
-      }}
-    />
+    <Box flexDirection="column">
+      <Text bold color="cyan">
+        Interactive Terminal Example - Bash Shell
+      </Text>
+      <Text dimColor>
+        (Focus on the terminal below to type commands, press Ctrl+D to exit)
+      </Text>
+      <Text dimColor>─────────────────────────────────────</Text>
+      <Terminal
+        command="bash"
+        args={['-i']}
+        cols={80}
+        rows={20}
+        interactive={true}
+        onExit={(code) => {
+          setExitCode(code);
+        }}
+      />
+      {exitCode !== null && (
+        <Text color={exitCode === 0 ? 'green' : 'red'}>
+          Shell exited with code: {exitCode}
+        </Text>
+      )}
+    </Box>
   );
 };
 
-// Interactive terminal example
-export const InteractiveTerminalExample: React.FC = () => {
+/**
+ * Example 3: Running a colored command (demonstrates ANSI color parsing)
+ */
+const ColoredExample: React.FC = () => {
+  const [exitCode, setExitCode] = useState<number | null>(null);
+
   return (
-    <Terminal
-      command="sh"
-      args={[]}
-      cwd="/Users/shunkakinoki/ghq/github.com/shunkakinoki/bun-playground"
-      cols={80}
-      rows={24}
-      interactive={true}
-      onExit={(code) => {
-        console.log(`\nInteractive terminal exited with code: ${code}`);
-        // For interactive terminals, let Ink handle the exit gracefully
-        setTimeout(() => process.exit(code), 100);
-      }}
-    />
+    <Box flexDirection="column">
+      <Text bold color="cyan">
+        Colored Terminal Example - Running 'npm test' style command
+      </Text>
+      <Text dimColor>─────────────────────────────────────</Text>
+      <Terminal
+        command="bash"
+        args={[
+          '-c',
+          'echo -e "\\033[1;32m✓ Test passed\\033[0m\n\\033[1;31m✗ Test failed\\033[0m\n\\033[1;33m⚠ Warning\\033[0m"',
+        ]}
+        cols={80}
+        rows={10}
+        onExit={(code) => {
+          setExitCode(code);
+        }}
+      />
+      {exitCode !== null && (
+        <Text color={exitCode === 0 ? 'green' : 'red'}>
+          Process exited with code: {exitCode}
+        </Text>
+      )}
+    </Box>
   );
 };
 
-// Render the example when this file is executed directly
-if (import.meta.main) {
-  console.log('🚀 Starting Terminal Example...');
-  console.log('❯ pwd /Users/shunkakinoki/ghq/github.com/shunkakinoki/bun-playground\n');
+/**
+ * Example 4: Long running process with streaming output
+ */
+const StreamingExample: React.FC = () => {
+  const [exitCode, setExitCode] = useState<number | null>(null);
 
-  const { waitUntilExit } = render(
-    React.createElement(TerminalExample),
-    {
-      patchConsole: false,
-      exitOnCtrlC: true,
-    }
+  return (
+    <Box flexDirection="column">
+      <Text bold color="cyan">
+        Streaming Terminal Example - Counting with delay
+      </Text>
+      <Text dimColor>─────────────────────────────────────</Text>
+      <Terminal
+        command="sh"
+        args={[
+          '-c',
+          'i=1; while [ $i -le 10 ]; do echo "Count: $i"; sleep 0.5; i=$((i+1)); done',
+        ]}
+        cols={80}
+        rows={15}
+        onExit={(code) => {
+          setExitCode(code);
+        }}
+      />
+      {exitCode !== null && (
+        <Text color={exitCode === 0 ? 'green' : 'red'}>
+          Process exited with code: {exitCode}
+        </Text>
+      )}
+    </Box>
   );
+};
 
-  waitUntilExit().catch((error) => {
-    console.error('Error running terminal example:', error);
-    process.exit(1);
-  });
-}
+/**
+ * Main app with example selection
+ */
+const App: React.FC = () => {
+  const example = process.argv[2] || 'simple';
+
+  switch (example) {
+    case 'interactive':
+      return <InteractiveExample />;
+    case 'colored':
+      return <ColoredExample />;
+    case 'streaming':
+      return <StreamingExample />;
+    case 'simple':
+    default:
+      return <SimpleExample />;
+  }
+};
+
+// Render the app
+render(<App />);

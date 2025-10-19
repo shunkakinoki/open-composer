@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@xterm/headless": "^5.5.0",
+    "bun-pty-rust": "^0.3.10",
     "effect": "^3.18.4",
     "ink": "^6.3.1",
     "react": "^19.2.0"
@@ -34,14 +35,6 @@
     "@types/react": "^19.2.2",
     "ink-testing-library": "^4.0.0",
     "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "bun-pty-rust": "^0.3.10"
-  },
-  "peerDependenciesMeta": {
-    "bun-pty-rust": {
-      "optional": true
-    }
   },
   "publishConfig": {
     "access": "public"
