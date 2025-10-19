@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { Terminal } from "../../src/components/Terminal/index.js";
+import { Terminal } from "../../../components/terminal/src/index.js";
 import { render } from "../utils.js";
 
 describe("Terminal", () => {

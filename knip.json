@@ -14,10 +14,11 @@
     "**/tests/create-fixtures.ts",
     "bun-test-setup.ts",
     "**/apps/cli/src/components/Terminal/**",
-    "**/apps/cli/examples/**"
+    "**/apps/cli/examples/**",
+    "**/components/*/examples/**"
   ],
   "ignoreBinaries": ["microfrontends"],
-  "ignoreDependencies": ["tailwindcss"],
+  "ignoreDependencies": ["tailwindcss", "bun-pty-rust"],
   "ignoreUnresolved": ["@types/bun", "@effect/language-service"],
   "ignoreExportsUsedInFile": {
     "interface": true
