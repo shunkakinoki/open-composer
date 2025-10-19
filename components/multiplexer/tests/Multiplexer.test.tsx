@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'bun:test';
 import { render } from 'ink-testing-library';
 import React from 'react';
-import { Multiplexer } from './Multiplexer.js';
-import type { Layout } from './types.js';
+import { Multiplexer } from '../src/Multiplexer.js';
+import type { Layout } from '../src/types.js';
 
 describe('Multiplexer', () => {
   describe('snapshot tests', () => {

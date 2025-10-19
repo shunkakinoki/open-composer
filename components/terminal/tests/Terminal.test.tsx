@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { render } from 'ink-testing-library';
 import React from 'react';
-import { Terminal } from './Terminal.js';
+import { Terminal } from '../src/Terminal.js';
 
 describe('Terminal', () => {
   describe('snapshot tests', () => {

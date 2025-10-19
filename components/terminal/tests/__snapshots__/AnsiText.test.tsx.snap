@@ -1,0 +1,48 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`AnsiText snapshot tests should render empty output 1`] = `""`;
+
+exports[`AnsiText snapshot tests should render plain text 1`] = `"Hello, World!"`;
+
+exports[`AnsiText snapshot tests should render multiple lines 1`] = `
+"Line 1
+Line 2
+Line 3"
+`;
+
+exports[`AnsiText snapshot tests should render text with bold styling 1`] = `"Bold Text"`;
+
+exports[`AnsiText snapshot tests should render text with italic styling 1`] = `"Italic Text"`;
+
+exports[`AnsiText snapshot tests should render text with underline styling 1`] = `"Underlined Text"`;
+
+exports[`AnsiText snapshot tests should render text with dim styling 1`] = `"Dim Text"`;
+
+exports[`AnsiText snapshot tests should render text with inverse styling 1`] = `"Inverse Text"`;
+
+exports[`AnsiText snapshot tests should render text with foreground color 1`] = `"Red Text"`;
+
+exports[`AnsiText snapshot tests should render text with background color 1`] = `"Blue Background"`;
+
+exports[`AnsiText snapshot tests should render text with multiple styles 1`] = `"Styled Text"`;
+
+exports[`AnsiText snapshot tests should render mixed styled tokens on same line 1`] = `"Normal Bold Red"`;
+
+exports[`AnsiText snapshot tests should render with width constraint 1`] = `
+"This is a very long line that should be
+constrained by width"
+`;
+
+exports[`AnsiText snapshot tests should render with height constraint 1`] = `
+"Line 1
+Line 2
+Line 3"
+`;
+
+exports[`AnsiText snapshot tests should render complex output with multiple lines and tokens 1`] = `
+"$ echo "Hello"
+Hello
+$ ls -la
+total 42
+drwxr-xr-x  5 user  group  160 Jan  1 12:00 ."
+`;
