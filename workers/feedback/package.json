@@ -24,7 +24,7 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@linear/sdk": "^60.0.0",
+    "@linear/sdk": "^61.0.0",
     "@open-composer/feedback": "workspace:*"
   },
   "devDependencies": {

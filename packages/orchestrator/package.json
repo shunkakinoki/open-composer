@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.50",
-    "@langchain/core": "^0.3.78",
-    "@langchain/langgraph": "^0.4.9",
+    "@langchain/core": "^1.0.1",
+    "@langchain/langgraph": "^1.0.0",
     "ai": "^5.0.68",
     "effect": "^3.18.4",
     "zod": "^4.1.12"
