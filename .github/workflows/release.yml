@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.tag || github.ref }}
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@21472663ed95d53dfdbb10264a73a8de8976b86b
+        uses: shunkakinoki/actions/.github/actions/setup-bun@fb1a52b097f9eea5004728ecf417c0a2bbcd7ca6
       - name: Build CLI Binary
         run: bun run prepublishOnly
         env:
