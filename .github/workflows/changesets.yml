@@ -31,7 +31,7 @@ jobs:
         with:
           token: ${{ secrets.PAT_TOKEN }}
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@24082aef59071edcd9ce8bd6fe8ffd157677bd6b
+        uses: shunkakinoki/actions/.github/actions/setup-bun@421e4926c7a90b1587f2b0975660d91dbc07de30
       - name: Detect if Changeset Release
         run: |
           LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
@@ -41,7 +41,7 @@ jobs:
             echo "PUBLISH_PACKAGES=false" >> $GITHUB_ENV
           fi
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@24082aef59071edcd9ce8bd6fe8ffd157677bd6b
+        uses: shunkakinoki/actions/.github/actions/changesets@421e4926c7a90b1587f2b0975660d91dbc07de30
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           npm-token: ${{ secrets.NPM_ORGANIZATION_TOKEN }}
@@ -59,11 +59,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@24082aef59071edcd9ce8bd6fe8ffd157677bd6b
+        uses: shunkakinoki/actions/.github/actions/setup-bun@421e4926c7a90b1587f2b0975660d91dbc07de30
       - name: Run Prepublish
         run: bun run prepublishOnly
       - name: Run Changesets
-        uses: shunkakinoki/actions/.github/actions/changesets@24082aef59071edcd9ce8bd6fe8ffd157677bd6b
+        uses: shunkakinoki/actions/.github/actions/changesets@421e4926c7a90b1587f2b0975660d91dbc07de30
         continue-on-error: true
         with:
           validate-pull-request: 'true'
