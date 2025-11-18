@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v5
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
-        uses: shunkakinoki/actions/.github/actions/auto-merge@a85709f765e33370f1aeecf6fb87309a079c9b6a
+        uses: shunkakinoki/actions/.github/actions/auto-merge@6539894dbcd8358f865486ddaeef3d5c92e59eff
         with:
           github-token: ${{ secrets.PAT_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
