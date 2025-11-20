@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@6539894dbcd8358f865486ddaeef3d5c92e59eff
       - name: Build
@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@6539894dbcd8358f865486ddaeef3d5c92e59eff
       - name: Check
@@ -42,7 +42,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Bun
         uses: shunkakinoki/actions/.github/actions/setup-bun@6539894dbcd8358f865486ddaeef3d5c92e59eff
       - name: Test
