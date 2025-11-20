@@ -11,7 +11,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Auto Merge Dependabot PRs
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         uses: shunkakinoki/actions/.github/actions/auto-merge@6539894dbcd8358f865486ddaeef3d5c92e59eff
