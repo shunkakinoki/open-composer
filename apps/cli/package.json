@@ -32,11 +32,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@effect/cli": "^0.71.0",
-    "@effect/platform": "^0.92.1",
-    "@effect/platform-bun": "^0.81.1",
-    "@effect/printer": "^0.46.0",
-    "@effect/printer-ansi": "^0.46.0",
+    "@effect/cli": "^0.72.1",
+    "@effect/platform": "^0.93.3",
+    "@effect/platform-bun": "^0.84.0",
+    "@effect/printer": "^0.47.0",
+    "@effect/printer-ansi": "^0.47.0",
     "@open-composer/agent-registry": "workspace:*",
     "@open-composer/agent-router": "workspace:*",
     "@open-composer/agent-sessions": "workspace:*",
@@ -59,7 +59,7 @@
     "effect": "^3.18.4",
     "ink": "^6.3.1",
     "ink-text-input": "^6.0.0",
-    "inquirer": "^12.9.6",
+    "inquirer": "^13.0.1",
     "posthog-node": "^5.9.5",
     "react": "^19.2.0",
     "react-devtools-core": "^7.0.0"
