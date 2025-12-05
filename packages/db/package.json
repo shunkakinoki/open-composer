@@ -24,11 +24,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@effect/platform-bun": "^0.81.1",
-    "@effect/sql": "^0.46.0",
-    "@effect/sql-drizzle": "^0.45.0",
-    "@effect/sql-sqlite-bun": "^0.47.0",
-    "drizzle-orm": "^0.44.6",
+    "@effect/platform-bun": "^0.86.0",
+    "@effect/sql": "^0.48.6",
+    "@effect/sql-drizzle": "^0.47.0",
+    "@effect/sql-sqlite-bun": "^0.49.0",
+    "drizzle-orm": "^0.45.0",
     "effect": "^3.18.4"
   },
   "devDependencies": {

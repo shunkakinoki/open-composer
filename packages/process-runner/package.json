@@ -19,7 +19,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "bun-pty": "^0.3.2",
+    "bun-pty": "^0.4.2",
     "effect": "^3.18.4"
   },
   "devDependencies": {
