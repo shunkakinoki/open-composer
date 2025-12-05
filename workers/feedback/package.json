@@ -24,15 +24,15 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@linear/sdk": "^61.0.0",
+    "@linear/sdk": "^65.2.0",
     "@open-composer/feedback": "workspace:*"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.9.12",
+    "@cloudflare/vitest-pool-workers": "^0.10.14",
     "@cloudflare/workers-types": "^4.20251011.0",
     "@types/node": "^24.7.2",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.15",
     "wrangler": "^4.42.2"
   },
   "publishConfig": {
