@@ -1,5 +1,6 @@
-import { Command } from "@effect/cli";
+import { Args, Command, Options } from "@effect/cli";
 import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
 import {
   trackCommand,
   trackFeatureUsage,
@@ -16,13 +17,50 @@ export const buildSessionsCommand = (): CommandBuilder<"sessions"> => ({
       Command.withDescription(
         "View all AI agent sessions (Codex, Cursor, Claude Code)",
       ),
-      Command.withSubcommands([buildListCommand()]),
+      Command.withSubcommands([buildListCommand(), buildViewCommand()]),
     ),
   metadata: {
     name: "sessions",
     description: "View all AI agent sessions",
   },
 });
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
+
+async function readSessionMessages(agent: string, sessionId: string): Promise<unknown[]> {
+  try {
+    switch (agent) {
+      case "claude-code": {
+        const { readClaudeCodeSessionMessages } = await import("@open-composer/agent-claude-code");
+        return await readClaudeCodeSessionMessages(sessionId).pipe(Effect.runPromise);
+      }
+      case "cursor":
+      case "cursor-agent": {
+        const { readCursorSessionMessages } = await import("@open-composer/agent-cursor");
+        return await readCursorSessionMessages(sessionId).pipe(Effect.runPromise);
+      }
+      case "codex": {
+        const { readCodexSessionMessages } = await import("@open-composer/agent-codex");
+        return await readCodexSessionMessages(sessionId).pipe(Effect.runPromise);
+        // Codex message reading not yet implemented
+        return [];
+      }
+      case "opencode": {
+        const { readOpencodeSessionMessages } = await import("@open-composer/agent-opencode");
+        return await readOpencodeSessionMessages(sessionId).pipe(Effect.runPromise);
+        // OpenCode message reading not yet implemented
+        return [];
+      }
+      default:
+        return [];
+    }
+  } catch (error) {
+    console.error(`Error reading messages for ${agent}:`, error);
+    return [];
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Command Implementations
@@ -53,6 +91,44 @@ function buildListCommand() {
                   onCancel: () => {
                     reject(new Error("Agent sessions list cancelled by user"));
                   },
+                  onSessionSelect: async (sessionId: string): Promise<string> => {
+                    // When a session is selected, load its content
+                    const { AgentSessionsService, streamConversation, getConversationFromSession } =
+                      await import("@open-composer/agent-sessions");
+
+                    const service = new AgentSessionsService();
+                    const sessions = await service.getAllSessions().pipe(Effect.runPromise);
+
+                    const session = sessions.find((s) => s.id === sessionId);
+                    if (!session) {
+                      throw new Error(`Session not found: ${sessionId}`);
+                    }
+
+                    // Read actual messages from the session
+                    const messages = await readSessionMessages(session.agent, sessionId);
+
+                    // Create conversation object
+                    const conversation = await getConversationFromSession(
+                      session,
+                      messages,
+                    ).pipe(Effect.runPromise);
+
+                    // Collect all content into a string
+                    let content = '';
+                    try {
+                      for await (const chunk of streamConversation(conversation, {
+                        useSummary: false,
+                      })) {
+                        content += chunk;
+                      }
+                    } catch (error) {
+                      throw new Error(
+                        `Error loading conversation: ${error instanceof Error ? error.message : String(error)}`
+                      );
+                    }
+
+                    return content;
+                  },
                 }),
                 {
                   exitOnCtrlC: true,
@@ -80,3 +156,85 @@ function buildListCommand() {
     ),
   );
 }
+
+function buildViewCommand() {
+  const sessionIdArg = Args.text({ name: "session-id" }).pipe(
+    Args.withDescription("Session ID to view"),
+  );
+
+  const summaryOption = Options.boolean("summary").pipe(
+    Options.withDefault(false),
+    Options.withDescription("Generate AI-powered summary of the conversation"),
+  );
+
+  const modelOption = Options.text("model").pipe(
+    Options.optional,
+    Options.withDescription(
+      "Model to use for summary (default: openai:gpt-4o-mini)",
+    ),
+  );
+
+  return Command.make("view", {
+    sessionId: sessionIdArg,
+    summary: summaryOption,
+    model: modelOption,
+  }).pipe(
+    Command.withDescription("View a specific AI agent session conversation"),
+    Command.withHandler(({ sessionId, summary, model }) =>
+      Effect.gen(function* () {
+        yield* trackCommand("sessions", "view");
+        yield* trackFeatureUsage("sessions_view", {
+          with_summary: summary,
+          has_custom_model: Option.isSome(model),
+        });
+
+        const { AgentSessionsService, streamConversation, getConversationFromSession } =
+          yield* Effect.promise(() => import("@open-composer/agent-sessions"));
+
+        const service = new AgentSessionsService();
+        const sessions = yield* service.getAllSessions();
+
+        // Find the session
+        const session = sessions.find((s) => s.id === sessionId);
+        if (!session) {
+          console.error(`Session not found: ${sessionId}`);
+          return;
+        }
+
+        console.log(`\n🔍 Loading session: ${sessionId}\n`);
+
+        // Read actual messages from the session
+        const messages = yield* Effect.promise(() => readSessionMessages(session.agent, sessionId));
+
+        // Create conversation object
+        const conversation = yield* getConversationFromSession(
+          session,
+          messages,
+        );
+
+        // Stream the conversation
+        const modelValue = Option.getOrElse(model, () => "openai:gpt-4o-mini");
+        const streamOptions = {
+          useSummary: summary,
+          model: modelValue,
+        };
+
+        yield* Effect.promise(async () => {
+          try {
+            for await (const chunk of streamConversation(
+              conversation,
+              streamOptions,
+            )) {
+              process.stdout.write(chunk);
+            }
+          } catch (error) {
+            console.error(
+              `\n❌ Error streaming conversation: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
+        });
+      }),
+    ),
+  );
+}
+

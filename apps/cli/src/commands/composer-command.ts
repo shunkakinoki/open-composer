@@ -26,7 +26,6 @@ import {
 import type { CommandBuilder } from "../types/commands.js";
 import { buildAgentsCommand } from "./agents-command.js";
 import { buildSessionsCommand } from "./sessions-command.js";
-import { buildSessionsViewerCommand } from "./sessions-viewer-command.js";
 import { buildCacheCommand } from "./cache-command.js";
 import { buildConfigCommand } from "./config-command.js";
 import { buildFeedbackCommand } from "./feedback.js";
@@ -83,7 +82,6 @@ const ALL_COMMAND_BUILDERS = [
   buildRunCommand,
   buildServeCommand,
   buildSessionsCommand,
-  buildSessionsViewerCommand,
   buildSettingsCommand,
   buildSpawnCommand,
   buildSquadCommand,

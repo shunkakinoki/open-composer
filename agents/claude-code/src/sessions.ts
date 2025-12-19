@@ -143,3 +143,88 @@ export const parseClaudeCodeSessions = (): Effect.Effect<
       (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
     );
   });
+
+// -----------------------------------------------------------------------------
+// Message Reading
+// -----------------------------------------------------------------------------
+
+export interface ClaudeCodeJSONLMessage {
+  type?: string;
+  message?: {
+    role?: string;
+    content?: string | Array<{ type: string; text?: string }>;
+  };
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Read messages from a Claude Code session
+ */
+export const readClaudeCodeSessionMessages = (
+  sessionId: string,
+): Effect.Effect<ClaudeCodeJSONLMessage[], Error> =>
+  Effect.gen(function* () {
+    // Try to find the session file in the Claude projects directory
+    const claudeProjectsDir = path.join(homedir(), ".claude", "projects");
+
+    const projectsDirExists = yield* Effect.tryPromise({
+      try: () => fs.access(claudeProjectsDir).then(() => true),
+      catch: () => false,
+    }).pipe(Effect.orElse(() => Effect.succeed(false)));
+
+    if (!projectsDirExists) {
+      return [];
+    }
+
+    const projectDirs = yield* Effect.tryPromise({
+      try: () => fs.readdir(claudeProjectsDir, { withFileTypes: true }),
+      catch: () => [],
+    }).pipe(Effect.orElse(() => Effect.succeed([])));
+
+    // Search for the session file across all project directories
+    for (const projectDir of projectDirs) {
+      if (!projectDir.isDirectory()) continue;
+
+      const sessionFilePath = path.join(
+        claudeProjectsDir,
+        projectDir.name,
+        `${sessionId}.jsonl`
+      );
+
+      const fileExists = yield* Effect.tryPromise({
+        try: () => fs.access(sessionFilePath).then(() => true),
+        catch: () => false,
+      }).pipe(Effect.orElse(() => Effect.succeed(false)));
+
+      if (!fileExists) continue;
+
+      // Read and parse JSONL file
+      const fileContent = yield* Effect.tryPromise({
+        try: () => fs.readFile(sessionFilePath, "utf-8"),
+        catch: (error) =>
+          new Error(`Failed to read session file: ${error instanceof Error ? error.message : String(error)}`),
+      });
+
+      // Parse JSONL (one JSON object per line)
+      const lines = fileContent.trim().split("\n");
+      const messages: ClaudeCodeJSONLMessage[] = [];
+
+      for (const line of lines) {
+        try {
+          const entry = JSON.parse(line) as ClaudeCodeJSONLMessage;
+          // Only include actual message entries
+          if (entry.message && entry.message.role) {
+            messages.push(entry);
+          }
+        } catch {
+          // Skip invalid JSON lines
+          continue;
+        }
+      }
+
+      return messages;
+    }
+
+    return [];
+  });
