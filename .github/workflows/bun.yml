@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@7c469e112471a2ddc5e8cc23e777f757f0ad34bc
+        uses: shunkakinoki/actions/.github/actions/setup-bun@5e19c3d0cca98a6d03f29c8a9d506f16718a6933
       - name: Build
         run: bun run build
   bun-lint:
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@7c469e112471a2ddc5e8cc23e777f757f0ad34bc
+        uses: shunkakinoki/actions/.github/actions/setup-bun@5e19c3d0cca98a6d03f29c8a9d506f16718a6933
       - name: Check
         run: bun run check
       - name: Format
@@ -44,7 +44,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup Bun
-        uses: shunkakinoki/actions/.github/actions/setup-bun@7c469e112471a2ddc5e8cc23e777f757f0ad34bc
+        uses: shunkakinoki/actions/.github/actions/setup-bun@5e19c3d0cca98a6d03f29c8a9d506f16718a6933
       - name: Test
         run: bun run test
   bun-check:
